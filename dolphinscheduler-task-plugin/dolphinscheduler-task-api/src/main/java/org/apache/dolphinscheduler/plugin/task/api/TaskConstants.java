@@ -31,6 +31,11 @@ public class TaskConstants {
     public static final String SETVALUE_REGEX = "\\$\\{setValue\\(([^)]*)\\)}";
 
     /**
+     * running code
+     */
+    public static final int RUNNING_CODE = 1;
+
+    /**
      * string false
      */
     public static final String STRING_FALSE = "false";
@@ -397,5 +402,25 @@ public class TaskConstants {
     public static final String AWS_ACCESS_KEY_ID= "aws.access.key.id";
     public static final String AWS_SECRET_ACCESS_KEY= "aws.secret.access.key";
     public static final String AWS_REGION = "aws.region";
+
+    public static final int LOG_LINES = 500;
+
+    /**
+     * use for k8s task
+     */
+    public static final String API_VERSION = "batch/v1";
+    public static final String IMAGE_PULL_POLICY = "Always";
+    public static final String RESTART_POLICY = "Never";
+    public static final String MEMORY = "memory";
+    public static final String CPU = "cpu";
+    public static final String LAYER_LABEL = "k8s.cn/layer";
+    public static final String LAYER_LABEL_VALUE = "batch";
+    public static final String NAME_LABEL = "k8s.cn/name";
+    public static final String  TASK_INSTANCE_ID = "taskInstanceId";
+    public static final String MI = "Mi";
+    public static final int JOB_TTL_SECONDS = 300;
+    public static final int LOG_LINES = 500;
+    public static final String NAMESPACE_NAME = "name";
+    public static final String CLUSTER = "cluster";
 
 }

@@ -218,6 +218,11 @@ public class TaskExecutionContext {
     private SQLTaskExecutionContext sqlTaskExecutionContext;
 
     /**
+     * k8s TaskExecutionContext
+     */
+    private K8sTaskExecutionContext k8sTaskExecutionContext;
+
+    /**
      * resources full name and tenant code
      */
     private Map<String, String> resources;
@@ -562,6 +567,15 @@ public class TaskExecutionContext {
 
     public void setEndTime(Date endTime) {
         this.endTime = endTime;
+    }
+
+    public K8sTaskExecutionContext getK8sTaskExecutionContext() {
+        return k8sTaskExecutionContext;
+    }
+
+    public void setK8sTaskExecutionContext(
+        K8sTaskExecutionContext k8sTaskExecutionContext) {
+        this.k8sTaskExecutionContext = k8sTaskExecutionContext;
     }
 
     @Override
