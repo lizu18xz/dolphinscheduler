@@ -105,6 +105,30 @@ public class SparkParameters extends AbstractParameters {
      */
     private List<ResourceInfo> resourceList = new ArrayList<>();
 
+
+    /**
+     * k8s operator
+     * */
+    private String image;
+
+    private String namespace;
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
     public ResourceInfo getMainJar() {
         return mainJar;
     }
@@ -225,6 +249,7 @@ public class SparkParameters extends AbstractParameters {
         this.sparkVersion = sparkVersion;
     }
 
+    //TODO 校验规则需要修改
     @Override
     public boolean checkParameters() {
         return mainJar != null && programType != null;

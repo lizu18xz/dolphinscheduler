@@ -17,17 +17,22 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_ON_K8S_OPERATOR;
+
 import org.apache.dolphinscheduler.plugin.task.api.AbstractTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sTaskExecutor;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.SparkK8sOperatorTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.model.TaskResponse;
 
 public abstract class AbstractK8sTask extends AbstractTaskExecutor {
+
     /**
      * process task
      */
     private AbstractK8sTaskExecutor abstractK8sTaskExecutor;
+
     /**
      * Abstract k8s Task
      *
@@ -35,7 +40,16 @@ public abstract class AbstractK8sTask extends AbstractTaskExecutor {
      */
     protected AbstractK8sTask(TaskExecutionContext taskRequest) {
         super(taskRequest);
-        this.abstractK8sTaskExecutor = new K8sTaskExecutor(logger,taskRequest);
+        this.abstractK8sTaskExecutor = new K8sTaskExecutor(logger, taskRequest);
+    }
+
+    protected AbstractK8sTask(TaskExecutionContext taskRequest, String type) {
+        super(taskRequest);
+        if (type.equals(SPARK_ON_K8S_OPERATOR)) {
+            this.abstractK8sTaskExecutor = new SparkK8sOperatorTaskExecutor(logger, taskRequest);
+        } else {
+            this.abstractK8sTaskExecutor = new K8sTaskExecutor(logger, taskRequest);
+        }
     }
 
     @Override
@@ -46,7 +60,7 @@ public abstract class AbstractK8sTask extends AbstractTaskExecutor {
             setAppIds(response.getAppIds());
         } catch (Exception e) {
             exitStatusCode = -1;
-            throw new TaskException("k8s process failure",e);
+            throw new TaskException("k8s process failure", e);
         }
     }
 

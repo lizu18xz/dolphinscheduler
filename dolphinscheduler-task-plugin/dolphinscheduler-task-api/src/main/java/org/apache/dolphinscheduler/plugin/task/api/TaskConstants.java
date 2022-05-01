@@ -178,8 +178,7 @@ public class TaskConstants {
     public static final String PARAMETER_FORMAT_TIME = "yyyyMMddHHmmss";
 
     /**
-     * new
-     * schedule time
+     * new schedule time
      */
     public static final String PARAMETER_SHECDULE_TIME = "schedule.time";
 
@@ -316,7 +315,7 @@ public class TaskConstants {
     /**
      * resource storage type
      */
-   // public static final String RESOURCE_STORAGE_TYPE = "resource.storage.type";
+    // public static final String RESOURCE_STORAGE_TYPE = "resource.storage.type";
 
     /**
      * kerberos
@@ -365,8 +364,7 @@ public class TaskConstants {
     public static final String TASK_LOGGER_THREAD_NAME = "TaskLogInfo";
 
     /**
-     * hdfs/s3 configuration
-     * resource.upload.path
+     * hdfs/s3 configuration resource.upload.path
      */
     public static final String RESOURCE_UPLOAD_PATH = "resource.upload.path";
 
@@ -394,16 +392,16 @@ public class TaskConstants {
 
     public static final String TASK_TYPE_BLOCKING = "BLOCKING";
 
-    public static final List<String> COMPLEX_TASK_TYPES = Arrays.asList(new String[]{TASK_TYPE_CONDITIONS, TASK_TYPE_SWITCH, TASK_TYPE_SUB_PROCESS, TASK_TYPE_DEPENDENT});
+    public static final List<String> COMPLEX_TASK_TYPES = Arrays.asList(
+        new String[]{TASK_TYPE_CONDITIONS, TASK_TYPE_SWITCH, TASK_TYPE_SUB_PROCESS,
+            TASK_TYPE_DEPENDENT});
 
     /**
      * aws config
      */
-    public static final String AWS_ACCESS_KEY_ID= "aws.access.key.id";
-    public static final String AWS_SECRET_ACCESS_KEY= "aws.secret.access.key";
+    public static final String AWS_ACCESS_KEY_ID = "aws.access.key.id";
+    public static final String AWS_SECRET_ACCESS_KEY = "aws.secret.access.key";
     public static final String AWS_REGION = "aws.region";
-
-    public static final int LOG_LINES = 500;
 
     /**
      * use for k8s task
@@ -416,11 +414,44 @@ public class TaskConstants {
     public static final String LAYER_LABEL = "k8s.cn/layer";
     public static final String LAYER_LABEL_VALUE = "batch";
     public static final String NAME_LABEL = "k8s.cn/name";
-    public static final String  TASK_INSTANCE_ID = "taskInstanceId";
+    public static final String TASK_INSTANCE_ID = "taskInstanceId";
     public static final String MI = "Mi";
     public static final int JOB_TTL_SECONDS = 300;
     public static final int LOG_LINES = 500;
     public static final String NAMESPACE_NAME = "name";
     public static final String CLUSTER = "cluster";
+
+    /**
+     * ks8 spark operator
+     * :spark_k8s_operator TODO 页面增加配置为spark_k8s_operator
+     */
+    public static final String SPARK_ON_K8S_OPERATOR = "spark_k8s_operator";
+
+
+    public static final String SPARK_K8S_OPERATOR_GROUP = "sparkoperator.k8s.io";
+
+    public static final String SPARK_K8S_OPERATOR_VERSION = "v1beta2";
+
+    public static final String SPARK_K8S_OPERATOR_SCOPE = "Namespaced";
+
+    public static final String SPARK_K8S_OPERATOR_PLURAL = "sparkapplications";
+
+    public static final String SPARK_K8S_OPERATOR_KIND = "SparkApplication";
+
+    public static final String SPARK_K8S_OPERATOR_NAME = "spark-operator-task";
+
+    public static final String SPARK_K8S_OPERATOR_APIVERSION = "sparkoperator.k8s.io/v1beta2";
+
+    public static final String SPARK_K8S_OPERATOR_MODEL = "cluster";
+
+    public static final String SPARK_K8S_OPERATOR_SUBMITTED = "SUBMITTED";
+
+    public static final String SPARK_K8S_OPERATOR_RUNNING = "RUNNING";
+
+    public static final String SPARK_K8S_OPERATOR_COMPLETED = "COMPLETED";
+
+    public static final String SPARK_K8S_OPERATOR_FAILED = "FAILED";
+
+
 
 }

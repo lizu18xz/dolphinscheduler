@@ -17,6 +17,9 @@
 
 package org.apache.dolphinscheduler.plugin.task.spark;
 
+
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_ON_K8S_OPERATOR;
+
 import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannel;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
@@ -34,6 +37,11 @@ public class SparkTaskChannel implements TaskChannel {
 
     @Override
     public AbstractTask createTask(TaskExecutionContext taskRequest) {
+        SparkParameters sparkParameters = JSONUtils
+            .parseObject(taskRequest.getTaskParams(), SparkParameters.class);
+        if(SPARK_ON_K8S_OPERATOR.equals(sparkParameters.getDeployMode())){
+            return new SparkK8sOperatorTask(taskRequest);
+        }
         return new SparkTask(taskRequest);
     }
 
