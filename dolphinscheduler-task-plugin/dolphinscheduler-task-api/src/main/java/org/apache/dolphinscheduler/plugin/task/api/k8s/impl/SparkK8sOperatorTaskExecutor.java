@@ -5,9 +5,16 @@ import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_COD
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_SUCCESS;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_APIVERSION;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_COMPLETED;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_CORE_LIMIT;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_FAILED;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_IMAGE_PULL_POLICY;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_KIND;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_LABEL_VERSION;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_MODEL;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_RESTART_POLICY;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_VOLUME_NAME;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_VOLUME_PATH;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_K8S_OPERATOR_VOLUME_TYPE;
 
 import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
@@ -15,7 +22,6 @@ import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -70,7 +76,8 @@ public class SparkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
                 TaskExecutionContextCacheManager.removeByTaskInstanceId(taskInstanceId);
                 return result;
             }
-            k8sUtils.buildNoAuthClient("https://kubernetes.docker.internal:6443");
+            //TODO 认证连接
+            k8sUtils.buildNoAuthClient(k8STaskMainParameters.getMasterUrl());
             submitJob2k8s(k8sParameterStr);
             registerBatchJobWatcher(Integer.toString(taskInstanceId), result,
                 k8STaskMainParameters);
@@ -240,11 +247,10 @@ public class SparkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
     }
 
     /**
-     * TODO 先写死
+     * TODO 部分参数先写死
      */
     private SparkGenericKubernetesResource buildK8sOperatorJob(
         K8sSparkOperatorTaskMainParameters k8sSparkOperatorTaskMainParameters) {
-
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
@@ -259,24 +265,23 @@ public class SparkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
 
         SparkOperatorSpec spec = new SparkOperatorSpec();
         spec.setMode(SPARK_K8S_OPERATOR_MODEL);
-        spec.setType("Scala");
-        spec.setImagePullPolicy("IfNotPresent");
-        spec.setMainClass("org.apache.spark.examples.SparkPi");
-        spec.setMainApplicationFile(
-            "local:///opt/spark/examples/jars/spark-examples_2.12-3.0.0.jar");
-        spec.setSparkVersion("3.0.0");
+        spec.setImagePullPolicy(SPARK_K8S_OPERATOR_IMAGE_PULL_POLICY);
+        spec.setType(k8sSparkOperatorTaskMainParameters.getProgramType());
+        spec.setMainClass(k8sSparkOperatorTaskMainParameters.getMainClass());
+        spec.setMainApplicationFile(k8sSparkOperatorTaskMainParameters.getMainJar());
+        spec.setSparkVersion(k8sSparkOperatorTaskMainParameters.getSparkVersion());
         spec.setImage(k8sSparkOperatorTaskMainParameters.getImage());
         RestartPolicy restartPolicy = new RestartPolicy();
-        restartPolicy.setType("Never");
+        restartPolicy.setType(SPARK_K8S_OPERATOR_RESTART_POLICY);
         spec.setRestartPolicy(restartPolicy);
 
         Volume volume = volume();
         spec.setVolumes(Lists.newArrayList(volume));
 
-        Driver driver = driver();
+        Driver driver = driver(k8sSparkOperatorTaskMainParameters);
         spec.setDriver(driver);
 
-        Executor executor = executor();
+        Executor executor = executor(k8sSparkOperatorTaskMainParameters);
         spec.setExecutor(executor);
         sparkGenericKubernetesResource.setSpec(spec);
         return sparkGenericKubernetesResource;
@@ -284,44 +289,43 @@ public class SparkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
 
     private Volume volume() {
         Volume volume = new Volume();
-        volume.setName("test-volume");
+        volume.setName(SPARK_K8S_OPERATOR_VOLUME_NAME);
         HostPath hostPath = new HostPath();
-        hostPath.setPath("/tmp");
-        hostPath.setType("Directory");
+        hostPath.setPath(SPARK_K8S_OPERATOR_VOLUME_PATH);
+        hostPath.setType(SPARK_K8S_OPERATOR_VOLUME_TYPE);
         volume.setHostPath(hostPath);
         return volume;
     }
 
-    private Driver driver() {
+    private Driver driver(K8sSparkOperatorTaskMainParameters k8sSparkOperatorTaskMainParameters) {
         Driver driver = new Driver();
-        Map<String, Object> envVars = new HashMap<>();
-        envVars.put("lizu", "哈哈哈哈");
-        driver.setEnvVars(envVars);
-        driver.setCores(1);
-        driver.setCoreLimit("1200m");
-        driver.setMemory("512m");
+        driver.setEnvVars(k8sSparkOperatorTaskMainParameters.getParamsMap());
+        driver.setCoreLimit(SPARK_K8S_OPERATOR_CORE_LIMIT);
+        driver.setCores(k8sSparkOperatorTaskMainParameters.getDriverCores());
+        driver.setMemory(k8sSparkOperatorTaskMainParameters.getDriverMemory());
         Labels labels = new Labels();
-        labels.setVersion("3.0.0");
+        labels.setVersion(SPARK_K8S_OPERATOR_LABEL_VERSION);
         driver.setLabels(labels);
         driver.setServiceAccount("spark");
         VolumeMounts volumeMounts = new VolumeMounts();
-        volumeMounts.setName("test-volume");
-        volumeMounts.setMountPath("/tmp");
+        volumeMounts.setName(SPARK_K8S_OPERATOR_VOLUME_NAME);
+        volumeMounts.setMountPath(SPARK_K8S_OPERATOR_VOLUME_PATH);
         driver.setVolumeMounts(Lists.newArrayList(volumeMounts));
         return driver;
     }
 
-    private Executor executor() {
+    private Executor executor(
+        K8sSparkOperatorTaskMainParameters k8sSparkOperatorTaskMainParameters) {
         Executor executor = new Executor();
-        executor.setCores(1);
-        executor.setInstances(1);
-        executor.setMemory("512m");
+        executor.setCores(k8sSparkOperatorTaskMainParameters.getExecutorCores());
+        executor.setInstances(k8sSparkOperatorTaskMainParameters.getNumExecutors());
+        executor.setMemory(k8sSparkOperatorTaskMainParameters.getExecutorMemory());
         Labels execLabels = new Labels();
-        execLabels.setVersion("3.0.0");
+        execLabels.setVersion(SPARK_K8S_OPERATOR_LABEL_VERSION);
         executor.setLabels(execLabels);
         VolumeMounts execVolumeMounts = new VolumeMounts();
-        execVolumeMounts.setName("test-volume");
-        execVolumeMounts.setMountPath("/tmp");
+        execVolumeMounts.setName(SPARK_K8S_OPERATOR_VOLUME_NAME);
+        execVolumeMounts.setMountPath(SPARK_K8S_OPERATOR_VOLUME_PATH);
         executor.setVolumeMounts(Lists.newArrayList(execVolumeMounts));
         return executor;
     }

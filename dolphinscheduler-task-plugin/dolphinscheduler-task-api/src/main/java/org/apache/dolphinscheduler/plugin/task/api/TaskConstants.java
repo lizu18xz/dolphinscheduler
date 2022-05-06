@@ -452,6 +452,19 @@ public class TaskConstants {
 
     public static final String SPARK_K8S_OPERATOR_FAILED = "FAILED";
 
+    public static final String SPARK_K8S_OPERATOR_IMAGE_PULL_POLICY = "IfNotPresent";
+
+    public static final String SPARK_K8S_OPERATOR_RESTART_POLICY = "Never";
+
+    public static final String SPARK_K8S_OPERATOR_CORE_LIMIT = "1200m";
+
+    public static final String SPARK_K8S_OPERATOR_LABEL_VERSION = "3.0.0";
+
+    public static final String SPARK_K8S_OPERATOR_VOLUME_NAME = "test-volume";
+
+    public static final String SPARK_K8S_OPERATOR_VOLUME_PATH = "/tmp";
+
+    public static final String SPARK_K8S_OPERATOR_VOLUME_TYPE = "Directory";
 
 
 }

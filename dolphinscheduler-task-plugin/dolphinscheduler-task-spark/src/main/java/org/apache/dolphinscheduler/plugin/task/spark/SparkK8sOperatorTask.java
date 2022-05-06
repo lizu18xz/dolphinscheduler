@@ -58,9 +58,17 @@ public class SparkK8sOperatorTask extends AbstractK8sTask {
         k8sTaskMainParameters.setNamespaceName("spark-operator");
         k8sTaskMainParameters.setClusterName("cluster");
         //镜像名称
+        k8sTaskMainParameters.setSparkVersion("3.0.0");
         k8sTaskMainParameters.setImage("registry.cn-hangzhou.aliyuncs.com/terminus/spark:v3.0.0");
-
-        //TODO 其他参数 ,executor等
+        k8sTaskMainParameters.setMasterUrl("https://kubernetes.docker.internal:6443");
+        k8sTaskMainParameters.setMainClass("org.apache.spark.examples.SparkPi");
+        k8sTaskMainParameters.setMainJar("local:///opt/spark/examples/jars/spark-examples_2.12-3.0.0.jar");
+        k8sTaskMainParameters.setDriverCores(1);
+        k8sTaskMainParameters.setDriverMemory("512m");
+        k8sTaskMainParameters.setExecutorCores(1);
+        k8sTaskMainParameters.setExecutorMemory("512m");
+        k8sTaskMainParameters.setNumExecutors(1);
+        k8sTaskMainParameters.setProgramType("Scala");
 
         k8sTaskMainParameters.setParamsMap(ParamUtils.convert(paramsMap));
         return JSONUtils.toJsonString(k8sTaskMainParameters);

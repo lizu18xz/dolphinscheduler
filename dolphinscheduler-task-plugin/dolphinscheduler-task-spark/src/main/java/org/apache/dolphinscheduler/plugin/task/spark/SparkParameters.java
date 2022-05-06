@@ -90,8 +90,7 @@ public class SparkParameters extends AbstractParameters {
     private String others;
 
     /**
-     * program type
-     * 0 JAVA,1 SCALA,2 PYTHON
+     * program type 0 JAVA,1 SCALA,2 PYTHON
      */
     private ProgramType programType;
 
@@ -108,10 +107,12 @@ public class SparkParameters extends AbstractParameters {
 
     /**
      * k8s operator
-     * */
+     */
     private String image;
 
     private String namespace;
+
+    private String masterUrl;
 
     public String getImage() {
         return image;
@@ -127,6 +128,14 @@ public class SparkParameters extends AbstractParameters {
 
     public void setNamespace(String namespace) {
         this.namespace = namespace;
+    }
+
+    public String getMasterUrl() {
+        return masterUrl;
+    }
+
+    public void setMasterUrl(String masterUrl) {
+        this.masterUrl = masterUrl;
     }
 
     public ResourceInfo getMainJar() {
@@ -252,7 +261,8 @@ public class SparkParameters extends AbstractParameters {
     //TODO 校验规则需要修改
     @Override
     public boolean checkParameters() {
-        return mainJar != null && programType != null;
+        //return mainJar != null && programType != null;
+        return programType != null;
     }
 
     @Override

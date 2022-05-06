@@ -14,7 +14,7 @@ public class Driver {
     /**
      * TODO 升级后改成 最新的evn传递方式
      */
-    private Map<String, Object> envVars;
+    private Map<String, String> envVars;
 
     private Integer cores;
 
@@ -28,11 +28,11 @@ public class Driver {
 
     private List<VolumeMounts> volumeMounts;
 
-    public Map<String, Object> getEnvVars() {
+    public Map<String, String> getEnvVars() {
         return envVars;
     }
 
-    public void setEnvVars(Map<String, Object> envVars) {
+    public void setEnvVars(Map<String, String> envVars) {
         this.envVars = envVars;
     }
 
