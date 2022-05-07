@@ -268,7 +268,7 @@ public class SparkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         spec.setImagePullPolicy(SPARK_K8S_OPERATOR_IMAGE_PULL_POLICY);
         spec.setType(k8sSparkOperatorTaskMainParameters.getProgramType());
         spec.setMainClass(k8sSparkOperatorTaskMainParameters.getMainClass());
-        spec.setMainApplicationFile(k8sSparkOperatorTaskMainParameters.getMainJar());
+        spec.setMainApplicationFile(k8sSparkOperatorTaskMainParameters.getMainApplicationFile());
         spec.setSparkVersion(k8sSparkOperatorTaskMainParameters.getSparkVersion());
         spec.setImage(k8sSparkOperatorTaskMainParameters.getImage());
         RestartPolicy restartPolicy = new RestartPolicy();
@@ -306,7 +306,7 @@ public class SparkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         Labels labels = new Labels();
         labels.setVersion(SPARK_K8S_OPERATOR_LABEL_VERSION);
         driver.setLabels(labels);
-        driver.setServiceAccount("spark");
+        driver.setServiceAccount(k8sSparkOperatorTaskMainParameters.getServiceAccount());
         VolumeMounts volumeMounts = new VolumeMounts();
         volumeMounts.setName(SPARK_K8S_OPERATOR_VOLUME_NAME);
         volumeMounts.setMountPath(SPARK_K8S_OPERATOR_VOLUME_PATH);

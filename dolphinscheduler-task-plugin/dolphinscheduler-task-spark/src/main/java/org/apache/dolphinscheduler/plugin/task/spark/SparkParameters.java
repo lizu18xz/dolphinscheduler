@@ -114,6 +114,10 @@ public class SparkParameters extends AbstractParameters {
 
     private String masterUrl;
 
+    private String mainApplicationFile;
+
+    private String serviceAccount;
+
     public String getImage() {
         return image;
     }
@@ -136,6 +140,14 @@ public class SparkParameters extends AbstractParameters {
 
     public void setMasterUrl(String masterUrl) {
         this.masterUrl = masterUrl;
+    }
+
+    public String getMainApplicationFile() {
+        return mainApplicationFile;
+    }
+
+    public void setMainApplicationFile(String mainApplicationFile) {
+        this.mainApplicationFile = mainApplicationFile;
     }
 
     public ResourceInfo getMainJar() {
@@ -256,6 +268,14 @@ public class SparkParameters extends AbstractParameters {
 
     public void setSparkVersion(String sparkVersion) {
         this.sparkVersion = sparkVersion;
+    }
+
+    public String getServiceAccount() {
+        return serviceAccount;
+    }
+
+    public void setServiceAccount(String serviceAccount) {
+        this.serviceAccount = serviceAccount;
     }
 
     //TODO 校验规则需要修改

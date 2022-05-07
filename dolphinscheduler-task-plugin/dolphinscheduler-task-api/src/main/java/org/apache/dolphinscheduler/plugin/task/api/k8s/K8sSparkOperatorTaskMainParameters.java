@@ -1,7 +1,5 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
-import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
-
 /**
  * spark operator扩展参数
  *
@@ -19,9 +17,20 @@ public class K8sSparkOperatorTaskMainParameters extends K8sTaskMainParameters {
 
     private String mainClass;
 
-    private String mainJar;
+    private String mainApplicationFile;
 
     private String sparkVersion;
+
+
+    /**
+     * A Spark driver pod need a Kubernetes service account in the pod's namespace that has
+     * permissions to create, get, list, and delete executor pods, and create a Kubernetes headless
+     * service for the driver. The driver will fail and exit without the service account, unless the
+     * default service account in the pod's namespace has the needed permissions. To submit and run
+     * a SparkApplication in a namespace, please make sure there is a service account with the
+     * permissions in the namespace and set
+     */
+    private String serviceAccount;
 
     /**
      * driver-cores Number of cores used by the driver, only in cluster mode
@@ -113,13 +122,6 @@ public class K8sSparkOperatorTaskMainParameters extends K8sTaskMainParameters {
         this.mainClass = mainClass;
     }
 
-    public String getMainJar() {
-        return mainJar;
-    }
-
-    public void setMainJar(String mainJar) {
-        this.mainJar = mainJar;
-    }
 
     public String getSparkVersion() {
         return sparkVersion;
@@ -127,5 +129,21 @@ public class K8sSparkOperatorTaskMainParameters extends K8sTaskMainParameters {
 
     public void setSparkVersion(String sparkVersion) {
         this.sparkVersion = sparkVersion;
+    }
+
+    public String getMainApplicationFile() {
+        return mainApplicationFile;
+    }
+
+    public void setMainApplicationFile(String mainApplicationFile) {
+        this.mainApplicationFile = mainApplicationFile;
+    }
+
+    public String getServiceAccount() {
+        return serviceAccount;
+    }
+
+    public void setServiceAccount(String serviceAccount) {
+        this.serviceAccount = serviceAccount;
     }
 }

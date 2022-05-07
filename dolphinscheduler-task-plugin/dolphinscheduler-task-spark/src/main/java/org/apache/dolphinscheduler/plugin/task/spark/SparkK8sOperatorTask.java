@@ -46,7 +46,7 @@ public class SparkK8sOperatorTask extends AbstractK8sTask {
      */
     @Override
     protected String buildCommand() {
-        K8sSparkOperatorTaskMainParameters k8sTaskMainParameters = new K8sSparkOperatorTaskMainParameters();
+        K8sSparkOperatorTaskMainParameters k8sSparkOperatorTaskMainParameters = new K8sSparkOperatorTaskMainParameters();
         Map<String, Property> paramsMap = ParamUtils.convert(taskExecutionContext, getParameters());
         if (MapUtils.isEmpty(paramsMap)) {
             paramsMap = new HashMap<>();
@@ -55,22 +55,42 @@ public class SparkK8sOperatorTask extends AbstractK8sTask {
             paramsMap.putAll(taskExecutionContext.getParamsMap());
         }
 
-        k8sTaskMainParameters.setNamespaceName("spark-operator");
-        k8sTaskMainParameters.setClusterName("cluster");
+        k8sSparkOperatorTaskMainParameters.setClusterName("cluster");
+        //TODO serviceAccount
+        k8sSparkOperatorTaskMainParameters.setServiceAccount(sparkParameters.getServiceAccount());
+        k8sSparkOperatorTaskMainParameters.setNamespaceName(sparkParameters.getNamespace());
         //镜像名称
-        k8sTaskMainParameters.setSparkVersion("3.0.0");
-        k8sTaskMainParameters.setImage("registry.cn-hangzhou.aliyuncs.com/terminus/spark:v3.0.0");
-        k8sTaskMainParameters.setMasterUrl("https://kubernetes.docker.internal:6443");
-        k8sTaskMainParameters.setMainClass("org.apache.spark.examples.SparkPi");
-        k8sTaskMainParameters.setMainJar("local:///opt/spark/examples/jars/spark-examples_2.12-3.0.0.jar");
-        k8sTaskMainParameters.setDriverCores(1);
-        k8sTaskMainParameters.setDriverMemory("512m");
-        k8sTaskMainParameters.setExecutorCores(1);
-        k8sTaskMainParameters.setExecutorMemory("512m");
-        k8sTaskMainParameters.setNumExecutors(1);
-        k8sTaskMainParameters.setProgramType("Scala");
+        k8sSparkOperatorTaskMainParameters.setSparkVersion(sparkParameters.getSparkVersion());
+        k8sSparkOperatorTaskMainParameters
+            .setImage(sparkParameters.getImage());
+        k8sSparkOperatorTaskMainParameters.setMasterUrl(sparkParameters.getMasterUrl());
+        k8sSparkOperatorTaskMainParameters.setMainClass(sparkParameters.getMainClass());
+        k8sSparkOperatorTaskMainParameters
+            .setMainApplicationFile(sparkParameters.getMainApplicationFile());
+        k8sSparkOperatorTaskMainParameters.setDriverCores(sparkParameters.getDriverCores());
+        k8sSparkOperatorTaskMainParameters.setDriverMemory(sparkParameters.getDriverMemory());
+        k8sSparkOperatorTaskMainParameters.setExecutorCores(sparkParameters.getExecutorCores());
+        k8sSparkOperatorTaskMainParameters.setExecutorMemory(sparkParameters.getExecutorMemory());
+        k8sSparkOperatorTaskMainParameters.setNumExecutors(sparkParameters.getNumExecutors());
+        k8sSparkOperatorTaskMainParameters
+            .setProgramType(convertProgramType(sparkParameters.getProgramType()));
+        k8sSparkOperatorTaskMainParameters.setParamsMap(ParamUtils.convert(paramsMap));
+        return JSONUtils.toJsonString(k8sSparkOperatorTaskMainParameters);
+    }
 
-        k8sTaskMainParameters.setParamsMap(ParamUtils.convert(paramsMap));
-        return JSONUtils.toJsonString(k8sTaskMainParameters);
+    private String convertProgramType(ProgramType programType) {
+        String type;
+        switch (programType) {
+            case JAVA:
+                type = "Java";
+                break;
+            case SCALA:
+                type = "Scala";
+                break;
+            default:
+                type = "Python";
+                break;
+        }
+        return type;
     }
 }
