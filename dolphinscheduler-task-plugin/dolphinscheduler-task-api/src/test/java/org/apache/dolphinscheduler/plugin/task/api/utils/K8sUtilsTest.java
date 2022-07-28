@@ -40,6 +40,12 @@ public class K8sUtilsTest {
 
 
     public static void main(String[] args) {
+        submitFlinkByOperator();
+
+    }
+
+
+    private void submitSparkByOperator() {
         try {
             Config config = new ConfigBuilder()
                 .withMasterUrl("https://kubernetes.docker.internal:6443")
@@ -100,6 +106,7 @@ public class K8sUtilsTest {
             throw new TaskException("fail to build k8s ApiClient");
         }
     }
+
 
     private static SparkGenericKubernetesResource getSparkGenericKubernetesResource() {
         SparkGenericKubernetesResource sparkResource = new SparkGenericKubernetesResource();
@@ -163,5 +170,65 @@ public class K8sUtilsTest {
         sparkResource.setSpec(spec);
         return sparkResource;
     }
+
+
+
+    /**
+     * https://kubernetes.docker.internal:6443/apis/flink.apache.org/v1beta1/flinkdeployments?fieldSelector=metadata.name%3Dbasic-example&watch=true...
+     * */
+    public static void submitFlinkByOperator() {
+
+        try {
+            Config config = new ConfigBuilder()
+                .withMasterUrl("https://kubernetes.docker.internal:6443")
+                .build();
+            KubernetesClient client = new DefaultKubernetesClient(config);
+            CustomResourceDefinitionContext context = new CustomResourceDefinitionContext.Builder()
+                .withGroup("flink.apache.org")
+                .withVersion("v1beta1")
+                .withScope("Namespaced")
+                .withName("flink-kubernetes-operator")
+                .withPlural("flinkdeployments")
+                .withKind("FlinkDeployment")
+                .build();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                client.genericKubernetesResources(context);
+            resourceMixedOperation.inNamespace("default")
+                .load(K8sUtils.class.getResourceAsStream("/flink-pi.yaml"))
+                .createOrReplace();
+
+            //监控任务的运行
+            resourceMixedOperation.withName("basic-example")
+                .watch(new Watcher<GenericKubernetesResource>() {
+                    @Override
+                    public void eventReceived(Action action, GenericKubernetesResource resource) {
+                        System.out.println("eventReceived~~~");
+                        if (action != Action.ADDED) {
+                            Map<String, Object> additionalProperties = resource
+                                .getAdditionalProperties();
+                            if (additionalProperties != null) {
+                                Map<String, Object> status = (Map<String, Object>) additionalProperties
+                                    .get("status");
+                                Map<String, Object> state = (Map<String, Object>) status
+                                    .get("jobStatus");
+                                if(state!=null){
+                                    String state1 = state.get("state").toString();
+                                    System.out.println(state1.toString());
+                                }
+                            }
+                        }
+                    }
+                    @Override
+                    public void onClose(WatcherException cause) {
+                        System.out.println("close~~~");
+                    }
+                });
+        } catch (Exception e) {
+
+            e.printStackTrace();
+        }
+
+    }
+
 
 }
