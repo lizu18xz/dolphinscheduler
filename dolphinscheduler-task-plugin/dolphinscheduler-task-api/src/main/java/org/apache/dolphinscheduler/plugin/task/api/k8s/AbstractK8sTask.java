@@ -17,11 +17,13 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.SPARK_ON_K8S_OPERATOR;
 
 import org.apache.dolphinscheduler.plugin.task.api.AbstractTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.FlinkK8sOperatorTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.SparkK8sOperatorTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.model.TaskResponse;
@@ -43,12 +45,19 @@ public abstract class AbstractK8sTask extends AbstractTaskExecutor {
         this.abstractK8sTaskExecutor = new K8sTaskExecutor(logger, taskRequest);
     }
 
+
     protected AbstractK8sTask(TaskExecutionContext taskRequest, String type) {
         super(taskRequest);
-        if (type.equals(SPARK_ON_K8S_OPERATOR)) {
-            this.abstractK8sTaskExecutor = new SparkK8sOperatorTaskExecutor(logger, taskRequest);
-        } else {
-            this.abstractK8sTaskExecutor = new K8sTaskExecutor(logger, taskRequest);
+        switch (type) {
+            case FLINK_K8S_OPERATOR:
+                this.abstractK8sTaskExecutor=new FlinkK8sOperatorTaskExecutor(logger,taskRequest);
+                break;
+            case SPARK_ON_K8S_OPERATOR:
+                this.abstractK8sTaskExecutor = new SparkK8sOperatorTaskExecutor(logger,
+                    taskRequest);
+                break;
+            default:
+                this.abstractK8sTaskExecutor = new K8sTaskExecutor(logger, taskRequest);
         }
     }
 

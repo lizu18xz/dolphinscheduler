@@ -73,24 +73,9 @@ public class SparkK8sOperatorTask extends AbstractK8sTask {
         k8sSparkOperatorTaskMainParameters.setExecutorMemory(sparkParameters.getExecutorMemory());
         k8sSparkOperatorTaskMainParameters.setNumExecutors(sparkParameters.getNumExecutors());
         k8sSparkOperatorTaskMainParameters
-            .setProgramType(convertProgramType(sparkParameters.getProgramType()));
+            .setProgramType(ProgramType.convertProgramType(sparkParameters.getProgramType()));
         k8sSparkOperatorTaskMainParameters.setParamsMap(ParamUtils.convert(paramsMap));
         return JSONUtils.toJsonString(k8sSparkOperatorTaskMainParameters);
     }
 
-    private String convertProgramType(ProgramType programType) {
-        String type;
-        switch (programType) {
-            case JAVA:
-                type = "Java";
-                break;
-            case SCALA:
-                type = "Scala";
-                break;
-            default:
-                type = "Python";
-                break;
-        }
-        return type;
-    }
 }

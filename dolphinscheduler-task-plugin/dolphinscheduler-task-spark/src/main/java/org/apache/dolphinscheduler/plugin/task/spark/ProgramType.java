@@ -27,5 +27,21 @@ public enum ProgramType {
      */
     JAVA,
     SCALA,
-    PYTHON
+    PYTHON;
+
+    public static String convertProgramType(ProgramType programType) {
+        String type;
+        switch (programType) {
+            case JAVA:
+                type = "Java";
+                break;
+            case SCALA:
+                type = "Scala";
+                break;
+            default:
+                type = "Python";
+                break;
+        }
+        return type;
+    }
 }

@@ -42,6 +42,8 @@ import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import java.util.List;
 import java.util.Optional;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.flink.CrdConstants;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.flink.FlinkDeployment;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.spark.SparkGenericKubernetesResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,4 +214,73 @@ public class K8sUtils {
             .build();
     }
 
+
+    public void createFlinkOperatorJob(String namespace,
+        FlinkDeployment flinkDeployment) {
+        try {
+            CustomResourceDefinitionContext context = getFlinkCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                client.genericKubernetesResources(context);
+
+            resourceMixedOperation.inNamespace(namespace)
+                .createOrReplace(flinkDeployment);
+
+        } catch (Exception e) {
+            throw new TaskException("fail to create flink job", e);
+        }
+    }
+
+    public void deleteFlinkOperatorJob(String namespace,
+        FlinkDeployment flinkDeployment) {
+        try {
+            CustomResourceDefinitionContext context = getFlinkCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                client.genericKubernetesResources(context);
+            resourceMixedOperation.inNamespace(namespace)
+                .delete(flinkDeployment);
+        } catch (Exception e) {
+            throw new TaskException("fail to delete flink job", e);
+        }
+    }
+
+    public Boolean flinkOperatorJobExist(String jobName, String namespace) {
+        Optional<GenericKubernetesResource> result;
+        try {
+            CustomResourceDefinitionContext context = getFlinkCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                client.genericKubernetesResources(context);
+
+            GenericKubernetesResourceList list = resourceMixedOperation
+                .inNamespace(namespace).list();
+            List<GenericKubernetesResource> items = list.getItems();
+            result = items.stream()
+                .filter(job -> job.getMetadata().getName().equals(jobName))
+                .findFirst();
+            return result.isPresent();
+        } catch (Exception e) {
+            throw new TaskException("fail to check flink job: ", e);
+        }
+    }
+
+    public Watch createBatchFlinkOperatorJobWatcher(String jobName,
+        Watcher<GenericKubernetesResource> watcher) {
+        try {
+            CustomResourceDefinitionContext context = getFlinkCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                client.genericKubernetesResources(context);
+            return resourceMixedOperation.withName(jobName).watch(watcher);
+        } catch (Exception e) {
+            throw new TaskException("fail to register flink operator batch job watcher", e);
+        }
+    }
+
+    private CustomResourceDefinitionContext getFlinkCustomResourceDefinitionContext() {
+        return new CustomResourceDefinitionContext.Builder()
+            .withGroup(CrdConstants.API_GROUP)
+            .withVersion(CrdConstants.API_VERSION)
+            .withScope(CrdConstants.NAMESPACED)
+            .withPlural(CrdConstants.FLINK_DEPLOYMENTS)
+            .withKind(CrdConstants.KIND_FLINK_DEPLOYMENT)
+            .build();
+    }
 }

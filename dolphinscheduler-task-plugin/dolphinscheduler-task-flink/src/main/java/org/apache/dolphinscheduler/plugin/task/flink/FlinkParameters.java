@@ -99,10 +99,22 @@ public class FlinkParameters extends AbstractParameters {
     private String flinkVersion;
 
     /**
-     * program type
-     * 0 JAVA,1 SCALA,2 PYTHON
+     * program type 0 JAVA,1 SCALA,2 PYTHON
      */
     private ProgramType programType;
+
+    /**
+     * 没有认证的k8s 连接
+     */
+    private String masterUrl;
+
+    public String getMasterUrl() {
+        return masterUrl;
+    }
+
+    public void setMasterUrl(String masterUrl) {
+        this.masterUrl = masterUrl;
+    }
 
     public ResourceInfo getMainJar() {
         return mainJar;
@@ -226,7 +238,8 @@ public class FlinkParameters extends AbstractParameters {
 
     @Override
     public boolean checkParameters() {
-        return mainJar != null && programType != null;
+        //return mainJar != null && programType != null;
+        return programType != null;
     }
 
     @Override

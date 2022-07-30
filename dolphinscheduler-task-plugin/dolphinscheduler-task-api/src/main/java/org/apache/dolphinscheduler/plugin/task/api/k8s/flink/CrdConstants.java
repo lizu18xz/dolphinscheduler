@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,32 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.plugin.task.flink;
+package org.apache.dolphinscheduler.plugin.task.api.k8s.flink;
 
 /**
- * support program types
+ * Constants used by the CRD.
  */
-public enum ProgramType {
-    /**
-     * 0 JAVA,1 SCALA,2 PYTHON
-     */
-    JAVA,
-    SCALA,
-    PYTHON;
+public class CrdConstants {
 
-    public static String convertProgramType(ProgramType programType) {
-        String type;
-        switch (programType) {
-            case JAVA:
-                type = "Java";
-                break;
-            case SCALA:
-                type = "Scala";
-                break;
-            default:
-                type = "Python";
-                break;
-        }
-        return type;
-    }
+    public static final String API_GROUP = "flink.apache.org";
+    public static final String API_VERSION = "v1beta1";
+    public static final String KIND_SESSION_JOB = "FlinkSessionJob";
+    public static final String KIND_FLINK_DEPLOYMENT = "FlinkDeployment";
+
+    public static final String FLINK_DEPLOYMENTS = "flinkdeployments";
+
+    public static final String FLINK_SESSIONJOBS = "flinksessionjobs";
+
+    public static final String NAMESPACED = "Namespaced";
 }

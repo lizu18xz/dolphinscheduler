@@ -17,6 +17,10 @@
 
 package org.apache.dolphinscheduler.plugin.task.flink;
 
+
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR;
+
+import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannel;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
@@ -31,7 +35,11 @@ public class FlinkTaskChannel implements TaskChannel {
     }
 
     @Override
-    public FlinkTask createTask(TaskExecutionContext taskRequest) {
+    public AbstractTask createTask(TaskExecutionContext taskRequest) {
+        FlinkParameters flinkParameters = JSONUtils.parseObject(taskRequest.getTaskParams(), FlinkParameters.class);
+        if(FLINK_K8S_OPERATOR.equals(flinkParameters.getDeployMode())){
+            return new FlinkK8sOperatorTask(taskRequest);
+        }
         return new FlinkTask(taskRequest);
     }
 

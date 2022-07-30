@@ -422,8 +422,7 @@ public class TaskConstants {
     public static final String CLUSTER = "cluster";
 
     /**
-     * ks8 spark operator
-     * :spark_k8s_operator TODO 页面增加配置为spark_k8s_operator
+     * ks8 spark operator :spark_k8s_operator TODO 页面增加配置为spark_k8s_operator
      */
     public static final String SPARK_ON_K8S_OPERATOR = "spark_k8s_operator";
 
@@ -466,5 +465,14 @@ public class TaskConstants {
 
     public static final String SPARK_K8S_OPERATOR_VOLUME_TYPE = "Directory";
 
+
+    /**
+     * k8s flink operator
+     */
+    public static final String FLINK_K8S_OPERATOR = "flink-operator";
+
+    public static final String FLINK_K8S_OPERATOR_COMPLETED = "COMPLETED";
+
+    public static final String FLINK_K8S_OPERATOR_FAILED = "FAILED";
 
 }
