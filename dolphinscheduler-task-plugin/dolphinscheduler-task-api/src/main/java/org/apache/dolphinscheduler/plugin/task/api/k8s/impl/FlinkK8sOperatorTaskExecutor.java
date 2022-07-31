@@ -3,8 +3,10 @@ package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_FAILURE;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_KILL;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_SUCCESS;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR_COMPLETED;
+
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR_FAILED;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR_FINISHED;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR_RUNNING;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -74,6 +76,15 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         return result;
     }
 
+    /**
+     * RECONCILING:The job is currently reconciling and waits for task execution report to recover
+     * state.
+     * <p>
+     * CREATED:Job is newly created, no task has started to run.
+     * <p>
+     * RUNNING:Some tasks are scheduled or running, some may be pending, some may be finished.
+     * FAILING FAILED CANCELLING CANCELED FINISHED
+     */
     private void registerBatchJobWatcher(String taskInstanceId, TaskResponse taskResponse,
         K8sFlinkOperatorTaskMainParameters k8STaskMainParameters) {
 
@@ -135,6 +146,9 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
 
     }
 
+    /**
+     * flink 实时任务,RUNNING、FINISHED 代表成功
+     */
     private int getK8sJobStatus(GenericKubernetesResource resource) {
         Map<String, Object> additionalProperties = resource
             .getAdditionalProperties();
@@ -145,7 +159,8 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
                 .get("jobStatus");
             if (applicationState != null) {
                 String state = applicationState.get("state").toString();
-                if (state.equals(FLINK_K8S_OPERATOR_COMPLETED)) {
+                if (state.equals(FLINK_K8S_OPERATOR_RUNNING) || state
+                    .equals(FLINK_K8S_OPERATOR_FINISHED)) {
                     return EXIT_CODE_SUCCESS;
                 } else if (state.equals(FLINK_K8S_OPERATOR_FAILED)) {
                     return EXIT_CODE_FAILURE;
@@ -183,15 +198,16 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
     }
 
     private FlinkDeployment buildFlinkDeployment(K8sFlinkOperatorTaskMainParameters parameters) {
-        FlinkDeployment flinkDeployment = getFlinkDeployment();
+        this.flinkDeployment = getFlinkDeployment();
         //设置job名称
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
-        flinkDeployment.getMetadata().setName(k8sJobName);
+        this.flinkDeployment.getMetadata().setName(k8sJobName);
 
         //设置环境变量
-        Container container = new Container();
+        Container container = this.flinkDeployment.getSpec().getPodTemplate().getSpec()
+            .getContainers().get(0);
         container.setEnv(getEnv(parameters.getParamsMap()));
         this.flinkDeployment.getSpec().getPodTemplate().getSpec().getContainers().add(container);
 
@@ -216,20 +232,21 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         for (Entry<String, String> entry : paramsMap.entrySet()) {
             EnvVar envVar = new EnvVar();
             envVar.setName(entry.getKey());
-            envVar.setName(entry.getValue());
+            envVar.setValue(entry.getValue());
             env.add(envVar);
         }
         return env;
     }
 
-    public static FlinkDeployment getFlinkDeployment() {
+    public FlinkDeployment getFlinkDeployment() {
         InputStream resourceAsStream = FlinkK8sOperatorTaskExecutor.class
-            .getResourceAsStream("/flink-pod-template.yaml");
+            .getResourceAsStream("/flink-pod.yaml");
         try {
             FlinkDeployment flinkDeployment = SerializationUtils.getMapper()
                 .readValue(resourceAsStream, FlinkDeployment.class);
             return flinkDeployment;
         } catch (Exception e) {
+            logger.error("get flink-pod.yaml fail");
             e.printStackTrace();
             return null;
         }
@@ -272,12 +289,10 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
 
     @Override
     public void stopJobOnK8s(String k8sParameterStr) {
-        K8sFlinkOperatorTaskMainParameters flinkOperatorTaskMainParameters = JSONUtils
-            .parseObject(k8sParameterStr, K8sFlinkOperatorTaskMainParameters.class);
-        String namespaceName = flinkOperatorTaskMainParameters.getNamespaceName();
+        String namespaceName = flinkDeployment.getMetadata().getNamespace();
         String jobName = flinkDeployment.getMetadata().getName();
         try {
-            if (Boolean.TRUE.equals(k8sUtils.sparkOperatorJobExist(jobName, namespaceName))) {
+            if (Boolean.TRUE.equals(k8sUtils.flinkOperatorJobExist(jobName, namespaceName))) {
                 k8sUtils.deleteFlinkOperatorJob(namespaceName, flinkDeployment);
             }
         } catch (Exception e) {

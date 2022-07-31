@@ -20,6 +20,7 @@ apiVersion: flink.apache.org/v1beta1
 kind: FlinkDeployment
 metadata:
   name: pod-template-example
+  namespace: flink-operator
 spec:
   image: flink:1.15
   flinkVersion: v1_15
@@ -43,7 +44,7 @@ spec:
           emptyDir: { }
   jobManager:
     resource:
-      memory: "2048m"
+      memory: "1024m"
       cpu: 1
     podTemplate:
       apiVersion: v1
@@ -65,7 +66,7 @@ spec:
               https://repo1.maven.org/maven2/org/apache/flink/flink-examples-streaming_2.12/1.15.1/flink-examples-streaming_2.12-1.15.1.jar"
   taskManager:
     resource:
-      memory: "2048m"
+      memory: "1024m"
       cpu: 1
   job:
     jarURI: local:///opt/flink/downloads/flink-examples-streaming.jar

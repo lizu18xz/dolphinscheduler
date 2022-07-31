@@ -471,7 +471,9 @@ public class TaskConstants {
      */
     public static final String FLINK_K8S_OPERATOR = "flink-operator";
 
-    public static final String FLINK_K8S_OPERATOR_COMPLETED = "COMPLETED";
+    public static final String FLINK_K8S_OPERATOR_RUNNING = "RUNNING";
+
+    public static final String FLINK_K8S_OPERATOR_FINISHED = "FINISHED";
 
     public static final String FLINK_K8S_OPERATOR_FAILED = "FAILED";
 
