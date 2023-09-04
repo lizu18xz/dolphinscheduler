@@ -16,7 +16,7 @@
  */
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useDeployMode, useResources, useCustomParams } from '.'
+import { useDeployMode, useResources, useCustomParams,useNamespace } from '.'
 import type { IJsonItem } from '../types'
 
 export function useSeaTunnel(model: { [field: string]: any }): IJsonItem[] {
@@ -129,7 +129,7 @@ export function useSeaTunnel(model: { [field: string]: any }): IJsonItem[] {
         }
       }
     },
-
+    useNamespace(),
     // SeaTunnel config parameter
     {
       type: 'switch',

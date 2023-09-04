@@ -159,8 +159,7 @@ public class TaskConstants {
     public static final String PARAMETER_FORMAT_TIME = "yyyyMMddHHmmss";
 
     /**
-     * new
-     * schedule time
+     * new schedule time
      */
     public static final String PARAMETER_SHECDULE_TIME = "schedule.time";
 
@@ -407,7 +406,7 @@ public class TaskConstants {
      * hadoop.security.authentication
      */
     public static final String HADOOP_SECURITY_AUTHENTICATION_STARTUP_STATE =
-            "hadoop.security.authentication.startup.state";
+        "hadoop.security.authentication.startup.state";
 
     /**
      * Task Logger Thread's name
@@ -415,8 +414,7 @@ public class TaskConstants {
     public static final String TASK_LOGGER_THREAD_NAME = "TaskLogInfo";
 
     /**
-     * hdfs/s3 configuration
-     * resource.storage.upload.base.path
+     * hdfs/s3 configuration resource.storage.upload.base.path
      */
     public static final String RESOURCE_UPLOAD_PATH = "resource.storage.upload.base.path";
 
@@ -498,7 +496,8 @@ public class TaskConstants {
     public static final int LOG_LINES = 500;
     public static final String NAMESPACE_NAME = "name";
     public static final String CLUSTER = "cluster";
-    public static final Pattern COMMAND_SPLIT_REGEX = Pattern.compile("[^\\s\"'`]+|\"([^\"]+)\"|'([^']+)'|`([^`]+)`");
+    public static final Pattern COMMAND_SPLIT_REGEX = Pattern
+        .compile("[^\\s\"'`]+|\"([^\"]+)\"|'([^']+)'|`([^`]+)`");
 
     /**
      * spark / flink on k8s label name
@@ -512,5 +511,30 @@ public class TaskConstants {
 
     // Loop task constants
     public static final Duration DEFAULT_LOOP_STATUS_INTERVAL = Duration.ofSeconds(5L);
+
+    /**
+     * k8s flink operator
+     */
+    public static final String FLINK_SEATUNNEL = "SEATUNNEL";
+
+    public static final String FLINK_SQL = "FLINK_SQL";
+
+    public static final String FLINK_K8S_OPERATOR = "flink-operator";
+
+    public static final String FLINK_K8S_OPERATOR_COMPLETED = "COMPLETED";
+
+    public static final String FLINK_K8S_OPERATOR_FAILED = "FAILED";
+
+    public static final String FLINK_K8S_OPERATOR_RUNNING = "RUNNING";
+
+    public static final String FLINK_K8S_OPERATOR_FINISHED = "FINISHED";
+
+
+    public static final String SEATUNNEL_CONF_FILE = "seatunnel.conf";
+
+    public static final String SEATUNNEL_CONF_FILE_PATH = "/data/" + SEATUNNEL_CONF_FILE;
+
+    public static final String SEATUNNEL_CONF_VOLUME_NAME = "seatunnel-conf-volume";
+
 
 }

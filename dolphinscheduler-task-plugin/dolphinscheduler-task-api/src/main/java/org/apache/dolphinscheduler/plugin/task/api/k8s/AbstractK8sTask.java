@@ -17,10 +17,13 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR;
+
 import org.apache.dolphinscheduler.plugin.task.api.AbstractRemoteTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.FlinkK8sOperatorTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.model.TaskResponse;
 
@@ -30,6 +33,7 @@ public abstract class AbstractK8sTask extends AbstractRemoteTask {
      * process task
      */
     private AbstractK8sTaskExecutor abstractK8sTaskExecutor;
+
     /**
      * Abstract k8s Task
      *
@@ -38,6 +42,17 @@ public abstract class AbstractK8sTask extends AbstractRemoteTask {
     protected AbstractK8sTask(TaskExecutionContext taskRequest) {
         super(taskRequest);
         this.abstractK8sTaskExecutor = new K8sTaskExecutor(log, taskRequest);
+    }
+
+    protected AbstractK8sTask(TaskExecutionContext taskRequest, String type) {
+        super(taskRequest);
+        switch (type) {
+            case FLINK_K8S_OPERATOR:
+                this.abstractK8sTaskExecutor = new FlinkK8sOperatorTaskExecutor(log, taskRequest);
+                break;
+            default:
+                this.abstractK8sTaskExecutor = new K8sTaskExecutor(log, taskRequest);
+        }
     }
 
     // todo split handle to submit and track

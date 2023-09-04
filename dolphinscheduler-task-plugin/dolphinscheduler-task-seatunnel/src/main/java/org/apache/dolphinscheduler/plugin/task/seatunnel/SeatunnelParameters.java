@@ -35,6 +35,14 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SeatunnelParameters extends AbstractParameters {
+    /**
+     * kubernetes cluster namespace
+     */
+    private String namespace;
+
+    public String getNamespace() {
+        return namespace;
+    }
 
     private String startupScript;
 

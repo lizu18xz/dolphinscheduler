@@ -65,6 +65,7 @@ import org.apache.dolphinscheduler.plugin.task.api.parameters.resource.ResourceP
 import org.apache.dolphinscheduler.plugin.task.api.parameters.resource.UdfFuncParameters;
 import org.apache.dolphinscheduler.plugin.task.api.utils.JdbcUrlParser;
 import org.apache.dolphinscheduler.plugin.task.api.utils.MapUtils;
+import org.apache.dolphinscheduler.plugin.task.seatunnel.SeatunnelParameters;
 import org.apache.dolphinscheduler.plugin.task.spark.SparkParameters;
 import org.apache.dolphinscheduler.server.master.builder.TaskExecutionContextBuilder;
 import org.apache.dolphinscheduler.server.master.config.MasterConfig;
@@ -285,6 +286,13 @@ public class TaskExecutionContextFactory {
                         JSONUtils.parseObject(taskInstance.getTaskParams(), SparkParameters.class);
                 if (StringUtils.isNotEmpty(sparkParameters.getNamespace())) {
                     namespace = sparkParameters.getNamespace();
+                }
+                break;
+            case "SEATUNNEL":
+                SeatunnelParameters seatunnelParameters =
+                    JSONUtils.parseObject(taskInstance.getTaskParams(), SeatunnelParameters.class);
+                if (StringUtils.isNotEmpty(seatunnelParameters.getNamespace())) {
+                    namespace = seatunnelParameters.getNamespace();
                 }
                 break;
             default:

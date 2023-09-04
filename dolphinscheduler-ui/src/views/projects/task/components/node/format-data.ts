@@ -49,7 +49,7 @@ export function formatParams(data: INodeData): {
 
   if (
     data.taskType &&
-    ['SPARK', 'MR', 'FLINK', 'FLINK_STREAM'].includes(data.taskType)
+    ['SPARK', 'MR', 'FLINK', 'FLINK_STREAM','SEATUNNEL'].includes(data.taskType)
   ) {
     taskParams.programType = data.programType
     taskParams.mainClass = data.mainClass

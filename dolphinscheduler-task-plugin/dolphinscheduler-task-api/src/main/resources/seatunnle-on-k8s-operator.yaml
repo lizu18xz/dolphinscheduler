@@ -1,0 +1,45 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: seatunnel-flink-template
+  namespace: default
+spec:
+  image: registry.cn-hangzhou.aliyuncs.com/lz18xz/lizu:seatunnel-2.3.3-flink-1.15-0830
+  imagePullPolicy: IfNotPresent
+  flinkVersion: v1_15
+  flinkConfiguration:
+    taskmanager.numberOfTaskSlots: "1"
+  serviceAccount: default
+  jobManager:
+    replicas: 1
+    resource:
+      memory: "1024m"
+      cpu: 0.5
+  taskManager:
+    resource:
+      memory: "1024m"
+      cpu: 0.5
+  podTemplate:
+    metadata:
+      labels:
+        "seatunnel-flink": "seatunnel-flink"
+    spec:
+      containers:
+        - name: flink-main-container
+          volumeMounts:
+            - name: fake-doris-config
+              mountPath: /data/fake_to_doris_batch.conf
+              subPath: fake_to_doris_batch.conf
+      volumes:
+        - name: fake-doris-config
+          configMap:
+            name: fake-doris-config
+            items:
+              - key: fake_to_doris_batch.conf
+                path: fake_to_doris_batch.conf
+  job:
+    jarURI: local:///opt/seatunnel/starter/seatunnel-flink-15-starter.jar
+    entryClass: org.apache.seatunnel.core.starter.flink.SeaTunnelFlink
+    args: [ "--config", "/data/seatunnel.conf" ]
+    parallelism: 1
+    upgradeMode: stateless

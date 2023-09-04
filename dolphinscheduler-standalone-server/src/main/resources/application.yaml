@@ -80,12 +80,12 @@ registry:
     namespace: dolphinscheduler
     connect-string: localhost:2181
     retry-policy:
-      base-sleep-time: 60ms
-      max-sleep: 300ms
+      base-sleep-time: 60000ms
+      max-sleep: 3000000ms
       max-retries: 5
-    session-timeout: 30s
-    connection-timeout: 9s
-    block-until-connected: 600ms
+    session-timeout: 30000s
+    connection-timeout: 90000s
+    block-until-connected: 6000000ms
     digest: ~
 
 security:
