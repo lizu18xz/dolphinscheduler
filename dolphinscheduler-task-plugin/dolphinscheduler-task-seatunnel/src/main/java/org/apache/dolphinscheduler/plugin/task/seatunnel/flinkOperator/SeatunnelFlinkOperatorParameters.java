@@ -27,20 +27,9 @@ import org.apache.dolphinscheduler.plugin.task.seatunnel.SeatunnelParameters;
 @NoArgsConstructor
 public class SeatunnelFlinkOperatorParameters extends SeatunnelParameters {
 
-    /**
-     * slot count
-     */
-    private Integer slot;
+    private String image;
 
-    /**
-     * parallelism
-     */
-    private Integer parallelism;
-
-    /**
-     * taskManager count
-     */
-    private Integer taskManager;
+    private String imagePullPolicy;
 
     /**
      * job manager memory
@@ -51,5 +40,20 @@ public class SeatunnelFlinkOperatorParameters extends SeatunnelParameters {
      * task manager memory
      */
     private String taskManagerMemory;
+
+    /**
+     * taskManager count
+     */
+    private Integer taskManager;
+
+    /**
+     * slot count
+     */
+    private Integer slot;
+
+    /**
+     * parallelism
+     */
+    private Integer parallelism;
 
 }

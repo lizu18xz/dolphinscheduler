@@ -54,6 +54,10 @@ export function useSeaTunnel({
     masterUrl: '',
     resourceFiles: [],
     timeoutNotifyStrategy: ['WARN'],
+    jobManagerMemory: '1G',
+    taskManagerMemory: '2G',
+    slot: 1,
+    taskManager: 2,
     rawScript:
       'env {\n' +
       '  execution.parallelism = 2\n' +

@@ -25,6 +25,10 @@ public class K8sFlinkOperatorTaskMainParameters extends K8sTaskMainParameters {
      */
     private String mainClass;
 
+    private String image;
+
+    private String imagePullPolicy;
+
     /**
      * slot count
      */
@@ -53,6 +57,11 @@ public class K8sFlinkOperatorTaskMainParameters extends K8sTaskMainParameters {
      * task manager cpu
      */
     private Double taskManagerCpu;
+
+    /**
+     * taskManager count
+     */
+    private Integer taskManager;
 
 
     /**

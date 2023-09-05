@@ -234,6 +234,12 @@ export function formatParams(data: INodeData): {
       taskParams.deployMode = data.deployMode
       taskParams.others = data.others
     }
+    taskParams.jobManagerMemory = data.jobManagerMemory
+    taskParams.taskManagerMemory = data.taskManagerMemory
+    taskParams.slot = data.slot
+    taskParams.taskManager = data.taskManager
+    taskParams.image = data.image
+    taskParams.imagePullPolicy = data.imagePullPolicy
   }
 
   if (data.taskType === 'SWITCH') {

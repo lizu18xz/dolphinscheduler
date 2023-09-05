@@ -8,14 +8,14 @@ spec:
   imagePullPolicy: IfNotPresent
   flinkVersion: v1_15
   flinkConfiguration:
-    taskmanager.numberOfTaskSlots: "1"
+    taskmanager.numberOfTaskSlots: "2"
   serviceAccount: default
   jobManager:
-    replicas: 1
     resource:
       memory: "1024m"
       cpu: 0.5
   taskManager:
+    replicas: 1
     resource:
       memory: "1024m"
       cpu: 0.5

@@ -60,10 +60,13 @@ public class SeatunnelFlinkOperatorTask extends AbstractK8sTask {
         parameters.setFlinkJobType(TaskConstants.FLINK_SEATUNNEL);
         Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
 
+        parameters.setImage(seatunnelFlinkOperatorParameters.getImage());
+        parameters.setImagePullPolicy(seatunnelFlinkOperatorParameters.getImagePullPolicy());
         parameters.setJobManagerMemory(seatunnelFlinkOperatorParameters.getJobManagerMemory());
-        parameters.setParallelism(seatunnelFlinkOperatorParameters.getParallelism());
         parameters.setTaskManagerMemory(seatunnelFlinkOperatorParameters.getTaskManagerMemory());
         parameters.setSlot(seatunnelFlinkOperatorParameters.getSlot());
+        parameters.setTaskManager(seatunnelFlinkOperatorParameters.getTaskManager());
+        parameters.setParallelism(seatunnelFlinkOperatorParameters.getParallelism());
         parameters.setParamsMap(ParameterUtils.convert(paramsMap));
 
         //配置的json内容

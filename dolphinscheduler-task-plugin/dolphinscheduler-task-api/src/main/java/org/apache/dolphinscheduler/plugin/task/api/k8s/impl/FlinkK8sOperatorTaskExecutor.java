@@ -283,6 +283,15 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
 
     private FlinkDeployment buildFlinkDeployment(K8sFlinkOperatorTaskMainParameters parameters) {
         this.flinkDeployment = getFlinkDeployment(parameters.getFlinkJobType());
+
+        //设置镜像信息
+        if(!StringUtils.isEmpty(parameters.getImage())){
+            this.flinkDeployment.getSpec().setImage(parameters.getImage());
+        }
+        if(!StringUtils.isEmpty(parameters.getImagePullPolicy())){
+            this.flinkDeployment.getSpec().setImagePullPolicy(parameters.getImagePullPolicy());
+        }
+
         //设置job名称
         String k8sJobName = getK8sJobName(parameters);
         this.flinkDeployment.getMetadata().setName(k8sJobName);
@@ -294,7 +303,7 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
             this.flinkDeployment.getSpec().getJob()
                 .setParallelism(parameters.getParallelism());
         }
-        //设置基本 参数
+        //设置Flink 基本 参数
         if (parameters.getSlot() != null) {
             this.flinkDeployment.getSpec().getFlinkConfiguration()
                 .put("taskmanager.numberOfTaskSlots", String.valueOf(parameters.getSlot()));
@@ -310,6 +319,9 @@ public class FlinkK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
             .setCpu(parameters.getJobManagerCpu() == null ? 0.5 : parameters.getJobManagerCpu());
         this.flinkDeployment.getSpec().getTaskManager().getResource()
             .setCpu(parameters.getTaskManagerCpu() == null ? 0.5 : parameters.getTaskManagerCpu());
+
+        this.flinkDeployment.getSpec().getTaskManager()
+            .setReplicas(parameters.getTaskManager() == null ? 1 : parameters.getTaskManager());
 
         //设置label
         Map<String, String> podLabelMap = new HashMap<>();

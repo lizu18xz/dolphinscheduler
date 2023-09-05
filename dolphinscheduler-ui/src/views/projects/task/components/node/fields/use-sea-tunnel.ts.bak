@@ -24,7 +24,6 @@ export function useSeaTunnel(model: { [field: string]: any }): IJsonItem[] {
 
   const configEditorSpan = computed(() => (model.useCustom ? 24 : 0))
   const resourceEditorSpan = computed(() => (model.useCustom ? 0 : 24))
-
   const flinkSpan = computed(() =>
     model.startupScript.includes('flink') ? 24 : 0
   )
@@ -56,108 +55,83 @@ export function useSeaTunnel(model: { [field: string]: any }): IJsonItem[] {
   )
 
   return [
-
-    useNamespace(),
-
-    {
-      type: 'input',
-      field: 'image',
-      name: t('project.node.image'),
-      span: 18,
-      props: {
-        placeholder: t('project.node.image_tips')
-      },
-      validate: {
-        trigger: ['input', 'blur'],
-        required: false,
-        message: t('project.node.image_tips')
-      }
-    },
     {
       type: 'select',
-      field: 'imagePullPolicy',
-      name: t('project.node.image_pull_policy'),
-      span: 6,
-      options: IMAGE_PULL_POLICY_LIST,
+      field: 'startupScript',
+      span: 15,
+      name: t('project.node.startup_script'),
+      options: STARTUP_SCRIPT,
       validate: {
         trigger: ['input', 'blur'],
-        required: false,
-        message: t('project.node.image_pull_policy_tips')
+        required: true,
+        message: t('project.node.startup_script_tips')
       },
-      value: 'IfNotPresent'
-    },
-
-    {
-      type: 'input',
-      field: 'jobManagerMemory',
-      name: t('project.node.job_manager_memory'),
-      span: 12,
       props: {
-        placeholder: t('project.node.job_manager_memory_tips'),
-        min: 1
-      },
-      validate: {
-        trigger: ['input', 'blur'],
-        validator(validate: any, value: string) {
-          if (!value) {
-            return
-          }
-          if (!Number.isInteger(parseInt(value))) {
-            return new Error(
-                t('project.node.job_manager_memory_tips') +
-                t('project.node.positive_integer_tips')
-            )
+        'on-update:value': (value: boolean) => {
+          if (value) {
+            if (model.startupScript === 'seatunnel.sh') {
+              model.deployMode = 'local'
+            }
+            if (model.startupScript.includes('spark')) {
+              model.deployMode = 'client'
+            }
           }
         }
       }
     },
+
+    // SeaTunnel flink parameter
+    {
+      type: 'select',
+      field: 'runMode',
+      name: t('project.node.run_mode'),
+      options: FLINK_RUN_MODE,
+      value: model.runMode,
+      span: flinkSpan
+    },
     {
       type: 'input',
-      field: 'taskManagerMemory',
-      name: t('project.node.task_manager_memory'),
-      span: 12,
+      field: 'others',
+      name: t('project.node.option_parameters'),
+      span: othersSpan,
       props: {
-        placeholder: t('project.node.task_manager_memory_tips')
+        type: 'textarea',
+        placeholder: t('project.node.option_parameters_tips')
+      }
+    },
+
+    // SeaTunnel spark parameter
+    useDeployMode(deployModeSpan, showClient, ref(true), showLocal),
+    {
+      type: 'select',
+      field: 'master',
+      name: t('project.node.sea_tunnel_master'),
+      options: masterTypeOptions,
+      value: model.master,
+      span: masterSpan
+    },
+    {
+      type: 'input',
+      field: 'masterUrl',
+      name: t('project.node.sea_tunnel_master_url'),
+      value: model.masterUrl,
+      span: masterUrlSpan,
+      props: {
+        placeholder: t('project.node.sea_tunnel_master_url_tips')
       },
       validate: {
         trigger: ['input', 'blur'],
+        required: masterUrlSpan.value !== 0,
         validator(validate: any, value: string) {
-          if (!value) {
-            return
-          }
-          if (!Number.isInteger(parseInt(value))) {
-            return new Error(
-                t('project.node.task_manager_memory') +
-                t('project.node.positive_integer_tips')
-            )
+          if (masterUrlSpan.value !== 0 && !value) {
+            return new Error(t('project.node.sea_tunnel_master_url_tips'))
           }
         }
-      },
-      value: model.taskManagerMemory
-    },
-    {
-      type: 'input-number',
-      field: 'slot',
-      name: t('project.node.slot_number'),
-      span: 12,
-      props: {
-        placeholder: t('project.node.slot_number_tips'),
-        min: 1
-      },
-      value: model.slot
-    },
-    {
-      type: 'input-number',
-      field: 'taskManager',
-      name: t('project.node.task_manager_number'),
-      span: 12,
-      props: {
-        placeholder: t('project.node.task_manager_number_tips'),
-        min: 1
-      },
-      value: model.taskManager
+      }
     },
 
+
+    useNamespace(),
     // SeaTunnel config parameter
     {
       type: 'switch',
@@ -184,18 +158,75 @@ export function useSeaTunnel(model: { [field: string]: any }): IJsonItem[] {
   ]
 }
 
-export const IMAGE_PULL_POLICY_LIST = [
+export const STARTUP_SCRIPT = [
   {
-    value: 'IfNotPresent',
-    label: 'IfNotPresent'
+    label: 'seatunnel.sh',
+    value: 'seatunnel.sh'
   },
   {
-    value: 'Always',
-    label: 'Always'
+    label: 'start-seatunnel-flink-13-connector-v2.sh',
+    value: 'start-seatunnel-flink-13-connector-v2.sh'
   },
   {
-    value: 'Never',
-    label: 'Never'
+    label: 'start-seatunnel-flink-15-connector-v2.sh',
+    value: 'start-seatunnel-flink-15-connector-v2.sh'
+  },
+  {
+    label: 'start-seatunnel-flink-connector-v2.sh',
+    value: 'start-seatunnel-flink-connector-v2.sh'
+  },
+  {
+    label: 'start-seatunnel-flink.sh',
+    value: 'start-seatunnel-flink.sh'
+  },
+  {
+    label: 'start-seatunnel-spark-2-connector-v2.sh',
+    value: 'start-seatunnel-spark-2-connector-v2.sh'
+  },
+  {
+    label: 'start-seatunnel-spark-3-connector-v2.sh',
+    value: 'start-seatunnel-spark-3-connector-v2.sh'
+  },
+  {
+    label: 'start-seatunnel-spark-connector-v2.sh',
+    value: 'start-seatunnel-spark-connector-v2.sh'
+  },
+  {
+    label: 'start-seatunnel-spark.sh',
+    value: 'start-seatunnel-spark.sh'
   }
 ]
 
+export const FLINK_RUN_MODE = [
+  {
+    label: 'none',
+    value: 'NONE'
+  },
+  {
+    label: 'run',
+    value: 'RUN'
+  },
+  {
+    label: 'run-application',
+    value: 'RUN_APPLICATION'
+  }
+]
+
+export const masterTypeOptions = [
+  {
+    label: 'yarn',
+    value: 'YARN'
+  },
+  {
+    label: 'local',
+    value: 'LOCAL'
+  },
+  {
+    label: 'spark://',
+    value: 'SPARK'
+  },
+  {
+    label: 'mesos://',
+    value: 'MESOS'
+  }
+]
