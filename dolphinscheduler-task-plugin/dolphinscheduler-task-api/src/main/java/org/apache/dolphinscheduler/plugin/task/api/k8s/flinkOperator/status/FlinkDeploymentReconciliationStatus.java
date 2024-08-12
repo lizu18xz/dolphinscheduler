@@ -17,12 +17,14 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkDeploymentSpec;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkDeploymentSpec;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /** Status of the last reconcile step for the flink deployment. */
 @Data
@@ -30,8 +32,9 @@ import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkDeploy
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FlinkDeploymentReconciliationStatus extends
-    ReconciliationStatus<FlinkDeploymentSpec> {
+public class FlinkDeploymentReconciliationStatus
+        extends
+            ReconciliationStatus<FlinkDeploymentSpec> {
 
     @Override
     public Class<FlinkDeploymentSpec> getSpecClass() {

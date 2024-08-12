@@ -20,6 +20,7 @@ package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
 
 public enum FlinkOperatorConstant {
     ;
+
     // "resourceVersion="0" is any resource version.It saves time to access etcd and improves
     // performance.
     // https://kubernetes.io/docs/reference/using-api/api-concepts/#the-resourceversion-parameter

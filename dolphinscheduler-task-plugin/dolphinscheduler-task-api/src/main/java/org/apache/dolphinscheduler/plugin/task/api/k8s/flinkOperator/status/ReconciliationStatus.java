@@ -17,15 +17,17 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkResource;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkSpec;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.JobSpec;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.JobState;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.utils.SpecUtils;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.utils.SpecWithMeta;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * Status of the last reconcile step for the FlinkDeployment/FlinkSessionJob.
@@ -61,7 +63,7 @@ public abstract class ReconciliationStatus<SPEC extends AbstractFlinkSpec> {
 
     @JsonIgnore
     public SPEC deserializeLastReconciledSpec() {
-        SpecWithMeta<SPEC> specWithMeta =deserializeLastReconciledSpecWithMeta();
+        SpecWithMeta<SPEC> specWithMeta = deserializeLastReconciledSpecWithMeta();
         return specWithMeta != null ? specWithMeta.getSpec() : null;
     }
 
@@ -83,7 +85,7 @@ public abstract class ReconciliationStatus<SPEC extends AbstractFlinkSpec> {
 
     @JsonIgnore
     public void serializeAndSetLastReconciledSpec(
-        SPEC spec, AbstractFlinkResource<SPEC, ?> resource) {
+                                                  SPEC spec, AbstractFlinkResource<SPEC, ?> resource) {
         setLastReconciledSpec(SpecUtils.writeSpecWithMeta(spec, resource));
     }
 

@@ -290,7 +290,7 @@ public class TaskExecutionContextFactory {
                 break;
             case "SEATUNNEL":
                 SeatunnelParameters seatunnelParameters =
-                    JSONUtils.parseObject(taskInstance.getTaskParams(), SeatunnelParameters.class);
+                        JSONUtils.parseObject(taskInstance.getTaskParams(), SeatunnelParameters.class);
                 if (StringUtils.isNotEmpty(seatunnelParameters.getNamespace())) {
                     namespace = seatunnelParameters.getNamespace();
                 }

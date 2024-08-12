@@ -35,6 +35,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class SeatunnelParameters extends AbstractParameters {
+
     /**
      * kubernetes cluster namespace
      */

@@ -36,5 +36,5 @@ public enum KubernetesDeploymentMode {
      */
     @JsonProperty("standalone")
     STANDALONE;
-    
+
 }

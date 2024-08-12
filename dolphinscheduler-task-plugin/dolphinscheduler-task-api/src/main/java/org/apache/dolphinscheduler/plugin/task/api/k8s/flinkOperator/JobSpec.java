@@ -17,15 +17,16 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
 
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.Diffable;
+import org.apache.commons.lang3.builder.ReflectionDiffBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.builder.DiffResult;
-import org.apache.commons.lang3.builder.Diffable;
-import org.apache.commons.lang3.builder.ReflectionDiffBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
 
 /**
  * Flink job spec.

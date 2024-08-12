@@ -17,11 +17,11 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
 
-import io.fabric8.kubernetes.api.model.Pod;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import io.fabric8.kubernetes.api.model.Pod;
 
 /**
  * JobManager spec.
@@ -31,6 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class JobManagerSpec {
+
     /**
      * Resource specification for the JobManager pods.
      */

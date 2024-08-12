@@ -17,16 +17,19 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkDeploymentSpec;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkDeploymentSpec;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /** Last observed status of the Flink deployment. */
 @Data

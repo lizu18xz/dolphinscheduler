@@ -17,13 +17,15 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.fabric8.kubernetes.model.annotation.LabelSelector;
-import io.fabric8.kubernetes.model.annotation.StatusReplicas;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import io.fabric8.kubernetes.model.annotation.LabelSelector;
+import io.fabric8.kubernetes.model.annotation.StatusReplicas;
 
 /**
  * Last observed status of the Flink job within an application deployment.

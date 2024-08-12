@@ -17,18 +17,21 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.fabric8.kubernetes.api.model.Pod;
+import org.apache.commons.lang3.builder.DiffResult;
+import org.apache.commons.lang3.builder.ReflectionDiffBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.builder.DiffResult;
-import org.apache.commons.lang3.builder.ReflectionDiffBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.fabric8.kubernetes.api.model.Pod;
 
 /**
  * Spec that describes a Flink application or session cluster deployment.
@@ -97,7 +100,7 @@ public class FlinkDeploymentSpec extends AbstractFlinkSpec {
     @Override
     public DiffResult<AbstractFlinkSpec> diff(AbstractFlinkSpec right) {
         ReflectionDiffBuilder builder = new ReflectionDiffBuilder(this, right,
-            ToStringStyle.DEFAULT_STYLE);
+                ToStringStyle.DEFAULT_STYLE);
         return builder.build();
     }
 }

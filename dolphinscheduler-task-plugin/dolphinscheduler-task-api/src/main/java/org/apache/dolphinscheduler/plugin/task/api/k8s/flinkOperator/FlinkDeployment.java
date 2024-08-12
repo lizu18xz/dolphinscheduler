@@ -18,18 +18,21 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
 
+import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status.FlinkDeploymentStatus;
+
+import lombok.Data;
 import io.fabric8.kubernetes.api.model.Namespaced;
 import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Version;
-import lombok.Data;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status.FlinkDeploymentStatus;
 
 @Group(CrdConstants.API_GROUP)
 @Version(CrdConstants.API_VERSION)
 @Data
-public class FlinkDeployment extends
-    AbstractFlinkResource<FlinkDeploymentSpec, FlinkDeploymentStatus>
-    implements Namespaced {
+public class FlinkDeployment
+        extends
+            AbstractFlinkResource<FlinkDeploymentSpec, FlinkDeploymentStatus>
+        implements
+            Namespaced {
 
     @Override
     public FlinkDeploymentStatus initStatus() {

@@ -19,6 +19,14 @@ package org.apache.dolphinscheduler.plugin.task.api.utils;
 
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.LOG_LINES;
 
+import org.apache.dolphinscheduler.plugin.task.api.TaskException;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkOperatorConstant;
+
+import java.io.ByteArrayInputStream;
+import java.util.List;
+import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceList;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -32,14 +40,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import java.io.ByteArrayInputStream;
-import java.util.List;
-import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.dolphinscheduler.plugin.task.api.TaskException;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkDeployment;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkOperatorConstant;
 
 @Slf4j
 public class K8sUtils {
@@ -49,10 +49,10 @@ public class K8sUtils {
     public void createJob(String namespace, Job job) {
         try {
             client.batch()
-                .v1()
-                .jobs()
-                .inNamespace(namespace)
-                .create(job);
+                    .v1()
+                    .jobs()
+                    .inNamespace(namespace)
+                    .create(job);
         } catch (Exception e) {
             throw new TaskException("fail to create job", e);
         }
@@ -61,11 +61,11 @@ public class K8sUtils {
     public void deleteJob(String jobName, String namespace) {
         try {
             client.batch()
-                .v1()
-                .jobs()
-                .inNamespace(namespace)
-                .withName(jobName)
-                .delete();
+                    .v1()
+                    .jobs()
+                    .inNamespace(namespace)
+                    .withName(jobName)
+                    .delete();
         } catch (Exception e) {
             throw new TaskException("fail to delete job", e);
         }
@@ -77,8 +77,8 @@ public class K8sUtils {
             JobList jobList = client.batch().jobs().inNamespace(namespace).list();
             List<Job> jobs = jobList.getItems();
             result = jobs.stream()
-                .filter(job -> job.getMetadata().getName().equals(jobName))
-                .findFirst();
+                    .filter(job -> job.getMetadata().getName().equals(jobName))
+                    .findFirst();
             return result.isPresent();
         } catch (Exception e) {
             throw new TaskException("fail to check job: ", e);
@@ -88,10 +88,10 @@ public class K8sUtils {
     public Watch createBatchJobWatcher(String jobName, Watcher<Job> watcher) {
         try {
             return client.batch()
-                .v1()
-                .jobs()
-                .withName(jobName)
-                .watch(watcher);
+                    .v1()
+                    .jobs()
+                    .withName(jobName)
+                    .watch(watcher);
         } catch (Exception e) {
             throw new TaskException("fail to register batch job watcher", e);
         }
@@ -104,14 +104,14 @@ public class K8sUtils {
             for (Pod pod : podList) {
                 podName = pod.getMetadata().getName();
                 if (podName.contains("-") && jobName
-                    .equals(podName.substring(0, podName.lastIndexOf("-")))) {
+                        .equals(podName.substring(0, podName.lastIndexOf("-")))) {
                     break;
                 }
             }
             return client.pods().inNamespace(namespace)
-                .withName(podName)
-                .tailingLines(LOG_LINES)
-                .getLog(Boolean.TRUE);
+                    .withName(podName)
+                    .tailingLines(LOG_LINES)
+                    .getLog(Boolean.TRUE);
         } catch (Exception e) {
             log.error("fail to getPodLog", e);
             log.error("response bodies : {}", e.getMessage());
@@ -136,12 +136,11 @@ public class K8sUtils {
         }
     }
 
-
     public void deleteFlinkOperatorJob(String yaml) {
         try {
             client
-                .load(new ByteArrayInputStream((yaml).getBytes()))
-                .delete();
+                    .load(new ByteArrayInputStream((yaml).getBytes()))
+                    .delete();
         } catch (Exception e) {
             throw new TaskException("fail to delete flink job", e);
         }
@@ -153,13 +152,13 @@ public class K8sUtils {
             log.info("check job exist jobName:{},namespace:{} ", jobName, namespace);
             CustomResourceDefinitionContext context = getFlinkCustomResourceDefinitionContext();
             MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
-                client.genericKubernetesResources(context);
+                    client.genericKubernetesResources(context);
             GenericKubernetesResourceList list = resourceMixedOperation
-                .inNamespace(namespace).list();
+                    .inNamespace(namespace).list();
             List<GenericKubernetesResource> items = list.getItems();
             result = items.stream()
-                .filter(job -> job.getMetadata().getName().equals(jobName))
-                .findFirst();
+                    .filter(job -> job.getMetadata().getName().equals(jobName))
+                    .findFirst();
             return result.isPresent();
         } catch (Exception e) {
             e.printStackTrace();
@@ -168,11 +167,11 @@ public class K8sUtils {
     }
 
     public Watch createBatchFlinkOperatorJobWatcher(String jobName,
-        Watcher<GenericKubernetesResource> watcher) {
+                                                    Watcher<GenericKubernetesResource> watcher) {
         try {
             CustomResourceDefinitionContext context = getFlinkCustomResourceDefinitionContext();
             MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
-                client.genericKubernetesResources(context);
+                    client.genericKubernetesResources(context);
             return resourceMixedOperation.withName(jobName).watch(watcher);
         } catch (Exception e) {
             throw new TaskException("fail to register flink operator batch job watcher", e);
@@ -181,12 +180,12 @@ public class K8sUtils {
 
     private CustomResourceDefinitionContext getFlinkCustomResourceDefinitionContext() {
         return new CustomResourceDefinitionContext.Builder()
-            .withGroup(FlinkOperatorConstant.API_GROUP)
-            .withVersion(FlinkOperatorConstant.API_VERSION)
-            .withScope(FlinkOperatorConstant.NAMESPACED)
-            .withPlural(FlinkOperatorConstant.FLINK_DEPLOYMENTS)
-            .withKind(FlinkOperatorConstant.KIND_FLINK_DEPLOYMENT)
-            .build();
+                .withGroup(FlinkOperatorConstant.API_GROUP)
+                .withVersion(FlinkOperatorConstant.API_VERSION)
+                .withScope(FlinkOperatorConstant.NAMESPACED)
+                .withPlural(FlinkOperatorConstant.FLINK_DEPLOYMENTS)
+                .withKind(FlinkOperatorConstant.KIND_FLINK_DEPLOYMENT)
+                .build();
     }
 
 }

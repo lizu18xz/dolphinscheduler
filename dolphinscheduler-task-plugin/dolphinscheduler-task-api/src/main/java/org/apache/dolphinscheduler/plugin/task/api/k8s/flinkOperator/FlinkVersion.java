@@ -22,6 +22,7 @@ package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
  * Enumeration for supported Flink versions.
  */
 public enum FlinkVersion {
+
     v1_13,
     v1_14,
     v1_15,

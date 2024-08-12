@@ -21,7 +21,6 @@ import static org.apache.dolphinscheduler.plugin.task.seatunnel.Constants.STARTU
 import static org.apache.dolphinscheduler.plugin.task.seatunnel.Constants.STARTUP_SCRIPT_SEATUNNEL;
 import static org.apache.dolphinscheduler.plugin.task.seatunnel.Constants.STARTUP_SCRIPT_SPARK;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannel;
@@ -34,6 +33,8 @@ import org.apache.dolphinscheduler.plugin.task.seatunnel.flinkOperator.Seatunnel
 import org.apache.dolphinscheduler.plugin.task.seatunnel.self.SeatunnelEngineTask;
 import org.apache.dolphinscheduler.plugin.task.seatunnel.spark.SeatunnelSparkTask;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class SeatunnelTaskChannel implements TaskChannel {
 
     @Override
@@ -44,7 +45,7 @@ public class SeatunnelTaskChannel implements TaskChannel {
     @Override
     public AbstractTask createTask(TaskExecutionContext taskRequest) {
         SeatunnelParameters seatunnelParameters =
-            JSONUtils.parseObject(taskRequest.getTaskParams(), SeatunnelParameters.class);
+                JSONUtils.parseObject(taskRequest.getTaskParams(), SeatunnelParameters.class);
         assert seatunnelParameters != null;
         if (!StringUtils.isEmpty(seatunnelParameters.getNamespace())) {
             return new SeatunnelFlinkOperatorTask(taskRequest);
@@ -61,7 +62,7 @@ public class SeatunnelTaskChannel implements TaskChannel {
         }
 
         throw new IllegalArgumentException(
-            "Unsupported startup script name:" + seatunnelParameters.getStartupScript());
+                "Unsupported startup script name:" + seatunnelParameters.getStartupScript());
     }
 
     @Override

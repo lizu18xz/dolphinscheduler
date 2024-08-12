@@ -18,15 +18,17 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkSpec;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.JobState;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.lifecycle.ResourceLifecycleState;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.utils.JobStatusEnums;
+
+import org.apache.commons.lang3.StringUtils;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @AllArgsConstructor
@@ -61,7 +63,7 @@ public abstract class CommonStatus<SPEC extends AbstractFlinkSpec> {
 
         if (reconciliationStatus.isBeforeFirstDeployment()) {
             return StringUtils.isEmpty(error) ? ResourceLifecycleState.CREATED
-                : ResourceLifecycleState.FAILED;
+                    : ResourceLifecycleState.FAILED;
         }
 
         switch (reconciliationStatus.getState()) {
@@ -73,14 +75,14 @@ public abstract class CommonStatus<SPEC extends AbstractFlinkSpec> {
 
         AbstractFlinkSpec lastReconciledSpec = reconciliationStatus.deserializeLastReconciledSpec();
         if (lastReconciledSpec.getJob() != null
-            && lastReconciledSpec.getJob().getState() == JobState.SUSPENDED) {
+                && lastReconciledSpec.getJob().getState() == JobState.SUSPENDED) {
             return ResourceLifecycleState.SUSPENDED;
         }
 
         String jobState = getJobStatus().getState();
         if (jobState != null
-            && JobStatusEnums.valueOf(jobState)
-            .equals(JobStatusEnums.FAILED)) {
+                && JobStatusEnums.valueOf(jobState)
+                        .equals(JobStatusEnums.FAILED)) {
             return ResourceLifecycleState.FAILED;
         }
 

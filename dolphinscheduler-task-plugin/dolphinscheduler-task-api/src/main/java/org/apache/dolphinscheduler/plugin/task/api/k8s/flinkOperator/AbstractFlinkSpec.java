@@ -17,12 +17,14 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator;
 
+import org.apache.commons.lang3.builder.Diffable;
+
 import java.util.Map;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.apache.commons.lang3.builder.Diffable;
 
 /**
  * The common spec.

@@ -18,16 +18,19 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import javax.annotation.Nullable;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkResource;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkSpec;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.reconciler.ReconciliationMetadata;
 
+import javax.annotation.Nullable;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 /** Spec utilities. */
 public class SpecUtils {
+
     public static final String INTERNAL_METADATA_JSON_KEY = "resource_metadata";
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -40,7 +43,8 @@ public class SpecUtils {
      * @return SpecWithMeta of spec and meta.
      */
     public static <T extends AbstractFlinkSpec> SpecWithMeta<T> deserializeSpecWithMeta(
-            @Nullable String specWithMetaString, Class<T> specClass) {
+                                                                                        @Nullable String specWithMetaString,
+                                                                                        Class<T> specClass) {
         if (specWithMetaString == null) {
             return null;
         }
@@ -71,7 +75,7 @@ public class SpecUtils {
      * @return Serialized json.
      */
     public static String writeSpecWithMeta(
-            AbstractFlinkSpec spec, AbstractFlinkResource<?, ?> relatedResource) {
+                                           AbstractFlinkSpec spec, AbstractFlinkResource<?, ?> relatedResource) {
         return writeSpecWithMeta(spec, ReconciliationMetadata.from(relatedResource));
     }
 
@@ -83,7 +87,7 @@ public class SpecUtils {
      * @return Serialized json.
      */
     public static String writeSpecWithMeta(
-            AbstractFlinkSpec spec, ReconciliationMetadata metadata) {
+                                           AbstractFlinkSpec spec, ReconciliationMetadata metadata) {
 
         ObjectNode wrapper = objectMapper.createObjectNode();
 
@@ -97,7 +101,7 @@ public class SpecUtils {
         }
     }
 
-    // We do not have access to  Flink's Preconditions from here
+    // We do not have access to Flink's Preconditions from here
     private static <T> T checkNotNull(T object) {
         if (object == null) {
             throw new NullPointerException();
@@ -111,9 +115,8 @@ public class SpecUtils {
             return null;
         }
         try {
-            return (T)
-                    objectMapper.readValue(
-                            objectMapper.writeValueAsString(object), object.getClass());
+            return (T) objectMapper.readValue(
+                    objectMapper.writeValueAsString(object), object.getClass());
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }

@@ -17,14 +17,17 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.lifecycle;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
+
 import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /** Enum encapsulating the lifecycle state of a Flink resource. */
 public enum ResourceLifecycleState {
+
     CREATED(false, "The resource was created in Kubernetes but not yet handled by the operator"),
     SUSPENDED(true, "The resource (job) has been suspended"),
     UPGRADING(false, "The resource is being upgraded"),
@@ -36,8 +39,11 @@ public enum ResourceLifecycleState {
     ROLLED_BACK(true, "The resource is deployed with the last stable spec"),
     FAILED(true, "The job terminally failed");
 
-    @JsonIgnore private final boolean terminal;
-    @JsonIgnore @Getter private final String description;
+    @JsonIgnore
+    private final boolean terminal;
+    @JsonIgnore
+    @Getter
+    private final String description;
 
     ResourceLifecycleState(boolean terminal, String description) {
         this.terminal = terminal;
@@ -45,12 +51,12 @@ public enum ResourceLifecycleState {
     }
 
     public Set<ResourceLifecycleState> getClearedStatesAfterTransition(
-            ResourceLifecycleState transitionFrom) {
+                                                                       ResourceLifecycleState transitionFrom) {
         if (this == transitionFrom) {
             return Collections.emptySet();
         }
         EnumSet<ResourceLifecycleState> states = EnumSet
-            .allOf(ResourceLifecycleState.class);
+                .allOf(ResourceLifecycleState.class);
         if (terminal) {
             states.remove(this);
             return states;

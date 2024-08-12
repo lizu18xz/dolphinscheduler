@@ -406,7 +406,7 @@ public class TaskConstants {
      * hadoop.security.authentication
      */
     public static final String HADOOP_SECURITY_AUTHENTICATION_STARTUP_STATE =
-        "hadoop.security.authentication.startup.state";
+            "hadoop.security.authentication.startup.state";
 
     /**
      * Task Logger Thread's name
@@ -497,7 +497,7 @@ public class TaskConstants {
     public static final String NAMESPACE_NAME = "name";
     public static final String CLUSTER = "cluster";
     public static final Pattern COMMAND_SPLIT_REGEX = Pattern
-        .compile("[^\\s\"'`]+|\"([^\"]+)\"|'([^']+)'|`([^`]+)`");
+            .compile("[^\\s\"'`]+|\"([^\"]+)\"|'([^']+)'|`([^`]+)`");
 
     /**
      * spark / flink on k8s label name
@@ -529,12 +529,10 @@ public class TaskConstants {
 
     public static final String FLINK_K8S_OPERATOR_FINISHED = "FINISHED";
 
-
     public static final String SEATUNNEL_CONF_FILE = "seatunnel.conf";
 
     public static final String SEATUNNEL_CONF_FILE_PATH = "/data/" + SEATUNNEL_CONF_FILE;
 
     public static final String SEATUNNEL_CONF_VOLUME_NAME = "seatunnel-conf-volume";
-
 
 }

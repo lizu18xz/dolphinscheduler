@@ -18,15 +18,17 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.utils;
 
-import lombok.Value;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkSpec;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.reconciler.ReconciliationMetadata;
+
+import lombok.Value;
 
 /**
  * Utility class for encapsulating Kubernetes resource spec and meta fields during serialization.
  */
 @Value
 public class SpecWithMeta<T extends AbstractFlinkSpec> {
+
     T spec;
     ReconciliationMetadata meta;
 }

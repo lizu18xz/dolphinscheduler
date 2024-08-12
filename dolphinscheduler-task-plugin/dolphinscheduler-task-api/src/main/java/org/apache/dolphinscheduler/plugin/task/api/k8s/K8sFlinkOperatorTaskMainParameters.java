@@ -1,9 +1,11 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
+import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.Data;
-import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
 
 /**
  * @author lizu
@@ -11,7 +13,6 @@ import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
  */
 @Data
 public class K8sFlinkOperatorTaskMainParameters extends K8sTaskMainParameters {
-
 
     private String flinkJobType;
 
@@ -62,7 +63,6 @@ public class K8sFlinkOperatorTaskMainParameters extends K8sTaskMainParameters {
      * taskManager count
      */
     private Integer taskManager;
-
 
     /**
      * 任务配置内容

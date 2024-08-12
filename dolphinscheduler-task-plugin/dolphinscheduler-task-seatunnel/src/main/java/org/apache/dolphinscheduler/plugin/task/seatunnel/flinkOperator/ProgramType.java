@@ -21,6 +21,7 @@ package org.apache.dolphinscheduler.plugin.task.seatunnel.flinkOperator;
  * support program types
  */
 public enum ProgramType {
+
     /**
      * 0 JAVA,1 SCALA,2 PYTHON
      */

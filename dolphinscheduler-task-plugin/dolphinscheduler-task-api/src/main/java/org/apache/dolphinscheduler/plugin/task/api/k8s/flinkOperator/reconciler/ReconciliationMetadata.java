@@ -17,14 +17,16 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.reconciler;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.AbstractFlinkResource;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status.ReconciliationState;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status.ReconciliationStatus;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 
 /** Extra metadata to be attached to the reconciled spec. */
 @Data

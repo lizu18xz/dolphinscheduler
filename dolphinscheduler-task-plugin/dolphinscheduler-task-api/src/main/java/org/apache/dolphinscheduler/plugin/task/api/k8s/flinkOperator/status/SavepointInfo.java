@@ -19,6 +19,7 @@ package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class SavepointInfo {
+
     /** Last completed savepoint by the operator. */
     private Savepoint lastSavepoint;
 
@@ -52,7 +54,7 @@ public class SavepointInfo {
     private long lastPeriodicSavepointTimestamp = 0L;
 
     public void setTrigger(
-            String triggerId, SavepointTriggerType triggerType, SavepointFormatType formatType) {
+                           String triggerId, SavepointTriggerType triggerType, SavepointFormatType formatType) {
         this.triggerId = triggerId;
         this.triggerTimestamp = System.currentTimeMillis();
         this.triggerType = triggerType;
@@ -73,7 +75,7 @@ public class SavepointInfo {
      * @param savepoint Savepoint to be added.
      */
     public void updateLastSavepoint(
-        Savepoint savepoint) {
+                                    Savepoint savepoint) {
         if (lastSavepoint == null || !lastSavepoint.getLocation().equals(savepoint.getLocation())) {
             lastSavepoint = savepoint;
             savepointHistory.add(savepoint);

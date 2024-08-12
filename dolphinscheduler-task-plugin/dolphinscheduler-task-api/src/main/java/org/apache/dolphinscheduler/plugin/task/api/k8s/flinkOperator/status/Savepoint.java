@@ -18,6 +18,7 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.status;
 
 import javax.annotation.Nullable;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -55,11 +56,11 @@ public class Savepoint {
     private Long triggerNonce;
 
     public Savepoint(
-        long timeStamp,
-        String location,
-        @Nullable SavepointTriggerType triggerType,
-        @Nullable SavepointFormatType formatType,
-        @Nullable Long triggerNonce) {
+                     long timeStamp,
+                     String location,
+                     @Nullable SavepointTriggerType triggerType,
+                     @Nullable SavepointFormatType formatType,
+                     @Nullable Long triggerNonce) {
         this.timeStamp = timeStamp;
         this.location = location;
         if (triggerType != null) {
@@ -77,15 +78,15 @@ public class Savepoint {
 
     public static Savepoint of(String location, SavepointTriggerType triggerType) {
         return new Savepoint(
-            System.currentTimeMillis(),
-            location,
-            triggerType,
-            SavepointFormatType.UNKNOWN,
-            null);
+                System.currentTimeMillis(),
+                location,
+                triggerType,
+                SavepointFormatType.UNKNOWN,
+                null);
     }
 
     public static Savepoint of(
-        String location, SavepointTriggerType triggerType, SavepointFormatType formatType) {
+                               String location, SavepointTriggerType triggerType, SavepointFormatType formatType) {
         return new Savepoint(System.currentTimeMillis(), location, triggerType, formatType, null);
     }
 }
