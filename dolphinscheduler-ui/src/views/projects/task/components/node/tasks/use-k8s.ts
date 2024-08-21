@@ -46,6 +46,7 @@ export function useK8s({
     workerGroup: 'default',
     delayTime: 0,
     timeout: 30,
+    k8sJobType:'',
     timeoutNotifyStrategy: ['WARN']
   } as INodeData)
 

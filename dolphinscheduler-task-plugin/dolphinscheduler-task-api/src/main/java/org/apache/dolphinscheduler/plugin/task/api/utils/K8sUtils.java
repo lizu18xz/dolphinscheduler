@@ -122,6 +122,7 @@ public class K8sUtils {
     public void buildClient(String configYaml) {
         try {
             Config config = Config.fromKubeconfig(configYaml);
+            log.info("client config:{}",configYaml);
             client = new KubernetesClientBuilder().withConfig(config).build();
         } catch (Exception e) {
             throw new TaskException("fail to build k8s ApiClient", e);
@@ -186,6 +187,67 @@ public class K8sUtils {
                 .withPlural(FlinkOperatorConstant.FLINK_DEPLOYMENTS)
                 .withKind(FlinkOperatorConstant.KIND_FLINK_DEPLOYMENT)
                 .build();
+    }
+
+
+    public Boolean pytorchJobExist(String jobName, String namespace) {
+        Optional<GenericKubernetesResource> result;
+        try {
+            log.info("check pytorch job exist jobName:{},namespace:{} ", jobName, namespace);
+            CustomResourceDefinitionContext context = getPytorchCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                    client.genericKubernetesResources(context);
+            GenericKubernetesResourceList list = resourceMixedOperation
+                    .inNamespace(namespace).list();
+            List<GenericKubernetesResource> items = list.getItems();
+            result = items.stream()
+                    .filter(job -> job.getMetadata().getName().equals(jobName))
+                    .findFirst();
+            return result.isPresent();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new TaskException("fail to check pytorch job: ", e);
+        }
+    }
+
+    public Watch createPytorchJobWatcher(String jobName, String nameSpace,
+                                         Watcher<GenericKubernetesResource> watcher) {
+        try {
+            CustomResourceDefinitionContext context = getPytorchCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                    client.genericKubernetesResources(context);
+            return resourceMixedOperation.inNamespace(nameSpace).withName(jobName).watch(watcher);
+        } catch (Exception e) {
+            throw new TaskException("fail to register flink operator batch job watcher", e);
+        }
+    }
+
+    private CustomResourceDefinitionContext getPytorchCustomResourceDefinitionContext() {
+        return new CustomResourceDefinitionContext.Builder()
+                .withGroup("kubeflow.org")
+                .withVersion("v1")
+                .withScope("Namespaced")
+                .withPlural("pytorchjobs")
+                .withKind("PyTorchJob")
+                .build();
+    }
+
+    public void loadApplyYmlJob(String yaml) {
+        try {
+            client.load(new ByteArrayInputStream((yaml).getBytes())).createOrReplace();
+        } catch (Exception e) {
+            throw new TaskException("fail to create flink job", e);
+        }
+    }
+
+    public void deleteApplyYmlJob(String yaml) {
+        try {
+            client
+                    .load(new ByteArrayInputStream((yaml).getBytes()))
+                    .delete();
+        } catch (Exception e) {
+            throw new TaskException("fail to delete apply job", e);
+        }
     }
 
 }

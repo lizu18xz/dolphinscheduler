@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.plugin.task.k8s;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannel;
@@ -25,6 +26,7 @@ import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.ParametersNode;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.resource.ResourceParametersHelper;
+import org.apache.dolphinscheduler.plugin.task.k8s.pytorch.PytorchK8sTask;
 
 public class K8sTaskChannel implements TaskChannel {
 
@@ -45,6 +47,14 @@ public class K8sTaskChannel implements TaskChannel {
 
     @Override
     public AbstractTask createTask(TaskExecutionContext taskRequest) {
+        //判断是哪种K8s任务
+        K8sTaskParameters parameters = JSONUtils.parseObject(taskRequest.getTaskParams(), K8sTaskParameters.class);
+        String jobType = parameters.getK8sJobType();
+        if (!StringUtils.isEmpty(jobType)) {
+            if (jobType.equals("pytorch")) {
+                return new PytorchK8sTask(taskRequest);
+            }
+        }
         return new K8sTask(taskRequest);
     }
 

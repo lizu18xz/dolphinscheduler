@@ -18,7 +18,7 @@ import {
   useCustomParams,
   useNamespace,
   useCustomLabels,
-  useNodeSelectors
+  useNodeSelectors, useResources
 } from '.'
 import type { IJsonItem } from '../types'
 import { useI18n } from 'vue-i18n'
@@ -80,6 +80,43 @@ export function useK8s(model: { [field: string]: any }): IJsonItem[] {
       value: 'IfNotPresent'
     },
     {
+      type: 'select',
+      field: 'k8sJobType',
+      name: t('project.node.k8s_job_type'),
+      options: K8S_JOB_TYPE_LIST,
+      validate: {
+        trigger: ['input', 'blur'],
+        required: true,
+        message: t('project.node.k8s_job_type_tips')
+      },
+      value: 'base'
+    },
+    useResources(),
+    {
+      type: 'input',
+      field: 'inputDataVolume',
+      name: t('project.node.k8s_input_data_path'),
+      props: {
+        placeholder: t('project.node.k8s_input_data_path_tips')
+      },
+      validate: {
+        trigger: ['input', 'blur'],
+        required: false
+      }
+    },
+    {
+      type: 'input',
+      field: 'outputDataVolume',
+      name: t('project.node.k8s_output_data_path'),
+      props: {
+        placeholder: t('project.node.k8s_output_data_path_tips')
+      },
+      validate: {
+        trigger: ['input', 'blur'],
+        required: false
+      }
+    },
+    {
       type: 'input',
       field: 'command',
       name: t('project.node.command'),
@@ -122,5 +159,17 @@ export const IMAGE_PULL_POLICY_LIST = [
   {
     value: 'Never',
     label: 'Never'
+  }
+]
+
+
+export const K8S_JOB_TYPE_LIST = [
+  {
+    value: 'base',
+    label: 'base'
+  },
+  {
+    value: 'pytorch',
+    label: 'pytorch'
   }
 ]

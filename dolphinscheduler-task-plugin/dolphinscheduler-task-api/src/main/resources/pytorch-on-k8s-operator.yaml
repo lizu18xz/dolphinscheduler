@@ -1,0 +1,45 @@
+apiVersion: "kubeflow.org/v1"
+kind: PyTorchJob
+metadata:
+  name: pytorch-template
+  namespace: dolphinscheduler
+spec:
+  pytorchReplicaSpecs:
+    Master:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+            - name: pytorch
+              image: harbor.image.net:8201/test/example:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - "python3"
+                - "demo.py"
+              resources:
+                requests:
+                  memory: "1024Mi"
+                  cpu: "1"
+                limits:
+                  memory: "1024Mi"
+                  cpu: "1"
+    Worker:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+            - name: pytorch
+              image: harbor.image.net:8201/test/example:latest
+              imagePullPolicy: IfNotPresent
+              command:
+                - "python3"
+                - "demo.py"
+              resources:
+                requests:
+                  memory: "1024Mi"
+                  cpu: "1"
+                limits:
+                  memory: "1024Mi"
+                  cpu: "1"

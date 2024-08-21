@@ -32,6 +32,7 @@ import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.RESTART_
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.TASK_INSTANCE_ID;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.UNIQUE_LABEL_NAME;
 
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.K8sTaskExecutionContext;
@@ -148,12 +149,12 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
 
         Affinity affinity = k8STaskMainParameters.getNodeSelectorRequirements().size() == 0 ? null
                 : new AffinityBuilder()
-                        .withNewNodeAffinity()
-                        .withNewRequiredDuringSchedulingIgnoredDuringExecution()
-                        .addNewNodeSelectorTermLike(nodeSelectorTerm)
-                        .endNodeSelectorTerm()
-                        .endRequiredDuringSchedulingIgnoredDuringExecution()
-                        .endNodeAffinity().build();
+                .withNewNodeAffinity()
+                .withNewRequiredDuringSchedulingIgnoredDuringExecution()
+                .addNewNodeSelectorTermLike(nodeSelectorTerm)
+                .endNodeSelectorTerm()
+                .endRequiredDuringSchedulingIgnoredDuringExecution()
+                .endNodeAffinity().build();
 
         JobBuilder jobBuilder = new JobBuilder()
                 .withApiVersion(API_VERSION)
@@ -323,6 +324,7 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
         try {
             log.info("[K8sJobExecutor-{}-{}] start to submit job", taskName, taskInstanceId);
             job = buildK8sJob(k8STaskMainParameters);
+            log.info("deploy k8s job yaml:{}", Serialization.asYaml(job));
             stopJobOnK8s(k8sParameterStr);
             String namespaceName = k8STaskMainParameters.getNamespaceName();
             k8sUtils.createJob(namespaceName, job);

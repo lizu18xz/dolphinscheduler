@@ -446,7 +446,10 @@ interface ITaskParams {
   degreeOfParallelism?: number
   filterCondition?: string
   listParameters?: Array<any>
-  yarnQueue?: string
+  yarnQueue?: string,
+  k8sJobType?: string,
+  inputDataPath?: string
+  outputDataPath?: string
 }
 
 interface INodeData
@@ -504,6 +507,7 @@ interface INodeData
   customConfig?: boolean
   mapping_columns?: object[]
   taskExecuteType?: TaskExecuteType
+  k8sJobType?: string
 }
 
 interface ITaskData

@@ -521,6 +521,7 @@ public class TaskConstants {
 
     public static final String FLINK_K8S_OPERATOR = "flink-operator";
 
+    public static final String PYTORCH_K8S_OPERATOR = "pytorch-operator";
     public static final String FLINK_K8S_OPERATOR_COMPLETED = "COMPLETED";
 
     public static final String FLINK_K8S_OPERATOR_FAILED = "FAILED";

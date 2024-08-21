@@ -15,39 +15,33 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.plugin.task.api.parameters;
+package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
-import org.apache.dolphinscheduler.plugin.task.api.model.Label;
-import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import lombok.Data;
 import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
+import java.util.Map;
 
 /**
  * k8s task parameters
  */
 @Data
-public class K8sTaskParameters extends AbstractParameters {
-
-    /**
-     * 任务类型 base/pytorch
-     */
-    private String k8sJobType;
+public class K8sPytorchTaskMainParameters {
 
     private String image;
-    private String namespace;
     private String command;
     private String args;
+    private String namespaceName;
+    private String clusterName;
     private String imagePullPolicy;
     private double minCpuCores;
     private double minMemorySpace;
-    private List<Label> customizedLabels;
-    private List<NodeSelectorExpression> nodeSelectors;
+    private Map<String, String> paramsMap;
+    private Map<String, String> labelMap;
+    private List<NodeSelectorRequirement> nodeSelectorRequirements;
 
     /**
      * 节点的输入输出挂载
@@ -55,6 +49,7 @@ public class K8sTaskParameters extends AbstractParameters {
     private String inputDataVolume;
 
     private String outputDataVolume;
+
 
     /**
      * 资源类型
@@ -86,13 +81,4 @@ public class K8sTaskParameters extends AbstractParameters {
      */
     private List<ResourceInfo> resourceList = new ArrayList<>();
 
-    @Override
-    public boolean checkParameters() {
-        return StringUtils.isNotEmpty(image) && StringUtils.isNotEmpty(namespace);
-    }
-
-    @Override
-    public List<ResourceInfo> getResourceFilesList() {
-        return new ArrayList<>();
-    }
 }
