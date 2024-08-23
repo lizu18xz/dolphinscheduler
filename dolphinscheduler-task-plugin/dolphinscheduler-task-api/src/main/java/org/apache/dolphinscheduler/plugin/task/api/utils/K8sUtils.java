@@ -58,6 +58,23 @@ public class K8sUtils {
         }
     }
 
+    /**
+     * 获取指定job详情
+     * */
+    public Job getJobDescribe(String jobName, String namespace) {
+        Optional<Job> result;
+        try {
+            JobList jobList = client.batch().jobs().inNamespace(namespace).list();
+            List<Job> jobs = jobList.getItems();
+            result = jobs.stream()
+                    .filter(job -> job.getMetadata().getName().equals(jobName))
+                    .findFirst();
+            return result.get();
+        } catch (Exception e) {
+            throw new TaskException("fail to check job: ", e);
+        }
+    }
+
     public void deleteJob(String jobName, String namespace) {
         try {
             client.batch()
@@ -122,7 +139,7 @@ public class K8sUtils {
     public void buildClient(String configYaml) {
         try {
             Config config = Config.fromKubeconfig(configYaml);
-            log.info("client config:{}",configYaml);
+            log.info("client config:{}", configYaml);
             client = new KubernetesClientBuilder().withConfig(config).build();
         } catch (Exception e) {
             throw new TaskException("fail to build k8s ApiClient", e);
@@ -188,7 +205,6 @@ public class K8sUtils {
                 .withKind(FlinkOperatorConstant.KIND_FLINK_DEPLOYMENT)
                 .build();
     }
-
 
     public Boolean pytorchJobExist(String jobName, String namespace) {
         Optional<GenericKubernetesResource> result;

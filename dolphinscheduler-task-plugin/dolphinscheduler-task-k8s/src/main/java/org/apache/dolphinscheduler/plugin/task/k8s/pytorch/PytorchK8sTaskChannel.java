@@ -15,21 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.plugin.task.k8s;
+package org.apache.dolphinscheduler.plugin.task.k8s.pytorch;
 
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.AbstractTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannel;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
-import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
+import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sPytorchTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.ParametersNode;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.resource.ResourceParametersHelper;
-import org.apache.dolphinscheduler.plugin.task.k8s.pytorch.PytorchK8sTask;
 
-import org.apache.commons.lang3.StringUtils;
 
-public class K8sTaskChannel implements TaskChannel {
+public class PytorchK8sTaskChannel implements TaskChannel {
 
     @Override
     public void cancelApplication(boolean status) {
@@ -38,7 +36,7 @@ public class K8sTaskChannel implements TaskChannel {
 
     @Override
     public AbstractParameters parseParameters(ParametersNode parametersNode) {
-        return JSONUtils.parseObject(parametersNode.getTaskParams(), K8sTaskParameters.class);
+        return JSONUtils.parseObject(parametersNode.getTaskParams(), K8sPytorchTaskParameters.class);
     }
 
     @Override
@@ -49,7 +47,7 @@ public class K8sTaskChannel implements TaskChannel {
     @Override
     public AbstractTask createTask(TaskExecutionContext taskRequest) {
 
-        return new K8sTask(taskRequest);
+        return new PytorchK8sTask(taskRequest);
     }
 
 }

@@ -40,4 +40,17 @@ public class K8sTaskMainParameters {
     private Map<String, String> paramsMap;
     private Map<String, String> labelMap;
     private List<NodeSelectorRequirement> nodeSelectorRequirements;
+
+    /**
+     * gpu 资源配置
+     * */
+    private Double gpuResources;
+    private String volumeType;
+    /**
+     * 节点的输入输出挂载
+     */
+    private String inputDataVolume;
+
+    private String outputDataVolume;
+
 }

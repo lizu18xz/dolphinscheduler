@@ -17,22 +17,25 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.parameters;
 
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.plugin.task.api.model.Label;
 import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
 import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * k8s task parameters
  */
 @Data
-public class K8sTaskParameters extends AbstractParameters {
+public class K8sPytorchTaskParameters extends AbstractParameters {
+
+    /**
+     * 任务类型 base/pytorch
+     */
+    private String k8sJobType;
 
     private String image;
     private String namespace;
@@ -41,20 +44,10 @@ public class K8sTaskParameters extends AbstractParameters {
     private String imagePullPolicy;
     private double minCpuCores;
     private double minMemorySpace;
-
-    /**
-     * gpu 资源配置
-     * */
-    private Double gpuResources;
-
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;
 
-    /**
-     * 存储类型
-     * */
     private String volumeType;
-
 
     /**
      * 节点的输入输出挂载
@@ -63,6 +56,29 @@ public class K8sTaskParameters extends AbstractParameters {
 
     private String outputDataVolume;
 
+    /**
+     * 资源类型
+     */
+    private Boolean enableGpu;
+
+    /**
+     * 副本数量
+     */
+    private Integer masterReplicas;
+    private Integer workerReplicas;
+
+    /**
+     * 资源配置
+     */
+    private String masterRequestsMemory;
+    private String masterRequestsCpu;
+    private String masterLimitsMemory;
+    private String masterLimitsCpu;
+
+    private String workerRequestsMemory;
+    private String workerRequestsCpu;
+    private String workerLimitsMemory;
+    private String workerLimitsCpu;
 
     /**
      * resource list  所选的资源文件

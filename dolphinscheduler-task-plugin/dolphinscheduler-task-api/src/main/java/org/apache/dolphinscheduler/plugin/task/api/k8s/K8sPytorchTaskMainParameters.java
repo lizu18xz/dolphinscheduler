@@ -17,13 +17,14 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
-import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
-import lombok.Data;
 import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import lombok.Data;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 
 /**
  * k8s task parameters
@@ -50,7 +51,6 @@ public class K8sPytorchTaskMainParameters {
 
     private String outputDataVolume;
 
-
     /**
      * 资源类型
      */
@@ -74,7 +74,6 @@ public class K8sPytorchTaskMainParameters {
     private String workerRequestsCpu;
     private String workerLimitsMemory;
     private String workerLimitsCpu;
-
 
     /**
      * resource list  所选的资源文件

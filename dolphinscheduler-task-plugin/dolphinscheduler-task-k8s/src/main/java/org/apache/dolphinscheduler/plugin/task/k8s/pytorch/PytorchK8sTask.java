@@ -17,9 +17,10 @@
 
 package org.apache.dolphinscheduler.plugin.task.k8s.pytorch;
 
-import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CLUSTER;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAMESPACE_NAME;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.PYTORCH_K8S_OPERATOR;
+
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
@@ -32,10 +33,17 @@ import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
 
-import java.util.*;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 
 public class PytorchK8sTask extends AbstractK8sTask {
 
@@ -72,7 +80,6 @@ public class PytorchK8sTask extends AbstractK8sTask {
         return k8sTaskParameters;
     }
 
-
     /**
      * 当前任务类型自定义参数
      */
@@ -104,10 +111,10 @@ public class PytorchK8sTask extends AbstractK8sTask {
         }
 
         return expressions.stream().map(expression -> new NodeSelectorRequirement(
-                        expression.getKey(),
-                        expression.getOperator(),
-                        StringUtils.isEmpty(expression.getValues()) ? Collections.emptyList()
-                                : Arrays.asList(expression.getValues().trim().split("\\s*,\\s*"))))
+                expression.getKey(),
+                expression.getOperator(),
+                StringUtils.isEmpty(expression.getValues()) ? Collections.emptyList()
+                        : Arrays.asList(expression.getValues().trim().split("\\s*,\\s*"))))
                 .collect(Collectors.toList());
     }
 

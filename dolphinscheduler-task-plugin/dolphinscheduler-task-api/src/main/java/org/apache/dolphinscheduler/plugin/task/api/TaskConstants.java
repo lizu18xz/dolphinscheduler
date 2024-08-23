@@ -487,6 +487,8 @@ public class TaskConstants {
     public static final String RESTART_POLICY = "Never";
     public static final String MEMORY = "memory";
     public static final String CPU = "cpu";
+
+    public static final String GPU = "nvidia.com/gpu";
     public static final String LAYER_LABEL = "k8s.cn/layer";
     public static final String LAYER_LABEL_VALUE = "batch";
     public static final String NAME_LABEL = "k8s.cn/name";

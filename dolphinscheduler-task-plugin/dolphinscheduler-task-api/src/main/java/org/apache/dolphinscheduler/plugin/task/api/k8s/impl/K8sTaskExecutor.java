@@ -17,22 +17,7 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.API_VERSION;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CPU;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_FAILURE;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_KILL;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_SUCCESS;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.JOB_TTL_SECONDS;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.LAYER_LABEL;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.LAYER_LABEL_VALUE;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.MEMORY;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.MI;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAME_LABEL;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.RESTART_POLICY;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.TASK_INSTANCE_ID;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.UNIQUE_LABEL_NAME;
-
-import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.api.model.*;
 import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.K8sTaskExecutionContext;
@@ -65,12 +50,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 
-import io.fabric8.kubernetes.api.model.Affinity;
-import io.fabric8.kubernetes.api.model.AffinityBuilder;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.NodeSelectorTerm;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobStatus;
@@ -78,6 +57,10 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import org.springframework.util.CollectionUtils;
+
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
 
 /**
  * K8sTaskExecutor used to submit k8s task to K8S
@@ -99,23 +82,33 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
         String namespaceName = k8STaskMainParameters.getNamespaceName();
         String imagePullPolicy = k8STaskMainParameters.getImagePullPolicy();
         Map<String, String> otherParams = k8STaskMainParameters.getParamsMap();
-        Double podMem = k8STaskMainParameters.getMinMemorySpace();
-        Double podCpu = k8STaskMainParameters.getMinCpuCores();
-        Double limitPodMem = podMem * 2;
-        Double limitPodCpu = podCpu * 2;
+
+        //设置资源
+        Map<String, Quantity> limitRes = new HashMap<>();
+        Map<String, Quantity> reqRes = new HashMap<>();
         int retryNum = 0;
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
-        Map<String, Quantity> reqRes = new HashMap<>();
-        reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
-        reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
-        Map<String, Quantity> limitRes = new HashMap<>();
-        limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
-        limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+        if (k8STaskMainParameters.getGpuResources() == null) {
+            Double podMem = k8STaskMainParameters.getMinMemorySpace();
+            Double podCpu = k8STaskMainParameters.getMinCpuCores();
+            Double limitPodMem = podMem * 2;
+            Double limitPodCpu = podCpu * 2;
+            reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
+            limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+        } else {
+            //nvidia.com/gpu: 1
+            Double podGpu = k8STaskMainParameters.getGpuResources();
+            limitRes.put(GPU, new Quantity(String.valueOf(podGpu)));
+        }
+
         Map<String, String> labelMap = k8STaskMainParameters.getLabelMap();
         labelMap.put(LAYER_LABEL, LAYER_LABEL_VALUE);
         labelMap.put(NAME_LABEL, k8sJobName);
         Map<String, String> podLabelMap = new HashMap<>();
         podLabelMap.put(UNIQUE_LABEL_NAME, taskRequest.getTaskAppId());
+
         EnvVar taskInstanceIdVar = new EnvVar(TASK_INSTANCE_ID, taskInstanceId, null);
         List<EnvVar> envVars = new ArrayList<>();
         envVars.add(taskInstanceIdVar);
@@ -185,6 +178,52 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
                 .endTemplate()
                 .withBackoffLimit(retryNum)
                 .endSpec();
+
+
+        //设置容器挂载
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        //设置宿主机挂载
+        List<Volume> volumes = new ArrayList<>();
+
+        if (StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
+            //容器
+            VolumeMount volumeMount = new VolumeMount();
+            volumeMount.setName("inputData");
+            volumeMount.setMountPath("/inputData");
+            volumeMounts.add(volumeMount);
+
+            //宿主机
+            Volume volume = new Volume();
+            volume.setName("inputData");
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
+            volumes.add(volume);
+        }
+
+        if (StringUtils.isEmpty(k8STaskMainParameters.getOutputDataVolume())) {
+            //容器
+            VolumeMount volumeMount = new VolumeMount();
+            volumeMount.setName("outputData");
+            volumeMount.setMountPath("/outputData");
+            volumeMounts.add(volumeMount);
+
+            //宿主机
+            Volume volume = new Volume();
+            volume.setName("outputData");
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getOutputDataVolume(), "DirectoryOrCreate"));
+            volumes.add(volume);
+        }
+
+        if (!CollectionUtils.isEmpty(volumeMounts)) {
+            //设置容器内部的挂载路径
+            jobBuilder.buildSpec().getTemplate().getSpec().getContainers().get(0).setVolumeMounts(volumeMounts);
+        }
+        if (!CollectionUtils.isEmpty(volumes)) {
+            //设置宿主机或者其他存储的挂载路径
+            jobBuilder.buildSpec().getTemplate().getSpec().setVolumes(volumes);
+        }
+
+        //新增环境变量
+        //jobBuilder.buildSpec().getTemplate().getSpec().getContainers().get(0).getEnv().add("");
 
         return jobBuilder.build();
     }

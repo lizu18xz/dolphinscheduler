@@ -1,7 +1,8 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s.pytorchOperator;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * 具体细节配置

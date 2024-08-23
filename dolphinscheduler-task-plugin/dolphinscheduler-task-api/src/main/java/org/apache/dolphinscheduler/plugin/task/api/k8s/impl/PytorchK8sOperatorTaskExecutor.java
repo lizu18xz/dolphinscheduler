@@ -1,13 +1,16 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 
-import io.fabric8.kubernetes.api.model.*;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_FAILURE;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_KILL;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_SUCCESS;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.RUNNING_CODE;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.UNIQUE_LABEL_NAME;
+
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
-import org.apache.dolphinscheduler.plugin.task.api.*;
+import org.apache.dolphinscheduler.plugin.task.api.K8sTaskExecutionContext;
+import org.apache.dolphinscheduler.plugin.task.api.TaskException;
+import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
+import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContextCacheManager;
 import org.apache.dolphinscheduler.plugin.task.api.enums.TaskTimeoutStrategy;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sPytorchTaskMainParameters;
@@ -15,17 +18,34 @@ import org.apache.dolphinscheduler.plugin.task.api.k8s.pytorchOperator.PyTorchJo
 import org.apache.dolphinscheduler.plugin.task.api.k8s.pytorchOperator.PytorchReplicaSpecs;
 import org.apache.dolphinscheduler.plugin.task.api.model.TaskResponse;
 import org.apache.dolphinscheduler.plugin.task.api.utils.LogUtils;
-import org.slf4j.Logger;
-import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
+import org.slf4j.Logger;
+import org.springframework.util.CollectionUtils;
+
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.Watcher;
+import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.utils.Serialization;
 
 /**
  * @author lizu
@@ -212,13 +232,13 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
                         } else if (state.equals("FAILED")) {
                             return EXIT_CODE_FAILURE;
                         } else {
-                            return TaskConstants.RUNNING_CODE;
+                            return RUNNING_CODE;
                         }
                     }
                 }
             }
         }
-        return TaskConstants.RUNNING_CODE;
+        return RUNNING_CODE;
     }
 
     private void setTaskStatus(int jobStatus, String taskInstanceId, TaskResponse taskResponse,
@@ -249,9 +269,8 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         return Serialization.asYaml(pyTorchJob);
     }
 
-
     private PyTorchJob buildPyTorchJob(K8sPytorchTaskMainParameters parameters) {
-        //获取模版
+        // 获取模版
         this.pyTorchJob = getPyTorchJob();
 
         // 新增填充 设置job名称
@@ -260,10 +279,12 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         this.pyTorchJob.getMetadata()
                 .setNamespace(k8sTaskExecutionContext.getNamespace().replace("_", ""));
 
-        //设置Master、Worker信息
+        // 设置Master、Worker信息
         PytorchReplicaSpecs pytorchReplicaSpecs = this.pyTorchJob.getSpec().getPytorchReplicaSpecs();
-        pytorchReplicaSpecs.getMaster().setReplicas(parameters.getMasterReplicas() == null ? 1 : parameters.getMasterReplicas());
-        pytorchReplicaSpecs.getWorker().setReplicas(parameters.getWorkerReplicas() == null ? 1 : parameters.getWorkerReplicas());
+        pytorchReplicaSpecs.getMaster()
+                .setReplicas(parameters.getMasterReplicas() == null ? 1 : parameters.getMasterReplicas());
+        pytorchReplicaSpecs.getWorker()
+                .setReplicas(parameters.getWorkerReplicas() == null ? 1 : parameters.getWorkerReplicas());
 
         Container containerMaster = new Container();
         Container containerWorker = new Container();
@@ -273,35 +294,43 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         containerMaster.setImage(parameters.getImage());
         containerMaster.setImagePullPolicy(parameters.getImagePullPolicy());
 
-        //设置资源信息
-        Boolean enableGpu = parameters.getEnableGpu();
+        // 设置资源信息
+        // Boolean enableGpu = parameters.getEnableGpu();
         if (false) {
-            //TODO
+            // TODO
         } else {
-            //资源设置
+            // 资源设置
             ResourceRequirements masterRes = new ResourceRequirements();
             Map<String, Quantity> requests = new HashMap<>();
-            requests.put("cpu", new Quantity(parameters.getMasterRequestsCpu() == null ? "1" : parameters.getMasterRequestsCpu()));
-            requests.put("memory", new Quantity(parameters.getMasterRequestsMemory() == null ? "1024Mi" : parameters.getMasterRequestsMemory()));
+            requests.put("cpu",
+                    new Quantity(parameters.getMasterRequestsCpu() == null ? "1" : parameters.getMasterRequestsCpu()));
+            requests.put("memory", new Quantity(
+                    parameters.getMasterRequestsMemory() == null ? "1024Mi" : parameters.getMasterRequestsMemory()));
             Map<String, Quantity> limits = new HashMap<>();
-            limits.put("cpu", new Quantity(parameters.getMasterLimitsCpu() == null ? "1" : parameters.getMasterLimitsCpu()));
-            limits.put("memory", new Quantity(parameters.getMasterLimitsMemory() == null ? "1024Mi" : parameters.getMasterLimitsMemory()));
+            limits.put("cpu",
+                    new Quantity(parameters.getMasterLimitsCpu() == null ? "1" : parameters.getMasterLimitsCpu()));
+            limits.put("memory", new Quantity(
+                    parameters.getMasterLimitsMemory() == null ? "1024Mi" : parameters.getMasterLimitsMemory()));
             masterRes.setRequests(requests);
             masterRes.setLimits(limits);
             containerMaster.setResources(masterRes);
 
             ResourceRequirements workerRes = new ResourceRequirements();
             Map<String, Quantity> workerRequests = new HashMap<>();
-            workerRequests.put("cpu", new Quantity(parameters.getWorkerRequestsCpu() == null ? "1" : parameters.getWorkerRequestsCpu()));
-            workerRequests.put("memory", new Quantity(parameters.getWorkerRequestsMemory() == null ? "1024Mi" : parameters.getWorkerRequestsMemory()));
+            workerRequests.put("cpu",
+                    new Quantity(parameters.getWorkerRequestsCpu() == null ? "1" : parameters.getWorkerRequestsCpu()));
+            workerRequests.put("memory", new Quantity(
+                    parameters.getWorkerRequestsMemory() == null ? "1024Mi" : parameters.getWorkerRequestsMemory()));
             Map<String, Quantity> workerLimits = new HashMap<>();
-            workerLimits.put("cpu", new Quantity(parameters.getWorkerLimitsCpu() == null ? "1" : parameters.getWorkerLimitsCpu()));
-            workerLimits.put("memory", new Quantity(parameters.getWorkerLimitsMemory() == null ? "1024Mi" : parameters.getWorkerLimitsMemory()));
+            workerLimits.put("cpu",
+                    new Quantity(parameters.getWorkerLimitsCpu() == null ? "1" : parameters.getWorkerLimitsCpu()));
+            workerLimits.put("memory", new Quantity(
+                    parameters.getWorkerLimitsMemory() == null ? "1024Mi" : parameters.getWorkerLimitsMemory()));
             workerRes.setRequests(workerRequests);
             workerRes.setLimits(workerLimits);
             containerWorker.setResources(workerRes);
         }
-        //设置镜像启动命令
+        // 设置镜像启动命令
         String commandString = parameters.getCommand();
         String argsString = parameters.getArgs();
         List<String> commands = new ArrayList<>();
@@ -321,7 +350,7 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         containerMaster.setArgs(args.size() == 0 ? null : args);
         masterTemplate.getSpec().setContainers(Arrays.asList(containerMaster));
 
-        //设置Worker的信息
+        // 设置Worker的信息
         PodTemplateSpec workerTemplate = pytorchReplicaSpecs.getWorker().getTemplate();
         containerWorker.setName("pytorch");
         containerWorker.setImage(parameters.getImage());
@@ -349,7 +378,6 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
             pytorchReplicaSpecs.getMaster().getTemplate().getSpec()
                     .setContainers(Arrays.asList(containerMaster));
 
-
             containerWorker = pytorchReplicaSpecs.getWorker().getTemplate().getSpec()
                     .getContainers().get(0);
             containerWorker.setEnv(getEnv(parameters.getParamsMap()));
@@ -357,10 +385,9 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
                     .setContainers(Arrays.asList(containerMaster));
         }
 
-        //TODO 设置挂载
+        // TODO 设置挂载
         return pyTorchJob;
     }
-
 
     /**
      * 根据模板文件获取
@@ -385,7 +412,6 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
         return k8sJobName;
     }
-
 
     private List<EnvVar> getEnv(Map<String, String> paramsMap) {
         List<EnvVar> env = new ArrayList<>();

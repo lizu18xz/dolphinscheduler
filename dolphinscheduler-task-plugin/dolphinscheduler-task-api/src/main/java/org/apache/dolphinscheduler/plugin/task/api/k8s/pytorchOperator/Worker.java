@@ -1,10 +1,10 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s.pytorchOperator;
 
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 
 @Data
 @AllArgsConstructor
@@ -17,6 +17,5 @@ public class Worker {
     private String restartPolicy;
 
     private PodTemplateSpec template;
-
 
 }
