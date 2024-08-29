@@ -42,12 +42,35 @@ public class K8sPytorchTaskParameters extends AbstractParameters {
     private String command;
     private String args;
     private String imagePullPolicy;
-    private double minCpuCores;
-    private double minMemorySpace;
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;
 
     private String volumeType;
+
+
+    /**
+     * 副本数量
+     */
+    private Integer masterReplicas = 1;
+    private Integer workerReplicas;
+
+    /**
+     * gpu resources 设置
+     */
+    private String masterGpuLimits;
+
+    /**
+     * gpu resources 设置
+     */
+    private String workerGpuLimits;
+    /**
+     * 资源配置
+     */
+    private double masterMinCpuCores;
+    private double masterMinMemorySpace;
+
+    private String workerMinCpuCores;
+    private String workerMinMemorySpace;
 
     /**
      * 节点的输入输出挂载
@@ -55,30 +78,6 @@ public class K8sPytorchTaskParameters extends AbstractParameters {
     private String inputDataVolume;
 
     private String outputDataVolume;
-
-    /**
-     * 资源类型
-     */
-    private Boolean enableGpu;
-
-    /**
-     * 副本数量
-     */
-    private Integer masterReplicas;
-    private Integer workerReplicas;
-
-    /**
-     * 资源配置
-     */
-    private String masterRequestsMemory;
-    private String masterRequestsCpu;
-    private String masterLimitsMemory;
-    private String masterLimitsCpu;
-
-    private String workerRequestsMemory;
-    private String workerRequestsCpu;
-    private String workerLimitsMemory;
-    private String workerLimitsCpu;
 
     /**
      * resource list  所选的资源文件

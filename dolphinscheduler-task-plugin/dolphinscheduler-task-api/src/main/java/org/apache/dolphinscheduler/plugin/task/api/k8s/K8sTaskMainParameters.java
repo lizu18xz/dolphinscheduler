@@ -44,7 +44,7 @@ public class K8sTaskMainParameters {
     /**
      * gpu 资源配置
      * */
-    private Double gpuResources;
+    private Double gpuLimits;
     private String volumeType;
     /**
      * 节点的输入输出挂载

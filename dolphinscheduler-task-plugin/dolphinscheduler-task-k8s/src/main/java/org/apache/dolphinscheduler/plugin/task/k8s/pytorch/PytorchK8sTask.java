@@ -30,6 +30,7 @@ import org.apache.dolphinscheduler.plugin.task.api.model.Label;
 import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
 import org.apache.dolphinscheduler.plugin.task.api.model.Property;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
+import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sPytorchTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
 
@@ -55,7 +56,7 @@ public class PytorchK8sTask extends AbstractK8sTask {
     /**
      * task parameters  页面参数，保持一致
      */
-    private final K8sTaskParameters k8sTaskParameters;
+    private final K8sPytorchTaskParameters k8sTaskParameters;
 
     /**
      * @param taskRequest taskRequest
@@ -63,7 +64,7 @@ public class PytorchK8sTask extends AbstractK8sTask {
     public PytorchK8sTask(TaskExecutionContext taskRequest) {
         super(taskRequest, PYTORCH_K8S_OPERATOR);
         this.taskExecutionContext = taskRequest;
-        this.k8sTaskParameters = JSONUtils.parseObject(taskExecutionContext.getTaskParams(), K8sTaskParameters.class);
+        this.k8sTaskParameters = JSONUtils.parseObject(taskExecutionContext.getTaskParams(), K8sPytorchTaskParameters.class);
         log.info("Initialize pytorch k8s task parameters {}", JSONUtils.toPrettyJsonString(k8sTaskParameters));
         if (k8sTaskParameters == null || !k8sTaskParameters.checkParameters()) {
             throw new TaskException("PYTORCH K8S task params is not valid");
@@ -93,8 +94,14 @@ public class PytorchK8sTask extends AbstractK8sTask {
         k8sPytorchTaskMainParameters.setImage(k8sTaskParameters.getImage());
         k8sPytorchTaskMainParameters.setNamespaceName(namespaceName);
         k8sPytorchTaskMainParameters.setClusterName(clusterName);
-        k8sPytorchTaskMainParameters.setMinCpuCores(k8sTaskParameters.getMinCpuCores());
-        k8sPytorchTaskMainParameters.setMinMemorySpace(k8sTaskParameters.getMinMemorySpace());
+        k8sPytorchTaskMainParameters.setMasterMinMemorySpace(k8sTaskParameters.getMasterMinMemorySpace());
+        k8sPytorchTaskMainParameters.setMasterMinCpuCores(k8sTaskParameters.getMasterMinMemorySpace());
+        k8sPytorchTaskMainParameters.setMasterGpuLimits(k8sTaskParameters.getMasterGpuLimits());
+        k8sPytorchTaskMainParameters.setMasterReplicas(k8sTaskParameters.getMasterReplicas());
+        k8sPytorchTaskMainParameters.setWorkerMinMemorySpace(k8sTaskParameters.getWorkerMinMemorySpace());
+        k8sPytorchTaskMainParameters.setWorkerMinCpuCores(k8sTaskParameters.getWorkerMinCpuCores());
+        k8sPytorchTaskMainParameters.setWorkerGpuLimits(k8sTaskParameters.getWorkerGpuLimits());
+        k8sPytorchTaskMainParameters.setWorkerReplicas(k8sTaskParameters.getWorkerReplicas());
         k8sPytorchTaskMainParameters.setParamsMap(ParameterUtils.convert(paramsMap));
         k8sPytorchTaskMainParameters.setLabelMap(convertToLabelMap(k8sTaskParameters.getCustomizedLabels()));
         k8sPytorchTaskMainParameters
@@ -111,10 +118,10 @@ public class PytorchK8sTask extends AbstractK8sTask {
         }
 
         return expressions.stream().map(expression -> new NodeSelectorRequirement(
-                expression.getKey(),
-                expression.getOperator(),
-                StringUtils.isEmpty(expression.getValues()) ? Collections.emptyList()
-                        : Arrays.asList(expression.getValues().trim().split("\\s*,\\s*"))))
+                        expression.getKey(),
+                        expression.getOperator(),
+                        StringUtils.isEmpty(expression.getValues()) ? Collections.emptyList()
+                                : Arrays.asList(expression.getValues().trim().split("\\s*,\\s*"))))
                 .collect(Collectors.toList());
     }
 

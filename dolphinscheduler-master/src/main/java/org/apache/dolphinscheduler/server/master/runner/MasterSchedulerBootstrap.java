@@ -117,7 +117,7 @@ public class MasterSchedulerBootstrap extends BaseDaemonThread implements AutoCl
                 // todo: if the workflow event queue is much, we need to handle the back pressure
                 boolean isOverload =
                         OSUtils.isOverload(masterConfig.getMaxCpuLoadAvg(), masterConfig.getReservedMemory());
-                if (false) {
+                if (isOverload) {
                     log.warn("The current server is overload, cannot consumes commands.");
                     MasterServerMetrics.incMasterOverload();
                     Thread.sleep(Constants.SLEEP_TIME_MILLIS);

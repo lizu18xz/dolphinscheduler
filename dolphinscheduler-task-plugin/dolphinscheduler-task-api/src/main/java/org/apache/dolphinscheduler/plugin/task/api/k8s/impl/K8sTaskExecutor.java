@@ -88,7 +88,7 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
         Map<String, Quantity> reqRes = new HashMap<>();
         int retryNum = 0;
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
-        if (k8STaskMainParameters.getGpuResources() == null) {
+        if (k8STaskMainParameters.getGpuLimits() == null) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
             Double podCpu = k8STaskMainParameters.getMinCpuCores();
             Double limitPodMem = podMem * 2;
@@ -99,7 +99,7 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
             limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
         } else {
             //nvidia.com/gpu: 1
-            Double podGpu = k8STaskMainParameters.getGpuResources();
+            Double podGpu = k8STaskMainParameters.getGpuLimits();
             limitRes.put(GPU, new Quantity(String.valueOf(podGpu)));
         }
 

@@ -1,11 +1,5 @@
 package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_FAILURE;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_KILL;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_SUCCESS;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.RUNNING_CODE;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.UNIQUE_LABEL_NAME;
-
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.plugin.task.api.K8sTaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
@@ -46,6 +40,8 @@ import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.utils.Serialization;
+
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
 
 /**
  * @author lizu
@@ -295,41 +291,57 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         containerMaster.setImagePullPolicy(parameters.getImagePullPolicy());
 
         // 设置资源信息
-        // Boolean enableGpu = parameters.getEnableGpu();
-        if (false) {
-            // TODO
+        String masterGpuLimits = parameters.getMasterGpuLimits();
+        if (!StringUtils.isEmpty(masterGpuLimits)) {
+            ResourceRequirements masterRes = new ResourceRequirements();
+            Map<String, Quantity> limits = new HashMap<>();
+            limits.put(GPU,
+                    new Quantity(parameters.getMasterGpuLimits() == null ? "1" : parameters.getMasterGpuLimits()));
+            masterRes.setLimits(limits);
+            containerMaster.setResources(masterRes);
         } else {
             // 资源设置
             ResourceRequirements masterRes = new ResourceRequirements();
             Map<String, Quantity> requests = new HashMap<>();
-            requests.put("cpu",
-                    new Quantity(parameters.getMasterRequestsCpu() == null ? "1" : parameters.getMasterRequestsCpu()));
-            requests.put("memory", new Quantity(
-                    parameters.getMasterRequestsMemory() == null ? "1024Mi" : parameters.getMasterRequestsMemory()));
             Map<String, Quantity> limits = new HashMap<>();
-            limits.put("cpu",
-                    new Quantity(parameters.getMasterLimitsCpu() == null ? "1" : parameters.getMasterLimitsCpu()));
-            limits.put("memory", new Quantity(
-                    parameters.getMasterLimitsMemory() == null ? "1024Mi" : parameters.getMasterLimitsMemory()));
+            Double podMem = parameters.getMasterMinMemorySpace();
+            Double podCpu = parameters.getMasterMinCpuCores();
+            Double limitPodMem = podMem * 2;
+            Double limitPodCpu = podCpu * 2;
+            requests.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            requests.put(CPU, new Quantity(String.valueOf(podCpu)));
+            limits.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            limits.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
             masterRes.setRequests(requests);
             masterRes.setLimits(limits);
             containerMaster.setResources(masterRes);
+        }
 
+        String workerGpuLimits = parameters.getWorkerGpuLimits();
+        if (!StringUtils.isEmpty(workerGpuLimits)) {
+            ResourceRequirements workerRes = new ResourceRequirements();
+            Map<String, Quantity> workerLimits = new HashMap<>();
+            workerLimits.put(GPU,
+                    new Quantity(parameters.getWorkerGpuLimits() == null ? "1" : parameters.getWorkerGpuLimits()));
+            workerRes.setLimits(workerLimits);
+            containerWorker.setResources(workerRes);
+        } else {
             ResourceRequirements workerRes = new ResourceRequirements();
             Map<String, Quantity> workerRequests = new HashMap<>();
-            workerRequests.put("cpu",
-                    new Quantity(parameters.getWorkerRequestsCpu() == null ? "1" : parameters.getWorkerRequestsCpu()));
-            workerRequests.put("memory", new Quantity(
-                    parameters.getWorkerRequestsMemory() == null ? "1024Mi" : parameters.getWorkerRequestsMemory()));
             Map<String, Quantity> workerLimits = new HashMap<>();
-            workerLimits.put("cpu",
-                    new Quantity(parameters.getWorkerLimitsCpu() == null ? "1" : parameters.getWorkerLimitsCpu()));
-            workerLimits.put("memory", new Quantity(
-                    parameters.getWorkerLimitsMemory() == null ? "1024Mi" : parameters.getWorkerLimitsMemory()));
+            Double podMem = parameters.getMasterMinMemorySpace();
+            Double podCpu = parameters.getMasterMinCpuCores();
+            Double limitPodMem = podMem * 2;
+            Double limitPodCpu = podCpu * 2;
+            workerRequests.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            workerRequests.put(CPU, new Quantity(String.valueOf(podCpu)));
+            workerLimits.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            workerLimits.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
             workerRes.setRequests(workerRequests);
             workerRes.setLimits(workerLimits);
             containerWorker.setResources(workerRes);
         }
+
         // 设置镜像启动命令
         String commandString = parameters.getCommand();
         String argsString = parameters.getArgs();
@@ -384,8 +396,9 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
             pytorchReplicaSpecs.getWorker().getTemplate().getSpec()
                     .setContainers(Arrays.asList(containerMaster));
         }
-
         // TODO 设置挂载
+
+
         return pyTorchJob;
     }
 
