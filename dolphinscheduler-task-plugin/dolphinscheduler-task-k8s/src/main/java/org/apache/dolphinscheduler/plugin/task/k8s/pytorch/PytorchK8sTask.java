@@ -109,6 +109,8 @@ public class PytorchK8sTask extends AbstractK8sTask {
         k8sPytorchTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
         k8sPytorchTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sPytorchTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
+        k8sPytorchTaskMainParameters.setOutputDataVolume(k8sTaskParameters.getOutputDataVolume());
+        k8sPytorchTaskMainParameters.setInputDataVolume(k8sTaskParameters.getInputDataVolume());
         return JSONUtils.toJsonString(k8sPytorchTaskMainParameters);
     }
 

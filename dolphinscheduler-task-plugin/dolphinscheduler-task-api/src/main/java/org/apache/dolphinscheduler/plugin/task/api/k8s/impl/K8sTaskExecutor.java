@@ -149,6 +149,40 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
                 .endRequiredDuringSchedulingIgnoredDuringExecution()
                 .endNodeAffinity().build();
 
+
+        //设置容器挂载
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        //设置宿主机挂载
+        List<Volume> volumes = new ArrayList<>();
+
+        if (!StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
+            //容器
+            VolumeMount volumeMount = new VolumeMount();
+            volumeMount.setName("inputData");
+            volumeMount.setMountPath("/inputData");
+            volumeMounts.add(volumeMount);
+
+            //宿主机
+            Volume volume = new Volume();
+            volume.setName("inputData");
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
+            volumes.add(volume);
+        }
+
+        if (!StringUtils.isEmpty(k8STaskMainParameters.getOutputDataVolume())) {
+            //容器
+            VolumeMount volumeMount = new VolumeMount();
+            volumeMount.setName("output-data");
+            volumeMount.setMountPath("/outputData");
+            volumeMounts.add(volumeMount);
+
+            //宿主机
+            Volume volume = new Volume();
+            volume.setName("output-data");
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getOutputDataVolume(), "DirectoryOrCreate"));
+            volumes.add(volume);
+        }
+
         JobBuilder jobBuilder = new JobBuilder()
                 .withApiVersion(API_VERSION)
                 .withNewMetadata()
@@ -171,60 +205,15 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
                 .withImagePullPolicy(imagePullPolicy)
                 .withResources(new ResourceRequirements(limitRes, reqRes))
                 .withEnv(envVars)
+                .withVolumeMounts(volumeMounts.size() == 0 ? null : volumeMounts)
                 .endContainer()
                 .withRestartPolicy(RESTART_POLICY)
                 .withAffinity(affinity)
+                .withVolumes(volumes.size() == 0 ? null : volumes)
                 .endSpec()
                 .endTemplate()
                 .withBackoffLimit(retryNum)
                 .endSpec();
-
-
-        //设置容器挂载
-        List<VolumeMount> volumeMounts = new ArrayList<>();
-        //设置宿主机挂载
-        List<Volume> volumes = new ArrayList<>();
-
-        if (StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
-            //容器
-            VolumeMount volumeMount = new VolumeMount();
-            volumeMount.setName("inputData");
-            volumeMount.setMountPath("/inputData");
-            volumeMounts.add(volumeMount);
-
-            //宿主机
-            Volume volume = new Volume();
-            volume.setName("inputData");
-            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
-            volumes.add(volume);
-        }
-
-        if (StringUtils.isEmpty(k8STaskMainParameters.getOutputDataVolume())) {
-            //容器
-            VolumeMount volumeMount = new VolumeMount();
-            volumeMount.setName("outputData");
-            volumeMount.setMountPath("/outputData");
-            volumeMounts.add(volumeMount);
-
-            //宿主机
-            Volume volume = new Volume();
-            volume.setName("outputData");
-            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getOutputDataVolume(), "DirectoryOrCreate"));
-            volumes.add(volume);
-        }
-
-        if (!CollectionUtils.isEmpty(volumeMounts)) {
-            //设置容器内部的挂载路径
-            jobBuilder.buildSpec().getTemplate().getSpec().getContainers().get(0).setVolumeMounts(volumeMounts);
-        }
-        if (!CollectionUtils.isEmpty(volumes)) {
-            //设置宿主机或者其他存储的挂载路径
-            jobBuilder.buildSpec().getTemplate().getSpec().setVolumes(volumes);
-        }
-
-        //新增环境变量
-        //jobBuilder.buildSpec().getTemplate().getSpec().getContainers().get(0).getEnv().add("");
-
         return jobBuilder.build();
     }
 

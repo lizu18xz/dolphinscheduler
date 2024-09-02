@@ -53,20 +53,20 @@ public class K8sPytorchTaskMainParameters {
     /**
      * gpu resources 设置
      */
-    private String masterGpuLimits;
+    private Double masterGpuLimits;
 
     /**
      * gpu resources 设置
      */
-    private String workerGpuLimits;
+    private Double workerGpuLimits;
     /**
      * 资源配置
      */
     private double masterMinCpuCores;
     private double masterMinMemorySpace;
 
-    private String workerMinCpuCores;
-    private String workerMinMemorySpace;
+    private double workerMinCpuCores;
+    private double workerMinMemorySpace;
 
     /**
      * 节点的输入输出挂载

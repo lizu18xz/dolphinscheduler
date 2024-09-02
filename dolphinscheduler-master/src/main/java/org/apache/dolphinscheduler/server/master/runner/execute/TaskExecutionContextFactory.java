@@ -56,6 +56,7 @@ import org.apache.dolphinscheduler.plugin.task.api.model.JdbcInfo;
 import org.apache.dolphinscheduler.plugin.task.api.model.Property;
 import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
+import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sPytorchTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.ParametersNode;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.dataquality.DataQualityParameters;
@@ -293,6 +294,13 @@ public class TaskExecutionContextFactory {
                         JSONUtils.parseObject(taskInstance.getTaskParams(), SeatunnelParameters.class);
                 if (StringUtils.isNotEmpty(seatunnelParameters.getNamespace())) {
                     namespace = seatunnelParameters.getNamespace();
+                }
+                break;
+            case "PYTORCH_K8S":
+                K8sPytorchTaskParameters k8sPytorchTaskParameters =
+                        JSONUtils.parseObject(taskInstance.getTaskParams(), K8sPytorchTaskParameters.class);
+                if (StringUtils.isNotEmpty(k8sPytorchTaskParameters.getNamespace())) {
+                    namespace = k8sPytorchTaskParameters.getNamespace();
                 }
                 break;
             default:

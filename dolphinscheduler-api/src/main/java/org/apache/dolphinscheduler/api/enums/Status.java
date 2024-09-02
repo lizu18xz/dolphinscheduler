@@ -560,6 +560,7 @@ public enum Status {
     USER_PASSWORD_LENGTH_ERROR(1300017, "user's password length error", "用户密码长度错误"),
     QUERY_CAN_USE_K8S_NAMESPACE_ERROR(1300018, "login user query can used namespace list error", "查询可用命名空间错误"),
 
+    K8S_DASHBOARD_NOT_EXIST(1300019, "k8s dashboard not exists", "k8s dashboard not found"),
     QUERY_PROCESS_DEFINITION_ALL_VARIABLES_ERROR(1300100, "query process definition all variables error",
             "查询工作流自定义变量信息错误"),
 

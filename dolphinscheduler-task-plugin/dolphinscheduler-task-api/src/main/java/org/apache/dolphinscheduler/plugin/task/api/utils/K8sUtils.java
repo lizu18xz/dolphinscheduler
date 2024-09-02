@@ -19,6 +19,8 @@ package org.apache.dolphinscheduler.plugin.task.api.utils;
 
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.LOG_LINES;
 
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.metrics.v1beta1.*;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.flinkOperator.FlinkOperatorConstant;
 
@@ -58,9 +60,35 @@ public class K8sUtils {
         }
     }
 
+    public void testNode() {
+        NodeMetricsList nodeMetricList = client.top().nodes().metrics();
+
+        for (NodeMetrics nodeMetrics : nodeMetricList.getItems()) {
+            log.info(nodeMetrics.toString());
+            log.info(nodeMetrics.getUsage().toString());
+            log.info(nodeMetrics.getMetadata().getName() +
+                    " " + nodeMetrics.getUsage().get("cpu") +
+                    " " + nodeMetrics.getUsage().get("memory"));
+        }
+    }
+
+    public void testPod() {
+        PodMetricsList podMetricList = client.top().pods().metrics();
+        for(PodMetrics metrics: podMetricList.getItems())
+        {
+            for(ContainerMetrics containerMetric : metrics.getContainers())
+            {
+                Quantity quantity = containerMetric.getUsage().get("cpu");
+                String amount = quantity.getAmount();
+                log.info("");
+            }
+        }
+    }
+
+
     /**
      * 获取指定job详情
-     * */
+     */
     public Job getJobDescribe(String jobName, String namespace) {
         Optional<Job> result;
         try {

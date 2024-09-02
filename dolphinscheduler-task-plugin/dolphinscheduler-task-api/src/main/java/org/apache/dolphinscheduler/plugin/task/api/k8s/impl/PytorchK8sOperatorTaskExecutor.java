@@ -291,12 +291,12 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
         containerMaster.setImagePullPolicy(parameters.getImagePullPolicy());
 
         // 设置资源信息
-        String masterGpuLimits = parameters.getMasterGpuLimits();
-        if (!StringUtils.isEmpty(masterGpuLimits)) {
+        Double masterGpuLimits = parameters.getMasterGpuLimits();
+        if (masterGpuLimits != null) {
             ResourceRequirements masterRes = new ResourceRequirements();
             Map<String, Quantity> limits = new HashMap<>();
             limits.put(GPU,
-                    new Quantity(parameters.getMasterGpuLimits() == null ? "1" : parameters.getMasterGpuLimits()));
+                    new Quantity(parameters.getMasterGpuLimits() == null ? "1" : String.valueOf(parameters.getMasterGpuLimits())));
             masterRes.setLimits(limits);
             containerMaster.setResources(masterRes);
         } else {
@@ -317,12 +317,12 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
             containerMaster.setResources(masterRes);
         }
 
-        String workerGpuLimits = parameters.getWorkerGpuLimits();
-        if (!StringUtils.isEmpty(workerGpuLimits)) {
+        Double workerGpuLimits = parameters.getWorkerGpuLimits();
+        if (workerGpuLimits != null) {
             ResourceRequirements workerRes = new ResourceRequirements();
             Map<String, Quantity> workerLimits = new HashMap<>();
             workerLimits.put(GPU,
-                    new Quantity(parameters.getWorkerGpuLimits() == null ? "1" : parameters.getWorkerGpuLimits()));
+                    new Quantity(parameters.getWorkerGpuLimits() == null ? "1" : String.valueOf(parameters.getWorkerGpuLimits())));
             workerRes.setLimits(workerLimits);
             containerWorker.setResources(workerRes);
         } else {

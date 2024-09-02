@@ -57,20 +57,20 @@ public class K8sPytorchTaskParameters extends AbstractParameters {
     /**
      * gpu resources 设置
      */
-    private String masterGpuLimits;
+    private double masterGpuLimits;
 
     /**
      * gpu resources 设置
      */
-    private String workerGpuLimits;
+    private double workerGpuLimits;
     /**
      * 资源配置
      */
     private double masterMinCpuCores;
     private double masterMinMemorySpace;
 
-    private String workerMinCpuCores;
-    private String workerMinMemorySpace;
+    private double workerMinCpuCores;
+    private double workerMinMemorySpace;
 
     /**
      * 节点的输入输出挂载
