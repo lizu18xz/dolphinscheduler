@@ -856,5 +856,6 @@ public final class Constants {
 
     public static final String K8S_DASHBOARD_ADDRESS = "k8s.dashboard.address";
 
-    public static final String EXTERNAL_IMAGE_LIST = "external.image.list";
+    public static final String EXTERNAL_ADDRESS_LIST = "external.address";
+
 }

@@ -89,7 +89,7 @@ public class ProjectV2Controller extends BaseController {
     @ApiException(CREATE_PROJECT_ERROR)
     public ProjectCreateResponse createProject(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                                @RequestBody ProjectCreateRequest projectCreateRequest) {
-        Result result = projectService.createProject(loginUser, projectCreateRequest.getProjectName(),
+        Result result = projectService.createProject(loginUser, projectCreateRequest.getProjectName(),projectCreateRequest.getProjectEnName(),
                 projectCreateRequest.getDescription());
         return new ProjectCreateResponse(result);
     }

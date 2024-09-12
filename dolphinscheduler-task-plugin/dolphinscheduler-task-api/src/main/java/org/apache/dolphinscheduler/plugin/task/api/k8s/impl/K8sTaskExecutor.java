@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 
+import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.*;
 import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
@@ -58,7 +59,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import org.springframework.util.CollectionUtils;
 
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
 
@@ -149,22 +149,19 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
                 .endRequiredDuringSchedulingIgnoredDuringExecution()
                 .endNodeAffinity().build();
 
-
         //设置容器挂载
         List<VolumeMount> volumeMounts = new ArrayList<>();
         //设置宿主机挂载
         List<Volume> volumes = new ArrayList<>();
-
         if (!StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
             //容器
             VolumeMount volumeMount = new VolumeMount();
-            volumeMount.setName("inputData");
-            volumeMount.setMountPath("/inputData");
+            volumeMount.setName("input-data");
+            volumeMount.setMountPath(k8STaskMainParameters.getPodInputDataVolume());
             volumeMounts.add(volumeMount);
-
             //宿主机
             Volume volume = new Volume();
-            volume.setName("inputData");
+            volume.setName("input-data");
             volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
             volumes.add(volume);
         }
@@ -173,9 +170,8 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
             //容器
             VolumeMount volumeMount = new VolumeMount();
             volumeMount.setName("output-data");
-            volumeMount.setMountPath("/outputData");
+            volumeMount.setMountPath(k8STaskMainParameters.getPodOutputDataVolume());
             volumeMounts.add(volumeMount);
-
             //宿主机
             Volume volume = new Volume();
             volume.setName("output-data");
@@ -191,7 +187,7 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
                 .withNamespace(namespaceName)
                 .endMetadata()
                 .withNewSpec()
-                .withTtlSecondsAfterFinished(JOB_TTL_SECONDS)
+                //.withTtlSecondsAfterFinished(JOB_TTL_SECONDS)
                 .withNewTemplate()
                 .withNewMetadata()
                 .withLabels(podLabelMap)
@@ -214,8 +210,56 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
                 .endTemplate()
                 .withBackoffLimit(retryNum)
                 .endSpec();
-        return jobBuilder.build();
+
+        Job job = jobBuilder.build();
+        //需要从远程拉取数据的情况下，设置Init容器初始化操作, 从接口获取挂载信息
+        String fetchDataVolume = k8STaskMainParameters.getFetchDataVolume();
+        if (!StringUtils.isEmpty(fetchDataVolume) && !k8STaskMainParameters.getFetchType().equals(VOLUME_LOCAL)) {
+            List<String> inputArgs = new ArrayList<>();
+            String fetchDataVolumeArgs = k8STaskMainParameters.getFetchDataVolumeArgs();
+            try {
+                if (!StringUtils.isEmpty(fetchDataVolumeArgs)) {
+                    inputArgs = yaml.load(fetchDataVolumeArgs.trim());
+                }
+            } catch (Exception e) {
+                throw new TaskException("Parse yaml-like init commands and args failed", e);
+            }
+            List<Container> initContainers = new ArrayList<>();
+            Container container = new Container();
+            container.setImage("10.78.5.103:3000/projecttmp/data-retriever:1.1");
+            container.setImagePullPolicy("IfNotPresent");
+            container.setName("fetch-init");
+            container.setArgs(inputArgs);
+            container.setVolumeMounts(Lists.newArrayList(getFetchVolumeMount()));
+            initContainers.add(container);
+            job.getSpec().getTemplate().getSpec().setInitContainers(initContainers);
+
+            //新增fetch的数据到宿主机
+            Volume volume = new Volume();
+            volume.setName("fetch-init");
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getFetchDataVolume(), "DirectoryOrCreate"));
+            volumes.add(volume);
+            List<Volume> preVolumes = job.getSpec().getTemplate().getSpec().getVolumes();
+            preVolumes.add(volume);
+            job.getSpec().getTemplate().getSpec().setVolumes(preVolumes);
+        }
+        return job;
     }
+
+    private VolumeMount getInputVolumeMount() {
+        VolumeMount volumeMount = new VolumeMount();
+        volumeMount.setName("input-data");
+        volumeMount.setMountPath("/inputData");
+        return volumeMount;
+    }
+
+    private VolumeMount getFetchVolumeMount() {
+        VolumeMount volumeMount = new VolumeMount();
+        volumeMount.setName("fetch-init");
+        volumeMount.setMountPath("/app/downloads");
+        return volumeMount;
+    }
+
 
     public void registerBatchJobWatcher(Job job, String taskInstanceId, TaskResponse taskResponse) {
         CountDownLatch countDownLatch = new CountDownLatch(1);

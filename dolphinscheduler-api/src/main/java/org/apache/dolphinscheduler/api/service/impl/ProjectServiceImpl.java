@@ -100,7 +100,7 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
      */
     @Override
     @Transactional
-    public Result createProject(User loginUser, String name, String desc) {
+    public Result createProject(User loginUser, String name, String projectEnName, String desc) {
         Result result = new Result();
 
         checkDesc(result, desc);
@@ -119,12 +119,17 @@ public class ProjectServiceImpl extends BaseServiceImpl implements ProjectServic
             return result;
         }
 
+        if(StringUtils.isEmpty(projectEnName)){
+            projectEnName=name;
+        }
+
         Date now = new Date();
 
         try {
             project = Project
                     .builder()
                     .name(name)
+                    .projectEnName(projectEnName)
                     .code(CodeGenerateUtils.getInstance().genCode())
                     .description(desc)
                     .userId(loginUser.getId())

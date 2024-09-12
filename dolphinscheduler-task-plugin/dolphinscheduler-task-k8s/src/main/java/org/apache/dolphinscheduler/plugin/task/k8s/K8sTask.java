@@ -99,8 +99,14 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
 
+        k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
+        k8sTaskMainParameters.setFetchDataVolume(k8sTaskParameters.getFetchDataVolume());
+        k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
+
         k8sTaskMainParameters.setOutputDataVolume(k8sTaskParameters.getOutputDataVolume());
         k8sTaskMainParameters.setInputDataVolume(k8sTaskParameters.getInputDataVolume());
+        k8sTaskMainParameters.setPodInputDataVolume(k8sTaskParameters.getPodInputDataVolume());
+        k8sTaskMainParameters.setPodOutputDataVolume(k8sTaskParameters.getPodOutputDataVolume());
         return JSONUtils.toJsonString(k8sTaskMainParameters);
     }
 

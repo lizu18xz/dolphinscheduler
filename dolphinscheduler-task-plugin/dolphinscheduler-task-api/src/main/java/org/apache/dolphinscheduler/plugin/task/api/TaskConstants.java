@@ -538,4 +538,8 @@ public class TaskConstants {
 
     public static final String SEATUNNEL_CONF_VOLUME_NAME = "seatunnel-conf-volume";
 
+    public static final String VOLUME_LOCAL="local";
+
+    public static final String VOLUME_MINIO="minio";
+
 }

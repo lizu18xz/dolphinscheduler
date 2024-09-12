@@ -2,8 +2,7 @@ package org.apache.dolphinscheduler.api.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.dolphinscheduler.api.dto.external.ImageRequest;
-import org.apache.dolphinscheduler.api.dto.external.ImageResponse;
+import org.apache.dolphinscheduler.api.dto.external.*;
 import org.apache.dolphinscheduler.api.service.ExternalSysService;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.constants.Constants;
@@ -36,6 +35,20 @@ public class ExternalSysController {
         ImageRequest imageRequest = new ImageRequest();
         imageRequest.setProjectName(projectName);
         return Result.success(externalSysService.imageList(imageRequest));
+    }
+
+
+    /**
+     * 获取挂载配置
+     */
+    @GetMapping(value = "/volume-list")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<WrapFetchVolumeResponse>> getFetchVolumeList(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            @RequestParam(value = "projectName") String projectName) {
+        FetchVolumeRequest request = new FetchVolumeRequest();
+        request.setProjectName(projectName);
+        return Result.success(externalSysService.fetchVolumeList(request));
     }
 
 

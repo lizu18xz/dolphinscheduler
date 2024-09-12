@@ -110,19 +110,19 @@ public class ProjectServiceTest {
                 baseServiceLogger)).thenReturn(true);
 
         // REQUEST_PARAMS_NOT_VALID_ERROR
-        Result result = projectService.createProject(loginUser, projectName, getDesc());
+        Result result = projectService.createProject(loginUser, projectName,projectName, getDesc());
         logger.info(result.toString());
         Assertions.assertEquals(Status.REQUEST_PARAMS_NOT_VALID_ERROR.getCode(), 10001);
 
         // PROJECT_ALREADY_EXISTS
         Mockito.when(projectMapper.queryByName(projectName)).thenReturn(getProject());
-        result = projectService.createProject(loginUser, projectName, projectName);
+        result = projectService.createProject(loginUser, projectName,projectName, projectName);
         logger.info(result.toString());
         Assertions.assertEquals(Status.PROJECT_ALREADY_EXISTS.getCode(), result.getCode().intValue());
 
         // success
         Mockito.when(projectMapper.insert(Mockito.any(Project.class))).thenReturn(1);
-        result = projectService.createProject(loginUser, "test", "test");
+        result = projectService.createProject(loginUser, "test","test", "test");
         logger.info(result.toString());
         Assertions.assertEquals(Status.SUCCESS.getCode(), result.getCode().intValue());
 

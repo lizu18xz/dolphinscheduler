@@ -29,6 +29,9 @@ public class ProjectCreateRequest {
     @Schema(example = "pro123", required = true)
     private String projectName;
 
+    @Schema(example = "pro123", required = true)
+    private String projectEnName;
+
     @Schema(example = "this is a project")
     private String description;
 }

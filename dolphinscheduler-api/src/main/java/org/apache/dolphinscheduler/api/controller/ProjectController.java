@@ -78,6 +78,7 @@ public class ProjectController extends BaseController {
     @Operation(summary = "create", description = "CREATE_PROJECT_NOTES")
     @Parameters({
             @Parameter(name = "projectName", description = "PROJECT_NAME", schema = @Schema(implementation = String.class)),
+            @Parameter(name = "projectEnName", description = "PROJECT_EN_NAME", schema = @Schema(implementation = String.class)),
             @Parameter(name = "description", description = "PROJECT_DESC", schema = @Schema(implementation = String.class))
     })
     @PostMapping()
@@ -85,8 +86,9 @@ public class ProjectController extends BaseController {
     @ApiException(CREATE_PROJECT_ERROR)
     public Result createProject(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
                                 @RequestParam("projectName") String projectName,
+                                @RequestParam(value = "projectEnName", required = false) String projectEnName,
                                 @RequestParam(value = "description", required = false) String description) {
-        return projectService.createProject(loginUser, projectName, description);
+        return projectService.createProject(loginUser, projectName, projectEnName,description);
     }
 
     /**

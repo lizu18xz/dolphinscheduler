@@ -44,25 +44,38 @@ public class K8sTaskParameters extends AbstractParameters {
 
     /**
      * gpu 资源配置
-     * */
+     */
     private Double gpuResources;
 
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;
 
     /**
-     * 存储类型
-     * */
-    private String volumeType;
-
+     * 类型是local/minio/...
+     */
+    private String fetchType;
 
     /**
      * 节点的输入输出挂载
      */
+    private String fetchDataVolume;
+
+    /**
+     * 拉取数据的参数
+     */
+    private String fetchDataVolumeArgs;
+
+
+    /**
+     * 节点的输入输出挂载 包含宿主机 和 容器内部地址
+     */
+    private String podInputDataVolume;
+
     private String inputDataVolume;
 
-    private String outputDataVolume;
+    private String podOutputDataVolume;
 
+    private String outputDataVolume;
 
     /**
      * resource list  所选的资源文件

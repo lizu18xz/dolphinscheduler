@@ -43,13 +43,33 @@ public class K8sTaskMainParameters {
 
     /**
      * gpu 资源配置
-     * */
+     */
     private Double gpuLimits;
-    private String volumeType;
+
+    /**
+     * 类型是local/minio/...
+     * */
+    private String fetchType;
+
     /**
      * 节点的输入输出挂载
      */
+    private String fetchDataVolume;
+
+    /**
+     * 拉取数据的参数
+     * */
+    private String fetchDataVolumeArgs;
+
+
+    /**
+     * 节点的输入输出挂载 包含宿主机 和 容器内部地址
+     */
+    private String podInputDataVolume;
+
     private String inputDataVolume;
+
+    private String podOutputDataVolume;
 
     private String outputDataVolume;
 

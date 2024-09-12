@@ -64,6 +64,8 @@ public class Project {
      */
     private String name;
 
+    private String projectEnName;
+
     /**
      * project description
      */

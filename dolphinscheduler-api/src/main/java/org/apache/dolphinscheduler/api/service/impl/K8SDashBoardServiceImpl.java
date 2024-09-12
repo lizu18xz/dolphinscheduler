@@ -55,7 +55,7 @@ public class K8SDashBoardServiceImpl extends BaseServiceImpl implements K8sDashB
 
         String taskName = taskInstance.getName().toLowerCase(Locale.ROOT);
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
-        dashBoardAddress = dashBoardAddress + "pod?namespace=" + nameSpaceName + "&q=" + k8sJobName;
+        dashBoardAddress = dashBoardAddress + "search?namespace=" + nameSpaceName + "&q=" + k8sJobName;
         log.info("get k8s dashboard pod address:{}", dashBoardAddress);
 
         return Result.success(dashBoardAddress);
