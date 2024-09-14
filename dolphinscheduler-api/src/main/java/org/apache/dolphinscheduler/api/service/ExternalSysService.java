@@ -9,4 +9,8 @@ public interface ExternalSysService {
     List<ImageResponse> imageList(ImageRequest imageRequest);
 
     List<WrapFetchVolumeResponse> fetchVolumeList(FetchVolumeRequest request);
+
+
+    List<StorageResponse> storagePage(StorageRequest request);
+
 }

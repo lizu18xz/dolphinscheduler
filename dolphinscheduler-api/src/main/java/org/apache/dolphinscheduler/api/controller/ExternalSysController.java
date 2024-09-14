@@ -52,4 +52,20 @@ public class ExternalSysController {
     }
 
 
+    /**
+     * 获取挂载配置
+     */
+    @GetMapping(value = "/storage-list")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<StorageResponse>> getStoragePage(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            @RequestParam(value = "projectName") String projectName) {
+        StorageRequest request = new StorageRequest();
+        request.setProjectName(projectName);
+        request.setPageNo("1");
+        request.setPageSize("1000");
+        return Result.success(externalSysService.storagePage(request));
+    }
+
+
 }

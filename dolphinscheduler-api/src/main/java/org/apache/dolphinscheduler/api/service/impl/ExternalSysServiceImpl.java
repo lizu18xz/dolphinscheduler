@@ -42,6 +42,8 @@ public class ExternalSysServiceImpl implements ExternalSysService {
 
     public static final String SETTING_PATH = "/admin-api/system/setting/page";
 
+    public static final String STORAGE_PAGE = "/admin-api/system/storage/page";
+
     @Autowired
     private ProjectMapper projectMapper;
 
@@ -157,4 +159,50 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             }
         }
     }
+
+
+    @Override
+    public List<StorageResponse> storagePage(StorageRequest request) {
+        if (StringUtils.isEmpty(request.getProjectName())) {
+            throw new ServiceException(Status.REQUEST_PARAMS_NOT_VALID_ERROR, PROJECT_NAME);
+        }
+        String address =
+                PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
+        if (StringUtils.isEmpty(address)) {
+            throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
+        }
+        //发送http请求
+        String msgToJson = JSONUtils.toJsonString(request);
+        HttpPost httpPost = HttpRequestUtil.constructHttpPost(address + STORAGE_PAGE, msgToJson);
+        CloseableHttpClient httpClient;
+        httpClient = HttpRequestUtil.getHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpPost);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                log.error("get image list error, return http status code: {} ", statusCode);
+            }
+            String resp;
+            HttpEntity entity = response.getEntity();
+            resp = EntityUtils.toString(entity, "utf-8");
+            ObjectNode result = JSONUtils.parseObject(resp);
+            String data = result.get("data").get("list").toString();
+            List<StorageResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<StorageResponse>>() {
+            });
+            return responses;
+        } catch (Exception e) {
+            log.error("get image error:{},e:{}", msgToJson, e);
+            return null;
+        } finally {
+            try {
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
 }
