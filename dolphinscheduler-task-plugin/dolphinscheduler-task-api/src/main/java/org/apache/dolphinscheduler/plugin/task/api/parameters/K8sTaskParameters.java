@@ -65,6 +65,8 @@ public class K8sTaskParameters extends AbstractParameters {
      */
     private String fetchDataVolumeArgs;
 
+    private String dataSave;
+
 
     /**
      * 节点的输入输出挂载 包含宿主机 和 容器内部地址
