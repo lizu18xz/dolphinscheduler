@@ -696,6 +696,8 @@ public final class Constants {
     public static final String LIMITS_MEMORY = "limitsMemory";
     public static final Long K8S_LOCAL_TEST_CLUSTER_CODE = 0L;
 
+    public static final String K8S_QUEUE_NAME = "name";
+
     /**
      * schedule timezone
      */

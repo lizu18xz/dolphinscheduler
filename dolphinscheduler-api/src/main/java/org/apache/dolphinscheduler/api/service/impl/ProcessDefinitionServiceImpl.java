@@ -45,6 +45,7 @@ import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.TASK_TYP
 
 import org.apache.dolphinscheduler.api.dto.DagDataSchedule;
 import org.apache.dolphinscheduler.api.dto.ScheduleParam;
+import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueTaskRequest;
 import org.apache.dolphinscheduler.api.dto.treeview.Instance;
 import org.apache.dolphinscheduler.api.dto.treeview.TreeViewDto;
 import org.apache.dolphinscheduler.api.dto.workflow.WorkflowCreateRequest;
@@ -52,14 +53,7 @@ import org.apache.dolphinscheduler.api.dto.workflow.WorkflowFilterRequest;
 import org.apache.dolphinscheduler.api.dto.workflow.WorkflowUpdateRequest;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.exceptions.ServiceException;
-import org.apache.dolphinscheduler.api.service.MetricsCleanUpService;
-import org.apache.dolphinscheduler.api.service.ProcessDefinitionService;
-import org.apache.dolphinscheduler.api.service.ProcessInstanceService;
-import org.apache.dolphinscheduler.api.service.ProjectService;
-import org.apache.dolphinscheduler.api.service.SchedulerService;
-import org.apache.dolphinscheduler.api.service.TaskDefinitionLogService;
-import org.apache.dolphinscheduler.api.service.TaskDefinitionService;
-import org.apache.dolphinscheduler.api.service.WorkFlowLineageService;
+import org.apache.dolphinscheduler.api.service.*;
 import org.apache.dolphinscheduler.api.utils.CheckUtils;
 import org.apache.dolphinscheduler.api.utils.FileUtils;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
@@ -251,17 +245,20 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     @Autowired
     private MetricsCleanUpService metricsCleanUpService;
 
+    @Autowired
+    private K8sQueueTaskService k8sQueueTaskService;
+
     /**
      * create process definition
      *
-     * @param loginUser login user
-     * @param projectCode project code
-     * @param name process definition name
-     * @param description description
-     * @param globalParams global params
-     * @param locations locations for nodes
-     * @param timeout timeout
-     * @param taskRelationJson relation json for nodes
+     * @param loginUser          login user
+     * @param projectCode        project code
+     * @param name               process definition name
+     * @param description        description
+     * @param globalParams       global params
+     * @param locations          locations for nodes
+     * @param timeout            timeout
+     * @param taskRelationJson   relation json for nodes
      * @param taskDefinitionJson taskDefinitionJson
      * @return create result code
      */
@@ -342,7 +339,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * create single process definition
      *
-     * @param loginUser login user
+     * @param loginUser             login user
      * @param workflowCreateRequest the new workflow object will be created
      * @return New ProcessDefinition object created just now
      */
@@ -407,10 +404,34 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
         saveOtherRelation(loginUser, processDefinition, result, otherParamsJson);
 
+        //保存task对应的队列信息
+        saveK8sQueueTask(processDefinition, taskDefinitionLogs);
+
+
         putMsg(result, Status.SUCCESS);
         result.put(Constants.DATA_LIST, processDefinition);
         return result;
     }
+
+    private void saveK8sQueueTask(ProcessDefinition processDefinition,
+                                  List<TaskDefinitionLog> taskDefinitionLogs) {
+
+        String flowName = processDefinition.getName();
+        for (TaskDefinitionLog taskDefinitionLog : taskDefinitionLogs) {
+            String taskType = taskDefinitionLog.getTaskType();
+            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
+                K8sQueueTaskRequest request=new K8sQueueTaskRequest();
+                request.setName("default");
+                request.setCode(taskDefinitionLog.getCode());
+                request.setFlowName(flowName);
+                request.setTaskName(taskDefinitionLog.getName());
+                request.setTaskType(taskDefinitionLog.getTaskType());
+                request.setPriority(taskDefinitionLog.getTaskPriority().getCode());
+                k8sQueueTaskService.createOrUpdateK8sQueueTask(request);
+            }
+        }
+    }
+
 
     private List<TaskDefinitionLog> generateTaskDefinitionList(String taskDefinitionJson) {
         try {
@@ -493,7 +514,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query process definition list
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
      * @return definition list
      */
@@ -516,7 +537,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query process definition simple list
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
      * @return definition simple list
      */
@@ -547,12 +568,12 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query process definition list paging
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
-     * @param searchVal search value
-     * @param userId user id
-     * @param pageNo page number
-     * @param pageSize page size
+     * @param searchVal   search value
+     * @param userId      user id
+     * @param pageNo      page number
+     * @param pageSize    page size
      * @return process definition page
      */
     @Override
@@ -602,7 +623,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * Filter resource process definitions
      *
-     * @param loginUser login user
+     * @param loginUser             login user
      * @param workflowFilterRequest workflow filter requests
      * @return List process definition
      */
@@ -642,9 +663,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query detail of process definition
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
-     * @param code process definition code
+     * @param code        process definition code
      * @return process definition detail
      */
     @Override
@@ -673,7 +694,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
      * query detail of process definition
      *
      * @param loginUser login user
-     * @param code process definition code
+     * @param code      process definition code
      * @return process definition detail
      */
     @Override
@@ -734,17 +755,17 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * update  process definition
      *
-     * @param loginUser login user
-     * @param projectCode project code
-     * @param name process definition name
-     * @param code process definition code
-     * @param description description
-     * @param globalParams global params
-     * @param locations locations for nodes
-     * @param timeout timeout
-     * @param taskRelationJson relation json for nodes
+     * @param loginUser          login user
+     * @param projectCode        project code
+     * @param name               process definition name
+     * @param code               process definition code
+     * @param description        description
+     * @param globalParams       global params
+     * @param locations          locations for nodes
+     * @param timeout            timeout
+     * @param taskRelationJson   relation json for nodes
      * @param taskDefinitionJson taskDefinitionJson
-     * @param otherParamsJson otherParamsJson handle other params
+     * @param otherParamsJson    otherParamsJson handle other params
      * @return update result code
      */
     @Override
@@ -811,11 +832,11 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * Task want to delete whether used in other task, should throw exception when have be used.
-     *
+     * <p>
      * This function avoid delete task already dependencies by other tasks by accident.
      *
      * @param processDefinition ProcessDefinition you change task definition and task relation
-     * @param taskRelationList All the latest task relation list from process definition
+     * @param taskRelationList  All the latest task relation list from process definition
      */
     private void taskUsedInOtherTaskValid(ProcessDefinition processDefinition,
                                           List<ProcessTaskRelationLog> taskRelationList) {
@@ -923,9 +944,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * verify process definition name unique
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
-     * @param name name
+     * @param name        name
      * @return true if process definition name not exists, otherwise false
      */
     @Override
@@ -995,7 +1016,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * Process definition want to delete whether used in other task, should throw exception when have be used.
-     *
+     * <p>
      * This function avoid delete process definition already dependencies by other tasks by accident.
      *
      * @param processDefinition ProcessDefinition you change task definition and task relation
@@ -1076,9 +1097,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * release process definition: online / offline
      *
-     * @param loginUser login user
-     * @param projectCode project code
-     * @param code process definition code
+     * @param loginUser    login user
+     * @param projectCode  project code
+     * @param code         process definition code
      * @param releaseState release state
      * @return release result code
      */
@@ -1243,9 +1264,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * import process definition
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
-     * @param file process metadata json file
+     * @param file        process metadata json file
      * @return import process
      */
     @Override
@@ -1717,9 +1738,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * get task node details based on process definition
      *
-     * @param loginUser loginUser
+     * @param loginUser   loginUser
      * @param projectCode project code
-     * @param code process definition code
+     * @param code        process definition code
      * @return task node list
      */
     @Override
@@ -1746,9 +1767,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * get task node details map based on process definition
      *
-     * @param loginUser loginUser
+     * @param loginUser   loginUser
      * @param projectCode project code
-     * @param codes define codes
+     * @param codes       define codes
      * @return task node list
      */
     @Override
@@ -1799,7 +1820,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query process definition all by project code
      *
-     * @param loginUser loginUser
+     * @param loginUser   loginUser
      * @param projectCode project code
      * @return process definitions in the project
      */
@@ -1839,7 +1860,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query process definition list by process definition code
      *
-     * @param projectCode project code
+     * @param projectCode           project code
      * @param processDefinitionCode process definition code
      * @return task definition list in the process definition
      */
@@ -1875,8 +1896,8 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
      * Encapsulates the TreeView structure
      *
      * @param projectCode project code
-     * @param code  process definition code
-     * @param limit limit
+     * @param code        process definition code
+     * @param limit       limit
      * @return tree view json data
      */
     @Override
@@ -2038,9 +2059,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * batch copy process definition
      *
-     * @param loginUser loginUser
-     * @param projectCode projectCode
-     * @param codes processDefinitionCodes
+     * @param loginUser         loginUser
+     * @param projectCode       projectCode
+     * @param codes             processDefinitionCodes
      * @param targetProjectCode targetProjectCode
      */
     @Override
@@ -2062,9 +2083,10 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * batch move process definition
      * Will be deleted
-     * @param loginUser loginUser
-     * @param projectCode projectCode
-     * @param codes processDefinitionCodes
+     *
+     * @param loginUser         loginUser
+     * @param projectCode       projectCode
+     * @param codes             processDefinitionCodes
      * @param targetProjectCode targetProjectCode
      */
     @Override
@@ -2238,8 +2260,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * get new Task name or Process name when copy or import operate
+     *
      * @param originalName Task or Process original name
-     * @param suffix "_copy_" or "_import_"
+     * @param suffix       "_copy_" or "_import_"
      * @return new name
      */
     public String getNewName(String originalName, String suffix) {
@@ -2261,10 +2284,10 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * switch the defined process definition version
      *
-     * @param loginUser login user
+     * @param loginUser   login user
      * @param projectCode project code
-     * @param code process definition code
-     * @param version the version user want to switch
+     * @param code        process definition code
+     * @param version     the version user want to switch
      * @return switch process definition version result code
      */
     @Override
@@ -2315,11 +2338,11 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * check batch operate result
      *
-     * @param srcProjectCode srcProjectCode
+     * @param srcProjectCode    srcProjectCode
      * @param targetProjectCode targetProjectCode
-     * @param result result
+     * @param result            result
      * @param failedProcessList failedProcessList
-     * @param isCopy isCopy
+     * @param isCopy            isCopy
      */
     private void checkBatchOperateResult(long srcProjectCode, long targetProjectCode,
                                          Map<String, Object> result, List<String> failedProcessList, boolean isCopy) {
@@ -2346,11 +2369,11 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * query the pagination versions info by one certain process definition code
      *
-     * @param loginUser login user info to check auth
+     * @param loginUser   login user info to check auth
      * @param projectCode project code
-     * @param pageNo page number
-     * @param pageSize page size
-     * @param code process definition code
+     * @param pageNo      page number
+     * @param pageSize    page size
+     * @param code        process definition code
      * @return the pagination process definition versions info of the certain process definition
      */
     @Override
@@ -2382,10 +2405,10 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * delete one certain process definition by version number and process definition code
      *
-     * @param loginUser login user info to check auth
+     * @param loginUser   login user info to check auth
      * @param projectCode project code
-     * @param code process definition code
-     * @param version version number
+     * @param code        process definition code
+     * @param version     version number
      * @return delete result code
      */
     @Override
@@ -2564,16 +2587,16 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * update process definition basic info
      *
-     * @param loginUser     login user
-     * @param projectCode   project code
-     * @param name          process definition name
-     * @param code          process definition code
-     * @param description   description
-     * @param globalParams  globalParams
-     * @param timeout       timeout
-     * @param scheduleJson  scheduleJson
+     * @param loginUser       login user
+     * @param projectCode     project code
+     * @param name            process definition name
+     * @param code            process definition code
+     * @param description     description
+     * @param globalParams    globalParams
+     * @param timeout         timeout
+     * @param scheduleJson    scheduleJson
      * @param otherParamsJson otherParamsJson handle other params
-     * @param executionType executionType
+     * @param executionType   executionType
      * @return update result code
      */
     @Override
@@ -2679,9 +2702,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
     /**
      * update single resource workflow
      *
-     * @param loginUser     login user
-     * @param workflowCode     workflow resource code want to update
-     * @param workflowUpdateRequest   workflow update resource object
+     * @param loginUser             login user
+     * @param workflowCode          workflow resource code want to update
+     * @param workflowUpdateRequest workflow update resource object
      * @return Process definition
      */
     @Override
@@ -2925,6 +2948,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * save other relation
+     *
      * @param loginUser
      * @param processDefinition
      * @param result
@@ -2938,6 +2962,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * get Json String
+     *
      * @param loginUser
      * @param processDefinition
      * @return Json String
@@ -2949,7 +2974,8 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * view process variables
-     * @param loginUser    login user
+     *
+     * @param loginUser   login user
      * @param projectCode project code
      * @param code        process definition code
      * @return variables data
@@ -3032,6 +3058,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     /**
      * delete other relation
+     *
      * @param project
      * @param result
      * @param processDefinition

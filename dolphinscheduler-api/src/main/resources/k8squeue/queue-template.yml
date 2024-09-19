@@ -1,0 +1,17 @@
+apiVersion: scheduling.volcano.sh/v1beta1
+kind: Queue
+metadata:
+  creationTimestamp: "2020-08-10T11:54:36Z"
+  generation: 1
+  name: default
+  resourceVersion: "559"
+  selfLink: /apis/scheduling.volcano.sh/v1beta1/queues/default
+  uid: 14082e4c-bef6-4248-a414-1e06d8352bf0
+spec:
+  reclaimable: true
+  weight: 1
+  capability:
+    cpu: "4"
+    memory: "4096Mi"
+status:
+  state: Open

@@ -19,8 +19,10 @@ package org.apache.dolphinscheduler.api.k8s;
 
 import org.apache.dolphinscheduler.dao.entity.K8sNamespace;
 
+import java.io.ByteArrayInputStream;
 import java.util.Optional;
 
+import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
@@ -108,5 +110,27 @@ public class K8sClientService {
         Optional<Namespace> result = getNamespaceFromK8s(name, clusterCode);
         return result.isPresent();
     }
+
+
+    public void loadApplyYmlJob(String yaml, Long clusterCode) {
+        try {
+            KubernetesClient client = k8sManager.getK8sClient(clusterCode);
+            client.load(new ByteArrayInputStream((yaml).getBytes())).createOrReplace();
+        } catch (Exception e) {
+            throw new TaskException("fail to create yml", e);
+        }
+    }
+
+    public void deleteApplyYmlJob(String yaml, Long clusterCode) {
+        try {
+            KubernetesClient client = k8sManager.getK8sClient(clusterCode);
+            client
+                    .load(new ByteArrayInputStream((yaml).getBytes()))
+                    .delete();
+        } catch (Exception e) {
+            throw new TaskException("fail to delete yml", e);
+        }
+    }
+
 
 }
