@@ -42,6 +42,11 @@ public class K8sTaskMainParameters {
     private List<NodeSelectorRequirement> nodeSelectorRequirements;
 
     /**
+     * 所选队列
+     * */
+    private String queue;
+
+    /**
      * gpu 资源配置
      */
     private Double gpuLimits;

@@ -1,0 +1,61 @@
+apiVersion: "batch/v1"
+kind: "Job"
+metadata:
+  labels:
+    k8s.cn/layer: "batch"
+    k8s.cn/name: "testinit-65"
+  name: "testinit-65"
+  namespace: "yiqi"
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        dolphinscheduler-label: "57_65"
+    spec:
+      initContainers:
+        - name: fetch-init
+          image: 10.78.5.103:3000/projecttmp/data-retriever:1.1
+          imagePullPolicy: "IfNotPresent"
+          args: ["minio","http://10.78.5.91:80","ge1FTNnJNmgkaW9WLqq3","SzPtI3gJMHw3L19I4cXGsQRzrjJQsC0Qud1xrsOG","hello","MNIST/raw/","/app/downloads"]
+          volumeMounts:
+            - mountPath: /app/downloads
+              name: input-data
+      containers:
+        - args:
+            - "--data_dir"
+            - "/inputData"
+            - "--model_save_path"
+            - "/outputData"
+          command:
+            - "python"
+            - "train_mnist.py"
+          env:
+            - name: "taskInstanceId"
+              value: "65"
+          image: "10.78.5.103:3000/projecttmp/tarin_mnist:1.1"
+          imagePullPolicy: "IfNotPresent"
+          name: "testinit-65"
+          resources:
+            limits:
+              memory: "2048.0Mi"
+              cpu: "2.0"
+            requests:
+              memory: "1024.0Mi"
+              cpu: "1.0"
+          volumeMounts:
+            - mountPath: "/inputData"
+              name: "input-data"
+            - mountPath: "/outputData"
+              name: "output-data"
+      restartPolicy: "Never"
+      volumes:
+        - hostPath:
+            path: "/home/jtw/volumeData/MNIST/raw/"
+            type: "DirectoryOrCreate"
+          name: "input-data"
+        - hostPath:
+            path: "/home/jtw/volumeData/outputData/init"
+            type: "DirectoryOrCreate"
+          name: "output-data"
+  ttlSecondsAfterFinished: 300

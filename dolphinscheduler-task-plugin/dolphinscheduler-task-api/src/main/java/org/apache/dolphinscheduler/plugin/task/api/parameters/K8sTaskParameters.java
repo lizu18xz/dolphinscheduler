@@ -42,6 +42,8 @@ public class K8sTaskParameters extends AbstractParameters {
     private double minCpuCores;
     private double minMemorySpace;
 
+    private String queue;
+
     /**
      * gpu 资源配置
      */

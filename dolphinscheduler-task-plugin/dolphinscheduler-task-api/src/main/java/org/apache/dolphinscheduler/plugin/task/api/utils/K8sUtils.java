@@ -74,10 +74,8 @@ public class K8sUtils {
 
     public void testPod() {
         PodMetricsList podMetricList = client.top().pods().metrics();
-        for(PodMetrics metrics: podMetricList.getItems())
-        {
-            for(ContainerMetrics containerMetric : metrics.getContainers())
-            {
+        for (PodMetrics metrics : podMetricList.getItems()) {
+            for (ContainerMetrics containerMetric : metrics.getContainers()) {
                 Quantity quantity = containerMetric.getUsage().get("cpu");
                 String amount = quantity.getAmount();
                 log.info("");
@@ -275,6 +273,50 @@ public class K8sUtils {
                 .withKind("PyTorchJob")
                 .build();
     }
+
+
+    private CustomResourceDefinitionContext getQueueJobCustomResourceDefinitionContext() {
+        return new CustomResourceDefinitionContext.Builder()
+                .withGroup("batch.volcano.sh")
+                .withVersion("v1alpha1")
+                .withScope("Namespaced")
+                .withPlural("jobs")
+                .withKind("Job")
+                .build();
+    }
+
+    public Boolean queueJobExist(String jobName, String namespace) {
+        Optional<GenericKubernetesResource> result;
+        try {
+            log.info("check queue job exist jobName:{},namespace:{} ", jobName, namespace);
+            CustomResourceDefinitionContext context = getQueueJobCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                    client.genericKubernetesResources(context);
+            GenericKubernetesResourceList list = resourceMixedOperation
+                    .inNamespace(namespace).list();
+            List<GenericKubernetesResource> items = list.getItems();
+            result = items.stream()
+                    .filter(job -> job.getMetadata().getName().equals(jobName))
+                    .findFirst();
+            return result.isPresent();
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new TaskException("fail to check queue job: ", e);
+        }
+    }
+
+    public Watch createQueueJobWatcher(String jobName, String nameSpace,
+                                         Watcher<GenericKubernetesResource> watcher) {
+        try {
+            CustomResourceDefinitionContext context = getQueueJobCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                    client.genericKubernetesResources(context);
+            return resourceMixedOperation.inNamespace(nameSpace).withName(jobName).watch(watcher);
+        } catch (Exception e) {
+            throw new TaskException("fail to register queue job watcher", e);
+        }
+    }
+
 
     public void loadApplyYmlJob(String yaml) {
         try {
