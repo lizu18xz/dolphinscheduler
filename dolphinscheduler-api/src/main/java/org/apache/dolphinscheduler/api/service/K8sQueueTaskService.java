@@ -9,7 +9,7 @@ public interface K8sQueueTaskService {
 
     Result createOrUpdateK8sQueueTask(K8sQueueTaskRequest request);
 
-    Result queryK8sQueueTaskListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal);
+    Result queryK8sQueueTaskListPaging(User loginUser, Integer pageSize, Integer pageNo, String projectName);
 
 
 }

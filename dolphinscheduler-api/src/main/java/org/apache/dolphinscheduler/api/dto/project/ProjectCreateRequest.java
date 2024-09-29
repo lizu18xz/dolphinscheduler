@@ -34,4 +34,8 @@ public class ProjectCreateRequest {
 
     @Schema(example = "this is a project")
     private String description;
+
+
+    private ProjectQueueResourceInfo projectQueueResourceInfo;
+
 }

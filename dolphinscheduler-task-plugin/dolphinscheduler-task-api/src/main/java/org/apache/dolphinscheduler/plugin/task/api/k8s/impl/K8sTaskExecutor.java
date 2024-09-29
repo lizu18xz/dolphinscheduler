@@ -246,24 +246,6 @@ public class K8sTaskExecutor extends AbstractK8sTaskExecutor {
         return job;
     }
 
-
-    /**
-     * 构建有队列的任务
-     */
-    public Job buildK8sQueueJob(K8sTaskMainParameters k8STaskMainParameters) {
-        String image = k8STaskMainParameters.getImage();
-
-
-        return null;
-    }
-
-    private VolumeMount getInputVolumeMount() {
-        VolumeMount volumeMount = new VolumeMount();
-        volumeMount.setName("input-data");
-        volumeMount.setMountPath("/inputData");
-        return volumeMount;
-    }
-
     private VolumeMount getFetchVolumeMount() {
         VolumeMount volumeMount = new VolumeMount();
         volumeMount.setName("fetch-init");

@@ -27,7 +27,7 @@ public class K8sQueueTaskController extends BaseController {
     @GetMapping(value = "/page")
     @ResponseStatus(HttpStatus.OK)
     public Result<PageInfo<K8sQueueTaskResponse>> page(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                                       @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                       @RequestParam(value = "projectName", required = false) String projectName,
                                                        @RequestParam("pageSize") Integer pageSize,
                                                        @RequestParam("pageNo") Integer pageNo) {
 
@@ -37,10 +37,8 @@ public class K8sQueueTaskController extends BaseController {
             return result;
         }
 
-        return k8sQueueTaskService.queryK8sQueueTaskListPaging(loginUser, pageSize, pageNo, searchVal);
+        return k8sQueueTaskService.queryK8sQueueTaskListPaging(loginUser, pageSize, pageNo, projectName);
     }
-
-
 
 
 }

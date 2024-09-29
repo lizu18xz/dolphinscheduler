@@ -17,14 +17,17 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s;
 
+import static org.apache.dolphinscheduler.common.constants.Constants.ENABLE_K8S_QUEUE;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.FLINK_K8S_OPERATOR;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.PYTORCH_K8S_OPERATOR;
 
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.task.api.AbstractRemoteTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.FlinkK8sOperatorTaskExecutor;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sQueueTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.PytorchK8sOperatorTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.model.TaskResponse;
@@ -43,7 +46,13 @@ public abstract class AbstractK8sTask extends AbstractRemoteTask {
      */
     protected AbstractK8sTask(TaskExecutionContext taskRequest) {
         super(taskRequest);
-        this.abstractK8sTaskExecutor = new K8sTaskExecutor(log, taskRequest);
+        Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
+        if (enable) {
+            log.info("k8s queue enable");
+            this.abstractK8sTaskExecutor = new K8sQueueTaskExecutor(log, taskRequest);
+        } else {
+            this.abstractK8sTaskExecutor = new K8sTaskExecutor(log, taskRequest);
+        }
     }
 
     protected AbstractK8sTask(TaskExecutionContext taskRequest, String type) {

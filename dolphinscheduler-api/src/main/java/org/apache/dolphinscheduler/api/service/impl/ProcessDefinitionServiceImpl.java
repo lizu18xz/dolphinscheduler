@@ -32,13 +32,7 @@ import static org.apache.dolphinscheduler.api.constants.ApiFuncIdentificationCon
 import static org.apache.dolphinscheduler.api.constants.ApiFuncIdentificationConstant.WORKFLOW_UPDATE;
 import static org.apache.dolphinscheduler.api.enums.Status.PROCESS_DEFINE_NOT_EXIST;
 import static org.apache.dolphinscheduler.common.constants.CommandKeyConstants.CMD_PARAM_SUB_PROCESS_DEFINE_CODE;
-import static org.apache.dolphinscheduler.common.constants.Constants.COPY_SUFFIX;
-import static org.apache.dolphinscheduler.common.constants.Constants.DATA_LIST;
-import static org.apache.dolphinscheduler.common.constants.Constants.DEFAULT_WORKER_GROUP;
-import static org.apache.dolphinscheduler.common.constants.Constants.EMPTY_STRING;
-import static org.apache.dolphinscheduler.common.constants.Constants.GLOBAL_PARAMS;
-import static org.apache.dolphinscheduler.common.constants.Constants.IMPORT_SUFFIX;
-import static org.apache.dolphinscheduler.common.constants.Constants.LOCAL_PARAMS;
+import static org.apache.dolphinscheduler.common.constants.Constants.*;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.LOCAL_PARAMS_LIST;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.TASK_TYPE;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.TASK_TYPE_SQL;
@@ -75,6 +69,7 @@ import org.apache.dolphinscheduler.common.utils.CodeGenerateUtils;
 import org.apache.dolphinscheduler.common.utils.CodeGenerateUtils.CodeGenerateException;
 import org.apache.dolphinscheduler.common.utils.DateUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.dao.entity.DagData;
 import org.apache.dolphinscheduler.dao.entity.DataSource;
 import org.apache.dolphinscheduler.dao.entity.DependentSimplifyDefinition;
@@ -415,18 +410,42 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
 
     private void saveK8sQueueTask(ProcessDefinition processDefinition,
                                   List<TaskDefinitionLog> taskDefinitionLogs) {
-
+        Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
+        if (!enable) {
+            return;
+        }
         String flowName = processDefinition.getName();
         for (TaskDefinitionLog taskDefinitionLog : taskDefinitionLogs) {
             String taskType = taskDefinitionLog.getTaskType();
+            ObjectNode objectNode = JSONUtils.parseObject(taskDefinitionLog.getTaskParams());
+
             if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
-                K8sQueueTaskRequest request=new K8sQueueTaskRequest();
-                request.setName("default");
+                K8sQueueTaskRequest request = new K8sQueueTaskRequest();
+                //获取队列名称
+                request.setName(objectNode.get("queue").toString());
                 request.setCode(taskDefinitionLog.getCode());
                 request.setFlowName(flowName);
                 request.setTaskName(taskDefinitionLog.getName());
                 request.setTaskType(taskDefinitionLog.getTaskType());
                 request.setPriority(taskDefinitionLog.getTaskPriority().getCode());
+                JsonNode minCpuCores = objectNode.get("minCpuCores");
+                JsonNode minMemorySpace = objectNode.get("minMemorySpace");
+                JsonNode gpuType = objectNode.get("gpuType");
+                JsonNode gpuLimits = objectNode.get("gpuLimits");
+                Map<String, Object> resourceInfo = new HashMap<>();
+                if (minCpuCores != null) {
+                    resourceInfo.put("cpu", minCpuCores.toString());
+                }
+                if (minMemorySpace != null) {
+                    resourceInfo.put("memory", minMemorySpace.toString());
+                }
+                if (gpuType != null) {
+                    resourceInfo.put("gpuType", gpuType.toString());
+                }
+                if (gpuLimits != null) {
+                    resourceInfo.put("gpu", gpuLimits.toString());
+                }
+                request.setTaskResourceInfo(JSONUtils.toJsonString(resourceInfo));
                 k8sQueueTaskService.createOrUpdateK8sQueueTask(request);
             }
         }

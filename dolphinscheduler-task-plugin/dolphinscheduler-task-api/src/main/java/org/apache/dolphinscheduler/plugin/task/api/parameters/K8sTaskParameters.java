@@ -42,12 +42,21 @@ public class K8sTaskParameters extends AbstractParameters {
     private double minCpuCores;
     private double minMemorySpace;
 
+    /**
+     * 任务队列
+     */
     private String queue;
+
+    /**
+     * GUP型号名称 默认:nvidia.com/gpu: 1
+     * nvidia.com/r3090
+     */
+    private String gpuType;
 
     /**
      * gpu 资源配置
      */
-    private Double gpuResources;
+    private Double gpuLimits;
 
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;

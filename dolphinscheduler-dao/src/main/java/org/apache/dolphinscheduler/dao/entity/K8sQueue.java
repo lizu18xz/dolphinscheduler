@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -24,11 +26,14 @@ public class K8sQueue {
      */
     private String name;
 
+    private String projectName;
+
     private Integer weight;
 
-    private Double capabilityCpu;
-
-    private Double capabilityMemory;
+    /**
+     * 资源信息
+     * */
+    private String resourceInfo;
 
     private Boolean reclaimable;
 
@@ -39,5 +44,13 @@ public class K8sQueue {
      * */
     private Long clusterCode;
 
+    /**
+     * create time
+     */
+    private Date createTime;
 
+    /**
+     * update time
+     */
+    private Date updateTime;
 }

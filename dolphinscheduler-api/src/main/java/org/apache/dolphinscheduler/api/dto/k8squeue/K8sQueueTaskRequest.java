@@ -28,4 +28,6 @@ public class K8sQueueTaskRequest {
 
     private int priority;
 
+    private String taskResourceInfo;
+
 }

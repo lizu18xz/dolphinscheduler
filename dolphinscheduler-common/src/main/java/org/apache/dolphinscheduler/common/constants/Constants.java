@@ -754,32 +754,58 @@ public final class Constants {
     /**
      * spi constants
      */
-    /** alert plugin param field string **/
+    /**
+     * alert plugin param field string
+     **/
     public static final String STRING_PLUGIN_PARAM_FIELD = "field";
-    /** alert plugin param name string **/
+    /**
+     * alert plugin param name string
+     **/
     public static final String STRING_PLUGIN_PARAM_NAME = "name";
-    /** alert plugin param props string **/
+    /**
+     * alert plugin param props string
+     **/
     public static final String STRING_PLUGIN_PARAM_PROPS = "props";
-    /** alert plugin param type string **/
+    /**
+     * alert plugin param type string
+     **/
     public static final String STRING_PLUGIN_PARAM_TYPE = "type";
-    /** alert plugin param title string **/
+    /**
+     * alert plugin param title string
+     **/
     public static final String STRING_PLUGIN_PARAM_TITLE = "title";
-    /** alert plugin param value string **/
+    /**
+     * alert plugin param value string
+     **/
     public static final String STRING_PLUGIN_PARAM_VALUE = "value";
-    /** alert plugin param validate string **/
+    /**
+     * alert plugin param validate string
+     **/
     public static final String STRING_PLUGIN_PARAM_VALIDATE = "validate";
-    /** alert plugin param options string **/
+    /**
+     * alert plugin param options string
+     **/
     public static final String STRING_PLUGIN_PARAM_OPTIONS = "options";
-    /**plugin param emit string **/
+    /**
+     * plugin param emit string
+     **/
     public static final String STRING_PLUGIN_PARAM_EMIT = "emit";
 
-    /** string true */
+    /**
+     * string true
+     */
     public static final String STRING_TRUE = "true";
-    /** string false */
+    /**
+     * string false
+     */
     public static final String STRING_FALSE = "false";
-    /** string yes */
+    /**
+     * string yes
+     */
     public static final String STRING_YES = "YES";
-    /** string no */
+    /**
+     * string no
+     */
     public static final String STRING_NO = "NO";
 
     public static final String SMALL = "small";
@@ -787,7 +813,7 @@ public final class Constants {
     public static final String CHANGE = "change";
 
     /**
-     *  support hive datasource in one session
+     * support hive datasource in one session
      */
     public static final String SUPPORT_HIVE_ONE_SESSION = "support.hive.oneSession";
 
@@ -860,4 +886,6 @@ public final class Constants {
 
     public static final String EXTERNAL_ADDRESS_LIST = "external.address";
 
+
+    public static final String ENABLE_K8S_QUEUE = "enable.k8s.queue";
 }

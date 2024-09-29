@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -15,12 +17,27 @@ public class K8sQueueResponse {
 
     private String name;
 
-    private Integer weight;
-
-    private Double capabilityCpu;
-
-    private Double capabilityMemory;
-
     private Boolean reclaimable;
 
+    private String projectName;
+
+    private Integer weight;
+
+    /**
+     * 资源信息
+     */
+    private String resourceInfo;
+
+
+    private String state;
+
+    /**
+     * create time
+     */
+    private Date createTime;
+
+    /**
+     * update time
+     */
+    private Date updateTime;
 }

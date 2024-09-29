@@ -107,6 +107,11 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setInputDataVolume(k8sTaskParameters.getInputDataVolume());
         k8sTaskMainParameters.setPodInputDataVolume(k8sTaskParameters.getPodInputDataVolume());
         k8sTaskMainParameters.setPodOutputDataVolume(k8sTaskParameters.getPodOutputDataVolume());
+
+
+        k8sTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());
+        k8sTaskMainParameters.setGpuLimits(k8sTaskParameters.getGpuLimits());
+        k8sTaskMainParameters.setQueue(k8sTaskParameters.getQueue());
         return JSONUtils.toJsonString(k8sTaskMainParameters);
     }
 
@@ -116,10 +121,10 @@ public class K8sTask extends AbstractK8sTask {
         }
 
         return expressions.stream().map(expression -> new NodeSelectorRequirement(
-                expression.getKey(),
-                expression.getOperator(),
-                StringUtils.isEmpty(expression.getValues()) ? Collections.emptyList()
-                        : Arrays.asList(expression.getValues().trim().split("\\s*,\\s*"))))
+                        expression.getKey(),
+                        expression.getOperator(),
+                        StringUtils.isEmpty(expression.getValues()) ? Collections.emptyList()
+                                : Arrays.asList(expression.getValues().trim().split("\\s*,\\s*"))))
                 .collect(Collectors.toList());
     }
 

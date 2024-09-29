@@ -52,6 +52,11 @@ public class K8sTaskMainParameters {
     private Double gpuLimits;
 
     /**
+     * GUP型号名称 默认:nvidia.com/gpu: 1
+     */
+    private String gpuType;
+
+    /**
      * 类型是local/minio/...
      * */
     private String fetchType;

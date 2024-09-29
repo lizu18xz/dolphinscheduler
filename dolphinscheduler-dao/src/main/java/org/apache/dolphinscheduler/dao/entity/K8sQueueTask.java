@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -37,5 +39,15 @@ public class K8sQueueTask {
 
     private int priority;
 
+    private String taskResourceInfo;
 
+    /**
+     * create time
+     */
+    private Date createTime;
+
+    /**
+     * update time
+     */
+    private Date updateTime;
 }

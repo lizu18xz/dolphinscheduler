@@ -186,6 +186,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             String resp;
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
+            log.info("store page resp :{}", resp.toString());
             ObjectNode result = JSONUtils.parseObject(resp);
             String data = result.get("data").get("list").toString();
             List<StorageResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<StorageResponse>>() {

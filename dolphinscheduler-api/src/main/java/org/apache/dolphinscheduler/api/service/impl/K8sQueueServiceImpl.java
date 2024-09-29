@@ -2,17 +2,19 @@ package org.apache.dolphinscheduler.api.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueRequest;
-import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueResponse;
+import org.apache.dolphinscheduler.api.dto.k8squeue.*;
+import org.apache.dolphinscheduler.api.dto.project.ProjectQueueResourceInfo;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.k8s.K8sClientService;
 import org.apache.dolphinscheduler.api.service.K8sQueueService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.constants.Constants;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.dao.entity.K8sQueue;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.K8sQueueMapper;
@@ -30,29 +32,6 @@ import java.util.stream.Collectors;
 @Lazy
 @Slf4j
 public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueService {
-
-    /**
-     * memory: "4096Mi"
-     */
-    private static String resourceYaml = "apiVersion: scheduling.volcano.sh/v1beta1\n" +
-            "kind: Queue\n" +
-            "metadata:\n" +
-            "  creationTimestamp: \"2024-08-10T11:54:36Z\"\n" +
-            "  generation: 1\n" +
-            "  name: ${name}\n" +
-            "  resourceVersion: \"559\"\n" +
-            "  selfLink: /apis/scheduling.volcano.sh/v1beta1/queues/default\n" +
-            "  uid: 14082e4c-bef6-4248-a414-1e06d8352bf0\n" +
-            "spec:\n" +
-            "  reclaimable: ${reclaimable}\n" +
-            "  weight: ${weight}\n" +
-            "  capability:\n" +
-            "    cpu: ${capabilityCpu}\n" +
-            "    memory: ${capabilityMemory}\n" +
-            "status:\n" +
-            "  state: Open";
-
-
     @Autowired
     private K8sQueueMapper k8sQueueMapper;
 
@@ -62,33 +41,27 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
     @Override
     public Result createK8sQueue(K8sQueueRequest request) {
         Result result = new Result();
-
         if (StringUtils.isEmpty(request.getName())) {
             log.warn("Parameter name is empty.");
             putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.K8S_QUEUE_NAME);
             return result;
         }
-
-        if (request.getCapabilityCpu() != null && request.getCapabilityCpu() < 0.0) {
+        //获取队列资源信息
+        ProjectQueueResourceInfo resourceInfo = request.getProjectQueueResourceInfo();
+        if (resourceInfo.getAllocatedCpu() != null && resourceInfo.getAllocatedCpu() < 0.0) {
             log.warn("Parameter capabilityCpu is invalid.");
             putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.LIMITS_CPU);
             return result;
         }
-
-        if (request.getCapabilityMemory() != null && request.getCapabilityMemory() < 0.0) {
+        if (resourceInfo.getAllocatedMemory() != null && resourceInfo.getAllocatedMemory() < 0.0) {
             log.warn("Parameter capabilityMemory is invalid.");
             putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.LIMITS_MEMORY);
             return result;
         }
-
         if (request.getWeight() == null) {
             request.setWeight(1);
         }
-
-        if (request.getReclaimable() == null) {
-            request.setReclaimable(true);
-        }
-
+        request.setReclaimable(false);
         //先查询是否已经存在
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("name", request.getName());
@@ -99,10 +72,10 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
             return result;
         }
         //先连接k8s集群创建
-
         if (!Constants.K8S_LOCAL_TEST_CLUSTER_CODE.equals(request.getClusterCode())) {
             try {
                 String yamlStr = genDefaultResourceYaml(request);
+                log.info("queue yml :{}", yamlStr);
                 k8sClientService.loadApplyYmlJob(yamlStr, request.getClusterCode());
             } catch (Exception e) {
                 log.error("queue yml create to k8s error", e);
@@ -114,6 +87,8 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         //入库
         K8sQueue k8sQueue = new K8sQueue();
         BeanUtils.copyProperties(request, k8sQueue);
+        //设置资源json信息
+        k8sQueue.setResourceInfo(JSONUtils.toJsonString(resourceInfo));
         k8sQueueMapper.insert(k8sQueue);
         result.setData(k8sQueue);
         putMsg(result, Status.SUCCESS);
@@ -125,8 +100,6 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         Result result = new Result();
         K8sQueue k8sQueue = k8sQueueMapper.selectById(id);
         //先删除，在更新集群
-
-
         //更新配置
         BeanUtils.copyProperties(request, k8sQueue);
         k8sQueueMapper.updateById(k8sQueue);
@@ -160,6 +133,7 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         PageInfo<K8sQueueResponse> pageInfo = new PageInfo<>(pageNo, pageSize);
         Page<K8sQueue> page = new Page<>(pageNo, pageSize);
         QueryWrapper<K8sQueue> wrapper = new QueryWrapper();
+        wrapper.eq("project_name", searchVal);
         Page<K8sQueue> k8sQueueTaskPage = k8sQueueMapper.selectPage(page, wrapper);
         List<K8sQueue> projectList = k8sQueueTaskPage.getRecords();
         List<K8sQueueResponse> responseList = projectList.stream().map(x -> {
@@ -175,19 +149,47 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         return result;
     }
 
+    @Override
+    public K8sQueue findByName(String name) {
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("name", name);
+        List<K8sQueue> k8sQueues = k8sQueueMapper.selectByMap(columnMap);
+        if (CollectionUtils.isEmpty(k8sQueues)) {
+            return null;
+        }
+        return k8sQueues.get(0);
+    }
+
     private String genDefaultResourceYaml(K8sQueueRequest request) {
         String name = request.getName();
-        String weight = request.getWeight() + "";
-        String reclaimable = request.getReclaimable() + "";
-        String capabilityMemory = request.getCapabilityMemory() + "";
-        String capabilityCpu = request.getCapabilityCpu() + "";
+        ProjectQueueResourceInfo projectQueueResourceInfo = request.getProjectQueueResourceInfo();
 
-        String result = resourceYaml.replace("${name}", name)
-                .replace("${capabilityCpu}", capabilityCpu)
-                .replace("${capabilityMemory}", capabilityMemory)
-                .replace("${reclaimable}", reclaimable)
-                .replace("${weight}", weight);
-        return result;
+        K8sQueueInfo queueInfo = new K8sQueueInfo();
+        queueInfo.setApiVersion("scheduling.volcano.sh/v1beta1");
+        queueInfo.setKind("Queue");
+        K8sQueueInfo.Metadata metadata = new K8sQueueInfo.Metadata();
+        metadata.setName(name);
+        queueInfo.setMetadata(metadata);
+        K8sQueueInfo.Spec spec = new K8sQueueInfo.Spec();
+        spec.setReclaimable(false);
+        Map<String, Object> deserved = new HashMap<>();
+
+        if (projectQueueResourceInfo.getAllocatedCpu() != null) {
+            deserved.put("cpu", projectQueueResourceInfo.getAllocatedCpu());
+        }
+        if (projectQueueResourceInfo.getAllocatedMemory() != null) {
+            deserved.put("memory", projectQueueResourceInfo.getAllocatedMemory());
+        }
+        if (!StringUtils.isEmpty(projectQueueResourceInfo.getHighGpuName())) {
+            deserved.put(projectQueueResourceInfo.getHighGpuName(), projectQueueResourceInfo.getHighAllocatedGpu());
+        }
+
+        if (!StringUtils.isEmpty(projectQueueResourceInfo.getLowGpuName())) {
+            deserved.put(projectQueueResourceInfo.getLowGpuName(), projectQueueResourceInfo.getLowAllocatedGpu());
+        }
+        spec.setDeserved(deserved);
+        queueInfo.setSpec(spec);
+        return Serialization.asYaml(queueInfo);
     }
 
 

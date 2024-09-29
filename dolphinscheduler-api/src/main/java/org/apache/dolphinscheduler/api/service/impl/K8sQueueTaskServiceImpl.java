@@ -7,6 +7,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueTaskRequest;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueTaskResponse;
 import org.apache.dolphinscheduler.api.enums.Status;
+import org.apache.dolphinscheduler.api.service.K8sQueueService;
 import org.apache.dolphinscheduler.api.service.K8sQueueTaskService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
@@ -31,6 +32,8 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
     @Autowired
     private K8sQueueTaskMapper k8sQueueTaskMapper;
 
+    @Autowired
+    private K8sQueueService k8sQueueService;
 
     @Override
     public Result createOrUpdateK8sQueueTask(K8sQueueTaskRequest request) {
@@ -49,23 +52,30 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
             k8sQueueTask.setTaskName(request.getTaskName());
             k8sQueueTask.setFlowName(request.getFlowName());
             k8sQueueTask.setTaskType(request.getTaskType());
+            k8sQueueTask.setTaskResourceInfo(request.getTaskResourceInfo());
             k8sQueueTaskMapper.updateById(k8sQueueTask);
         }
         return Result.success();
     }
 
     @Override
-    public Result<PageInfo<K8sQueueTaskResponse>> queryK8sQueueTaskListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal) {
+    public Result<PageInfo<K8sQueueTaskResponse>> queryK8sQueueTaskListPaging(User loginUser, Integer pageSize,
+                                                                              Integer pageNo, String projectName) {
         Result<PageInfo<K8sQueueTaskResponse>> result = new Result();
         PageInfo<K8sQueueTaskResponse> pageInfo = new PageInfo<>(pageNo, pageSize);
         Page<K8sQueueTask> page = new Page<>(pageNo, pageSize);
         QueryWrapper<K8sQueueTask> wrapper = new QueryWrapper();
+        wrapper.eq("project_name", projectName);
         Page<K8sQueueTask> k8sQueueTaskPage = k8sQueueTaskMapper.selectPage(page, wrapper);
         List<K8sQueueTask> projectList = k8sQueueTaskPage.getRecords();
+
+        //k8sQueueService.findByName()
 
         List<K8sQueueTaskResponse> responseList = projectList.stream().map(x -> {
             K8sQueueTaskResponse response = new K8sQueueTaskResponse();
             BeanUtils.copyProperties(x, response);
+            //TODO 4core_16GB
+            response.setResourceInfo("");
             return response;
         }).collect(Collectors.toList());
 

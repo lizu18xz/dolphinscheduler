@@ -74,11 +74,9 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         String imagePullPolicy = k8STaskMainParameters.getImagePullPolicy();
         Map<String, String> otherParams = k8STaskMainParameters.getParamsMap();
         String queue = k8STaskMainParameters.getQueue() == null ? "default" : k8STaskMainParameters.getQueue();
-
         //设置资源
         Map<String, Quantity> limitRes = new HashMap<>();
         Map<String, Quantity> reqRes = new HashMap<>();
-        int retryNum = 0;
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
         if (k8STaskMainParameters.getGpuLimits() == null) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
@@ -91,8 +89,12 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
         } else {
             //nvidia.com/gpu: 1
+            String gpuType = k8STaskMainParameters.getGpuType();
             Double podGpu = k8STaskMainParameters.getGpuLimits();
-            limitRes.put(GPU, new Quantity(String.valueOf(podGpu)));
+            if (StringUtils.isEmpty(gpuType)) {
+                gpuType = GPU;
+            }
+            limitRes.put(gpuType, new Quantity(String.valueOf(podGpu)));
         }
 
         Map<String, String> labelMap = k8STaskMainParameters.getLabelMap();

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.dolphinscheduler.api.dto.project.ProjectQueueResourceInfo;
 
 @Data
 @Builder
@@ -11,16 +12,16 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class K8sQueueRequest {
 
-    private Long clusterCode;
-
     private String name;
+
+    private String projectName;
 
     private Integer weight;
 
-    private Double capabilityCpu;
-
-    private Double capabilityMemory;
-
     private Boolean reclaimable;
+
+    private Long clusterCode;
+
+    private ProjectQueueResourceInfo projectQueueResourceInfo;
 
 }
