@@ -11,6 +11,7 @@ import org.apache.dolphinscheduler.api.service.K8sQueueService;
 import org.apache.dolphinscheduler.api.service.K8sQueueTaskService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
+import org.apache.dolphinscheduler.dao.entity.K8sQueue;
 import org.apache.dolphinscheduler.dao.entity.K8sQueueTask;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.K8sQueueTaskMapper;
@@ -69,13 +70,18 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
         Page<K8sQueueTask> k8sQueueTaskPage = k8sQueueTaskMapper.selectPage(page, wrapper);
         List<K8sQueueTask> projectList = k8sQueueTaskPage.getRecords();
 
-        //k8sQueueService.findByName()
-
+        String queueName = projectName;
+        K8sQueue byName = k8sQueueService.findByName(queueName);
+        String resourceInfo;
+        if (byName != null) {
+            resourceInfo = byName.getResourceInfo();
+        } else {
+            resourceInfo = "";
+        }
         List<K8sQueueTaskResponse> responseList = projectList.stream().map(x -> {
             K8sQueueTaskResponse response = new K8sQueueTaskResponse();
             BeanUtils.copyProperties(x, response);
-            //TODO 4core_16GB
-            response.setResourceInfo("");
+            response.setResourceInfo(resourceInfo);
             return response;
         }).collect(Collectors.toList());
 

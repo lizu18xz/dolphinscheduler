@@ -9,10 +9,13 @@ import org.apache.dolphinscheduler.api.service.K8sQueueService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.constants.Constants;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name = "K8S_QUEUE")
 @RestController
@@ -28,8 +31,8 @@ public class K8sQueueController extends BaseController {
      */
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.OK)
-    public Result create(K8sQueueRequest request) {
-
+    public Result create(@RequestBody K8sQueueRequest request) {
+        log.info("create queue:{}", JSONUtils.toPrettyJsonString(request));
         //保存数据库
         return k8sQueueService.createK8sQueue(request);
     }
@@ -60,17 +63,24 @@ public class K8sQueueController extends BaseController {
     @GetMapping(value = "/page")
     @ResponseStatus(HttpStatus.OK)
     public Result<PageInfo<K8sQueueResponse>> page(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-                                                   @RequestParam(value = "searchVal", required = false) String searchVal,
+                                                   @RequestParam(value = "projectName", required = false) String projectName,
                                                    @RequestParam("pageSize") Integer pageSize,
                                                    @RequestParam("pageNo") Integer pageNo) {
-
         Result result = checkPageParams(pageNo, pageSize);
         if (!result.checkResult()) {
             log.warn("Pagination parameters check failed, pageNo:{}, pageSize:{}", pageNo, pageSize);
             return result;
         }
+        return k8sQueueService.queryK8sQueueListPaging(loginUser, pageSize, pageNo, projectName);
+    }
 
-        return k8sQueueService.queryK8sQueueListPaging(loginUser, pageSize, pageNo, searchVal);
+
+    @GetMapping(value = "/gpu-type")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<String>> getGpuType() {
+
+        //保存数据库
+        return k8sQueueService.getGpuType();
     }
 
 

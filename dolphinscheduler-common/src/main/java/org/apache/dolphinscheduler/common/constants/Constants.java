@@ -886,6 +886,7 @@ public final class Constants {
 
     public static final String EXTERNAL_ADDRESS_LIST = "external.address";
 
-
     public static final String ENABLE_K8S_QUEUE = "enable.k8s.queue";
+
+    public static final String K8S_GPU_TYPE = "k8s.gpu.type";
 }

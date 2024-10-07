@@ -25,6 +25,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -78,6 +79,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
             ObjectNode result = JSONUtils.parseObject(resp);
+            if (result.get("data") == null) {
+                log.info("获取镜像列表失败");
+                return new ArrayList<>();
+            }
             String data = result.get("data").toString();
             List<ImageResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<ImageResponse>>() {
             });
@@ -119,6 +124,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
             ObjectNode result = JSONUtils.parseObject(resp);
+            if (result.get("data") == null) {
+                log.info("获取挂载列表失败");
+                return new ArrayList<>();
+            }
             String data = result.get("data").get("list").toString();
             List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
             });

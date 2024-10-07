@@ -7,6 +7,8 @@ import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.dao.entity.K8sQueue;
 import org.apache.dolphinscheduler.dao.entity.User;
 
+import java.util.List;
+
 public interface K8sQueueService {
 
     Result createK8sQueue(K8sQueueRequest request);
@@ -18,4 +20,6 @@ public interface K8sQueueService {
     Result<PageInfo<K8sQueueResponse>> queryK8sQueueListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal);
 
     K8sQueue findByName(String name);
+
+    Result<List<String>> getGpuType();
 }

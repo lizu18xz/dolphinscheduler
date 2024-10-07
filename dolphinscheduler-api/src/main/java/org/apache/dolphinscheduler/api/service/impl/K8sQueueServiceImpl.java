@@ -15,6 +15,7 @@ import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.dao.entity.K8sQueue;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.K8sQueueMapper;
@@ -23,10 +24,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.apache.dolphinscheduler.common.constants.Constants.K8S_GPU_TYPE;
 
 @Service
 @Lazy
@@ -42,10 +43,9 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
     public Result createK8sQueue(K8sQueueRequest request) {
         Result result = new Result();
         if (StringUtils.isEmpty(request.getName())) {
-            log.warn("Parameter name is empty.");
-            putMsg(result, Status.REQUEST_PARAMS_NOT_VALID_ERROR, Constants.K8S_QUEUE_NAME);
-            return result;
+            request.setName(request.getProjectName());
         }
+
         //获取队列资源信息
         ProjectQueueResourceInfo resourceInfo = request.getProjectQueueResourceInfo();
         if (resourceInfo.getAllocatedCpu() != null && resourceInfo.getAllocatedCpu() < 0.0) {
@@ -89,6 +89,8 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         BeanUtils.copyProperties(request, k8sQueue);
         //设置资源json信息
         k8sQueue.setResourceInfo(JSONUtils.toJsonString(resourceInfo));
+        k8sQueue.setCreateTime(new Date());
+        k8sQueue.setUpdateTime(new Date());
         k8sQueueMapper.insert(k8sQueue);
         result.setData(k8sQueue);
         putMsg(result, Status.SUCCESS);
@@ -139,6 +141,7 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         List<K8sQueueResponse> responseList = projectList.stream().map(x -> {
             K8sQueueResponse response = new K8sQueueResponse();
             BeanUtils.copyProperties(x, response);
+            response.setQueue(x.getName());
             return response;
         }).collect(Collectors.toList());
 
@@ -158,6 +161,18 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
             return null;
         }
         return k8sQueues.get(0);
+    }
+
+    @Override
+    public Result<List<String>> getGpuType() {
+        String gpuType =
+                PropertyUtils.getString(K8S_GPU_TYPE);
+        String[] split = gpuType.split(",");
+        List<String> res = new ArrayList<>();
+        for (String type : split) {
+            res.add(type);
+        }
+        return Result.success(res);
     }
 
     private String genDefaultResourceYaml(K8sQueueRequest request) {

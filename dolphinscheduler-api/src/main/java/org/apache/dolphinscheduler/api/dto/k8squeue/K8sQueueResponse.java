@@ -17,6 +17,8 @@ public class K8sQueueResponse {
 
     private String name;
 
+    private String queue;
+
     private Boolean reclaimable;
 
     private String projectName;
