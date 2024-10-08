@@ -175,6 +175,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
 
         //组装yml文件
         QueueJob queueJob = getQueueJobTemplate();
+        queueJob.setKind("Job");
         queueJob.getMetadata().setName(k8sJobName);
         queueJob.getMetadata().setLabels(labelMap);
         queueJob.getMetadata().setNamespace(namespaceName);
@@ -182,7 +183,9 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         QueueJobSpec queueJobSpec = queueJob.getSpec();
         queueJobSpec.setQueue(queue);
         queueJobSpec.getTasks().get(0).setName(k8sJobName);
-        PodTemplateSpec template = queueJobSpec.getTasks().get(0).getTemplate();
+        PodTemplateSpec template = new PodTemplateSpec();
+        ObjectMeta objectMeta = new ObjectMeta();
+        template.setMetadata(objectMeta);
         template.getMetadata().setLabels(podLabelMap);
         List<Container> containers = new ArrayList<>();
         Container container = new Container();
@@ -195,6 +198,9 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         container.setEnv(envVars);
         container.setVolumeMounts(volumeMounts.size() == 0 ? null : volumeMounts);
         containers.add(container);
+
+        PodSpec podSpec = new PodSpec();
+        template.setSpec(podSpec);
         template.getSpec().setContainers(containers);
         template.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         template.getSpec().setAffinity(affinity);
@@ -232,7 +238,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             preVolumes.add(volume);
             template.getSpec().setVolumes(preVolumes);
         }
-
+        queueJobSpec.getTasks().get(0).setTemplate(template);
         queueJob.setSpec(queueJobSpec);
         return queueJob;
     }
@@ -240,8 +246,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
     private static QueueJob getQueueJobTemplate() {
         try {
             InputStream resourceAsStream = null;
-            resourceAsStream = PytorchK8sOperatorTaskExecutor.class
-                    .getResourceAsStream("/queue-job.yaml");
+            resourceAsStream = K8sQueueTaskExecutor.class
+                    .getResourceAsStream("/queue-job.yml");
             return Serialization.yamlMapper()
                     .readValue(resourceAsStream, QueueJob.class);
         } catch (Exception e) {
@@ -267,16 +273,16 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                     LogUtils.setTaskInstanceLogFullPathMDC(taskRequest.getLogPath());
                     log.info("event received : job:{} action:{}", resource.getMetadata().getName(),
                             action);
-                    if (action != Action.ADDED) {
+                    if (action != Action.ADDED && action != Action.DELETED) {
                         int jobStatus = getK8sJobStatus(resource);
-                        log.info("watch pytorch operator :{}", jobStatus);
+                        log.info("watch queue job operator :{}", jobStatus);
                         setTaskStatus(jobStatus, taskInstanceId, taskResponse,
                                 k8STaskMainParameters);
                         if (jobStatus == EXIT_CODE_SUCCESS || jobStatus == EXIT_CODE_FAILURE) {
                             countDownLatch.countDown();
                         }
                     } else if (action == Action.DELETED) {
-                        log.error("[K8sJobExecutor-{}] fail in pytorch operator k8s",
+                        log.error("[K8sJobExecutor-{}] fail in queue operator k8s",
                                 resource.getMetadata().getName());
                         taskResponse.setExitStatusCode(EXIT_CODE_FAILURE);
                         countDownLatch.countDown();
@@ -423,8 +429,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
     }
 
     private String asApplyYaml(K8sTaskMainParameters parameters) {
-        QueueJob queueJob = buildK8sQueueJob(parameters);
-        return Serialization.asYaml(queueJob);
+        this.job = buildK8sQueueJob(parameters);
+        return Serialization.asYaml(this.job);
     }
 
     @Override
@@ -451,13 +457,13 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                     .get("status");
             if (status != null) {
                 Map<String, Object> applicationState = (Map<String, Object>) status
-                        .get("jobStatus");
+                        .get("state");
                 if (applicationState != null) {
-                    if (applicationState.get("state") != null) {
-                        String state = applicationState.get("state").toString();
-                        if (state.equals("FINISHED")) {
+                    if (applicationState.get("phase") != null) {
+                        String state = applicationState.get("phase").toString();
+                        if (state.equals("Completed")) {
                             return EXIT_CODE_SUCCESS;
-                        } else if (state.equals("FAILED")) {
+                        } else if (state.equals("Failed")) {
                             return EXIT_CODE_FAILURE;
                         } else {
                             return RUNNING_CODE;

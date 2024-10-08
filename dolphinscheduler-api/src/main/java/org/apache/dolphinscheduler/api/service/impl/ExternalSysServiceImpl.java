@@ -128,6 +128,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 log.info("获取挂载列表失败");
                 return new ArrayList<>();
             }
+            if (result.get("data").get("list") == null) {
+                log.info("获取挂载列表失败");
+                return new ArrayList<>();
+            }
             String data = result.get("data").get("list").toString();
             List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
             });

@@ -11,14 +11,17 @@ import org.apache.dolphinscheduler.api.dto.project.ProjectQueueResourceInfo;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.k8s.K8sClientService;
 import org.apache.dolphinscheduler.api.service.K8sQueueService;
+import org.apache.dolphinscheduler.api.service.ProjectService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.dao.entity.K8sQueue;
+import org.apache.dolphinscheduler.dao.entity.Project;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.K8sQueueMapper;
+import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -38,6 +41,9 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
 
     @Autowired
     private K8sClientService k8sClientService;
+
+    @Autowired
+    private ProjectMapper projectMapper;
 
     @Override
     public Result createK8sQueue(K8sQueueRequest request) {
@@ -87,6 +93,7 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         //入库
         K8sQueue k8sQueue = new K8sQueue();
         BeanUtils.copyProperties(request, k8sQueue);
+
         //设置资源json信息
         k8sQueue.setResourceInfo(JSONUtils.toJsonString(resourceInfo));
         k8sQueue.setCreateTime(new Date());
@@ -130,12 +137,15 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
     }
 
     @Override
-    public Result<PageInfo<K8sQueueResponse>> queryK8sQueueListPaging(User loginUser, Integer pageSize, Integer pageNo, String searchVal) {
+    public Result<PageInfo<K8sQueueResponse>> queryK8sQueueListPaging(User loginUser, Integer pageSize, Integer pageNo, String projectName) {
         Result<PageInfo<K8sQueueResponse>> result = new Result();
         PageInfo<K8sQueueResponse> pageInfo = new PageInfo<>(pageNo, pageSize);
         Page<K8sQueue> page = new Page<>(pageNo, pageSize);
         QueryWrapper<K8sQueue> wrapper = new QueryWrapper();
-        wrapper.eq("project_name", searchVal);
+
+        Project project = projectMapper.queryByName(projectName);
+        String project_name = project.getProjectEnName() == null ? project.getName() : project.getProjectEnName();
+        wrapper.eq("project_name", project_name);
         Page<K8sQueue> k8sQueueTaskPage = k8sQueueMapper.selectPage(page, wrapper);
         List<K8sQueue> projectList = k8sQueueTaskPage.getRecords();
         List<K8sQueueResponse> responseList = projectList.stream().map(x -> {

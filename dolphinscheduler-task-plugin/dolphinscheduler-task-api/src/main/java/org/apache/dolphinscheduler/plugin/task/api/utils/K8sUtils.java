@@ -322,7 +322,7 @@ public class K8sUtils {
         try {
             client.load(new ByteArrayInputStream((yaml).getBytes())).createOrReplace();
         } catch (Exception e) {
-            throw new TaskException("fail to create flink job", e);
+            throw new TaskException("fail to create crd job", e);
         }
     }
 
@@ -332,7 +332,7 @@ public class K8sUtils {
                     .load(new ByteArrayInputStream((yaml).getBytes()))
                     .delete();
         } catch (Exception e) {
-            throw new TaskException("fail to delete apply job", e);
+            throw new TaskException("fail to delete crd job", e);
         }
     }
 
