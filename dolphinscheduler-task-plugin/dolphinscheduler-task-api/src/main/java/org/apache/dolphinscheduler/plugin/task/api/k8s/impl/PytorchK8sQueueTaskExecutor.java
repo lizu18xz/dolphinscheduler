@@ -83,7 +83,7 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         Map<String, Quantity> masterReqRes = new HashMap<>();
         // 设置资源信息
         Double masterGpuLimits = parameters.getMasterGpuLimits();
-        if (masterGpuLimits != null) {
+        if (masterGpuLimits != null && masterGpuLimits > 0) {
             String gpuType = parameters.getGpuType();
             if (StringUtils.isEmpty(gpuType)) {
                 gpuType = GPU;
@@ -106,7 +106,7 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         Map<String, Quantity> workerReqRes = new HashMap<>();
 
         Double workerGpuLimits = parameters.getWorkerGpuLimits();
-        if (workerGpuLimits != null) {
+        if (workerGpuLimits != null && workerGpuLimits > 0) {
             String gpuType = parameters.getGpuType();
             if (StringUtils.isEmpty(gpuType)) {
                 gpuType = GPU;
@@ -263,7 +263,7 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         workerTemplate.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         workerTemplate.getSpec().setAffinity(affinity);
         workerTemplate.getSpec().setRestartPolicy(RESTART_POLICY);
-
+        worker.setTemplate(workerTemplate);
         queueJob.setSpec(queueJobSpec);
         return queueJob;
     }

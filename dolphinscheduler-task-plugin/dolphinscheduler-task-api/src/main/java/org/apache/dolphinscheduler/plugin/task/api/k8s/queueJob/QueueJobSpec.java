@@ -12,7 +12,7 @@ public class QueueJobSpec {
 
     private String schedulerName;
 
-    private List<Plugins> plugins;
+    private Plugins plugins;
 
     private String queue;
 

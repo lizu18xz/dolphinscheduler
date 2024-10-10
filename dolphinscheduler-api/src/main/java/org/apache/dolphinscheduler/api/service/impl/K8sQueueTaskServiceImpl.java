@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +47,7 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
         if (CollectionUtils.isEmpty(k8sQueueTasks)) {
             K8sQueueTask k8sQueueTask = new K8sQueueTask();
             BeanUtils.copyProperties(request, k8sQueueTask);
+            k8sQueueTask.setCreateTime(new Date());
             k8sQueueTaskMapper.insert(k8sQueueTask);
         } else {
             K8sQueueTask k8sQueueTask = k8sQueueTasks.get(0);
@@ -54,6 +56,7 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
             k8sQueueTask.setFlowName(request.getFlowName());
             k8sQueueTask.setTaskType(request.getTaskType());
             k8sQueueTask.setTaskResourceInfo(request.getTaskResourceInfo());
+            k8sQueueTask.setCreateTime(new Date());
             k8sQueueTaskMapper.updateById(k8sQueueTask);
         }
         return Result.success();

@@ -78,7 +78,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         Map<String, Quantity> limitRes = new HashMap<>();
         Map<String, Quantity> reqRes = new HashMap<>();
         String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
-        if (k8STaskMainParameters.getGpuLimits() == null) {
+        if (k8STaskMainParameters.getGpuLimits() == null || k8STaskMainParameters.getGpuLimits() <= 0) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
             Double podCpu = k8STaskMainParameters.getMinCpuCores();
             Double limitPodMem = podMem * 2;
