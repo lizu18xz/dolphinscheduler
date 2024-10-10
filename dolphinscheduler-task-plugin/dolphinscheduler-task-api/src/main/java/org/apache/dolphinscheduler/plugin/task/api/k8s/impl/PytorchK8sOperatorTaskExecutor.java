@@ -329,8 +329,8 @@ public class PytorchK8sOperatorTaskExecutor extends AbstractK8sTaskExecutor {
             ResourceRequirements workerRes = new ResourceRequirements();
             Map<String, Quantity> workerRequests = new HashMap<>();
             Map<String, Quantity> workerLimits = new HashMap<>();
-            Double podMem = parameters.getMasterMinMemorySpace();
-            Double podCpu = parameters.getMasterMinCpuCores();
+            Double podMem = parameters.getWorkerMinMemorySpace();
+            Double podCpu = parameters.getWorkerMinCpuCores();
             Double limitPodMem = podMem * 2;
             Double limitPodCpu = podCpu * 2;
             workerRequests.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));

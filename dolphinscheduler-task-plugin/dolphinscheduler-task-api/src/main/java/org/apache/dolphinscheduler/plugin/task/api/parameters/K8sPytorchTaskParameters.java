@@ -32,11 +32,6 @@ import java.util.List;
 @Data
 public class K8sPytorchTaskParameters extends AbstractParameters {
 
-    /**
-     * 任务类型 base/pytorch
-     */
-    private String k8sJobType;
-
     private String image;
     private String namespace;
     private String command;
@@ -45,8 +40,15 @@ public class K8sPytorchTaskParameters extends AbstractParameters {
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;
 
-    private String volumeType;
+    /**
+     * 所选队列
+     * */
+    private String queue;
 
+    /**
+     * GUP型号名称 默认:nvidia.com/gpu: 1
+     */
+    private String gpuType;
 
     /**
      * 副本数量
@@ -73,9 +75,19 @@ public class K8sPytorchTaskParameters extends AbstractParameters {
     private double workerMinMemorySpace;
 
     /**
-     * 节点的输入输出挂载
+     * 对应页面上面的数据存储下拉，用于回显展示
+     * */
+    private String dataSave;
+
+
+    /**
+     * 节点的输入输出挂载 包含宿主机 和 容器内部地址
      */
+    private String podInputDataVolume;
+
     private String inputDataVolume;
+
+    private String podOutputDataVolume;
 
     private String outputDataVolume;
 

@@ -26,10 +26,7 @@ import org.apache.dolphinscheduler.plugin.task.api.AbstractRemoteTask;
 import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.FlinkK8sOperatorTaskExecutor;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sQueueTaskExecutor;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.K8sTaskExecutor;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.PytorchK8sOperatorTaskExecutor;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.impl.*;
 import org.apache.dolphinscheduler.plugin.task.api.model.TaskResponse;
 
 public abstract class AbstractK8sTask extends AbstractRemoteTask {
@@ -62,7 +59,12 @@ public abstract class AbstractK8sTask extends AbstractRemoteTask {
                 this.abstractK8sTaskExecutor = new FlinkK8sOperatorTaskExecutor(log, taskRequest);
                 break;
             case PYTORCH_K8S_OPERATOR:
-                this.abstractK8sTaskExecutor = new PytorchK8sOperatorTaskExecutor(log, taskRequest);
+                Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
+                if (enable) {
+                    this.abstractK8sTaskExecutor = new PytorchK8sQueueTaskExecutor(log, taskRequest);
+                }else {
+                    this.abstractK8sTaskExecutor = new PytorchK8sOperatorTaskExecutor(log, taskRequest);
+                }
                 break;
             default:
                 this.abstractK8sTaskExecutor = new K8sTaskExecutor(log, taskRequest);

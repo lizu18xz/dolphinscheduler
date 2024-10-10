@@ -43,12 +43,23 @@ public class K8sPytorchTaskMainParameters {
     private Map<String, String> labelMap;
     private List<NodeSelectorRequirement> nodeSelectorRequirements;
 
+    /**
+     * 所选队列
+     * */
+    private String queue;
+
+    /**
+     * GUP型号名称 默认:nvidia.com/gpu: 1
+     */
+    private String gpuType;
 
     /**
      * 副本数量
      */
     private Integer masterReplicas = 1;
     private Integer workerReplicas;
+
+
 
     /**
      * gpu resources 设置
@@ -69,9 +80,13 @@ public class K8sPytorchTaskMainParameters {
     private double workerMinMemorySpace;
 
     /**
-     * 节点的输入输出挂载
+     * 节点的输入输出挂载 包含宿主机 和 容器内部地址
      */
+    private String podInputDataVolume;
+
     private String inputDataVolume;
+
+    private String podOutputDataVolume;
 
     private String outputDataVolume;
 

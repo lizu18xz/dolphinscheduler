@@ -1,0 +1,44 @@
+apiVersion: batch.volcano.sh/v1alpha1
+kind: Job
+metadata:
+  name: pytorch-job
+spec:
+  minAvailable: 1
+  schedulerName: volcano
+  queue: ${queue-name}
+  plugins:
+    pytorch: ["--master=master","--worker=worker","--port=23456"]
+  tasks:
+    - replicas: 1
+      name: master
+      policies:
+        - event: TaskCompleted
+          action: CompleteJob
+      template:
+        spec:
+          containers:
+            - image: harbor.image.net:8201/test/example:latest
+              imagePullPolicy: IfNotPresent
+              name: master
+              command:
+                - "python3"
+                - "demo.py"
+              resources:
+                limits:
+                  nvidia.com/gpu: 1
+          restartPolicy: OnFailure
+    - replicas: 2
+      name: worker
+      template:
+        spec:
+          containers:
+            - image: harbor.image.net:8201/test/example:latest
+              imagePullPolicy: IfNotPresent
+              name: worker
+              command:
+                - "python3"
+                - "demo.py"
+              resources:
+                limits:
+                  nvidia.com/gpu: 1
+          restartPolicy: OnFailure

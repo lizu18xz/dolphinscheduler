@@ -71,6 +71,9 @@ public class K8sTaskMainParameters {
      * */
     private String fetchDataVolumeArgs;
 
+    /**
+     * 对应页面上面的数据存储下拉，用于回显展示
+     * */
     private String dataSave;
 
     /**

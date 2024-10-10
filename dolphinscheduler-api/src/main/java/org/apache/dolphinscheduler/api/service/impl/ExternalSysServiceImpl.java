@@ -39,7 +39,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
 
     public static final String PROJECT_NAME = "projectName";
 
-    public static final String HARBOR_IMAGE_PATH = "/admin-api/harbor/user/getImageList";
+    public static final String HARBOR_IMAGE_PATH = "/admin-api/pipeline/harbor/getImageList";
 
     public static final String SETTING_PATH = "/admin-api/system/setting/page";
 
@@ -79,6 +79,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
             ObjectNode result = JSONUtils.parseObject(resp);
+            log.info("获取镜像列表 resp:{}",resp);
             if (result.get("data") == null) {
                 log.info("获取镜像列表失败");
                 return new ArrayList<>();

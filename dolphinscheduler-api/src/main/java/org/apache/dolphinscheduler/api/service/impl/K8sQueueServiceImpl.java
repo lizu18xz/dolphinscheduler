@@ -49,7 +49,7 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
     public Result createK8sQueue(K8sQueueRequest request) {
         Result result = new Result();
         if (StringUtils.isEmpty(request.getName())) {
-            request.setName(request.getProjectName());
+            request.setName(request.getProjectEnName());
         }
 
         //获取队列资源信息

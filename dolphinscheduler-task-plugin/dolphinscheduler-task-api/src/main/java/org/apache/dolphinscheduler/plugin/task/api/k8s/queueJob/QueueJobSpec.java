@@ -12,11 +12,13 @@ public class QueueJobSpec {
 
     private String schedulerName;
 
+    private List<Plugins> plugins;
+
     private String queue;
 
     private List<Policies> policies;
 
-    private List<Tasks>tasks;
+    private List<Tasks> tasks;
 
 
 }

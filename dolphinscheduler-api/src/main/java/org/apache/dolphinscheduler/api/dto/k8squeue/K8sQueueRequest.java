@@ -16,6 +16,8 @@ public class K8sQueueRequest {
 
     private String projectName;
 
+    private String projectEnName;
+
     private Integer weight;
 
     private Boolean reclaimable;

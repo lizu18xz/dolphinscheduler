@@ -62,6 +62,11 @@ public class K8sTaskParameters extends AbstractParameters {
     private List<NodeSelectorExpression> nodeSelectors;
 
     /**
+     * 对应页面上面的数据存储下拉，用于回显展示
+     * */
+    private String dataSave;
+
+    /**
      * 类型是local/minio/...
      */
     private String fetchType;
@@ -75,8 +80,6 @@ public class K8sTaskParameters extends AbstractParameters {
      * 拉取数据的参数
      */
     private String fetchDataVolumeArgs;
-
-    private String dataSave;
 
 
     /**
