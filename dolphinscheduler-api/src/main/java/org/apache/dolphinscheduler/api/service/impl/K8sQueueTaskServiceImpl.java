@@ -20,10 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -48,6 +45,8 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
             K8sQueueTask k8sQueueTask = new K8sQueueTask();
             BeanUtils.copyProperties(request, k8sQueueTask);
             k8sQueueTask.setCreateTime(new Date());
+            k8sQueueTask.setUpdateTime(new Date());
+            k8sQueueTask.setTaskStatus("待运行");
             k8sQueueTaskMapper.insert(k8sQueueTask);
         } else {
             K8sQueueTask k8sQueueTask = k8sQueueTasks.get(0);
@@ -71,28 +70,35 @@ public class K8sQueueTaskServiceImpl extends BaseServiceImpl implements K8sQueue
         QueryWrapper<K8sQueueTask> wrapper = new QueryWrapper();
         wrapper.eq("project_name", projectName);
         Page<K8sQueueTask> k8sQueueTaskPage = k8sQueueTaskMapper.selectPage(page, wrapper);
-        List<K8sQueueTask> projectList = k8sQueueTaskPage.getRecords();
-
-        String queueName = projectName;
-        K8sQueue byName = k8sQueueService.findByName(queueName);
+        List<K8sQueueTask> k8sQueueTasks = k8sQueueTaskPage.getRecords();
         String resourceInfo;
-        if (byName != null) {
-            resourceInfo = byName.getResourceInfo();
-        } else {
-            resourceInfo = "";
+        List<K8sQueueTaskResponse> responseList = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(k8sQueueTasks)) {
+            //暂时都是一个队列名称
+            String queueName = k8sQueueTasks.get(0).getName();
+            K8sQueue byName = k8sQueueService.findByName(queueName);
+            if (byName != null) {
+                resourceInfo = byName.getResourceInfo();
+            } else {
+                resourceInfo = "";
+            }
+            responseList = k8sQueueTasks.stream().map(x -> {
+                K8sQueueTaskResponse response = new K8sQueueTaskResponse();
+                BeanUtils.copyProperties(x, response);
+                response.setResourceInfo(resourceInfo);
+                return response;
+            }).collect(Collectors.toList());
         }
-        List<K8sQueueTaskResponse> responseList = projectList.stream().map(x -> {
-            K8sQueueTaskResponse response = new K8sQueueTaskResponse();
-            BeanUtils.copyProperties(x, response);
-            response.setResourceInfo(resourceInfo);
-            return response;
-        }).collect(Collectors.toList());
-
         pageInfo.setTotal((int) k8sQueueTaskPage.getTotal());
         pageInfo.setTotalList(responseList);
         result.setData(pageInfo);
         putMsg(result, Status.SUCCESS);
         return result;
+    }
+
+    @Override
+    public void updateK8sQueueTaskStatus(String taskCode, String status) {
+
     }
 
 

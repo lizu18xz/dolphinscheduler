@@ -3,6 +3,7 @@ package org.apache.dolphinscheduler.api.controller;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueCalculateResponse;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueRequest;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueResponse;
 import org.apache.dolphinscheduler.api.service.K8sQueueService;
@@ -81,6 +82,19 @@ public class K8sQueueController extends BaseController {
 
         //保存数据库
         return k8sQueueService.getGpuType();
+    }
+
+
+    /**
+     * 资源统计
+     */
+    @GetMapping(value = "/monitor")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<K8sQueueCalculateResponse> monitorQueueInfo(String projectName, String type) {
+
+        K8sQueueCalculateResponse response = k8sQueueService.monitorQueueInfo(projectName, type);
+
+        return Result.success(response);
     }
 
 

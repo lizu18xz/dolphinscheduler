@@ -46,7 +46,8 @@ CREATE TABLE `t_ds_k8s_queue_task`
     `task_name`    varchar(255) DEFAULT NULL COMMENT 'taskName',
     `task_type`    varchar(255) DEFAULT NULL COMMENT 'taskType',
     `priority`     int(11) NOT NULL COMMENT 'priority',
-    `task_resource_info`     text   DEFAULT NULL COMMENT '任务队列资源信息json',
+    `task_resource_info`     text   DEFAULT NULL COMMENT '任务资源信息json',
+    `task_status`    varchar(255) DEFAULT NULL COMMENT 'task_status 运行状态',
     `create_time`  datetime NOT NULL COMMENT 'create time',
     `update_time`  datetime     DEFAULT NULL COMMENT 'update time',
     PRIMARY KEY (`id`),
@@ -54,15 +55,3 @@ CREATE TABLE `t_ds_k8s_queue_task`
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE = utf8_bin;
 
 
-
-DROP TABLE IF EXISTS `t_ds_k8s_queue_relation`;
-CREATE TABLE `t_ds_k8s_queue_relation`
-(
-    `id`          int(11) NOT NULL AUTO_INCREMENT COMMENT 'key',
-
-    `clusterCode` bigint(20) NOT NULL COMMENT '集群ID',
-    `create_time` datetime NOT NULL COMMENT 'create time',
-    `update_time` datetime DEFAULT NULL COMMENT 'update time',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `unique_name`(`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE = utf8_bin;

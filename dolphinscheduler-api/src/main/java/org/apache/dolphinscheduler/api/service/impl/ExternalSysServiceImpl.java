@@ -124,6 +124,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             String resp;
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
+            log.info("fetchVolumeList resp:{}",resp);
             ObjectNode result = JSONUtils.parseObject(resp);
             if (result.get("data") == null) {
                 log.info("获取挂载列表失败");

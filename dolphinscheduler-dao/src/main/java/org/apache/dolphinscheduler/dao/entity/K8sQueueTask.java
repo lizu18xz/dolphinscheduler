@@ -41,6 +41,8 @@ public class K8sQueueTask {
 
     private String taskResourceInfo;
 
+    private String taskStatus;
+
     /**
      * create time
      */

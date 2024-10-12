@@ -17,9 +17,14 @@
 
 package org.apache.dolphinscheduler.server.master.event;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.dolphinscheduler.common.enums.StateEventType;
 import org.apache.dolphinscheduler.common.enums.TaskEventType;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
+import org.apache.dolphinscheduler.dao.mapper.K8sQueueTaskMapper;
+import org.apache.dolphinscheduler.dao.repository.K8sQueueTaskDao;
 import org.apache.dolphinscheduler.dao.repository.TaskInstanceDao;
 import org.apache.dolphinscheduler.dao.utils.TaskInstanceUtils;
 import org.apache.dolphinscheduler.extract.base.client.SingletonJdkDynamicRpcClientProxyFactory;
@@ -36,6 +41,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static org.apache.dolphinscheduler.common.constants.Constants.ENABLE_K8S_QUEUE;
+
+@Slf4j
 @Component
 public class TaskRunningEventHandler implements TaskEventHandler {
 
@@ -50,6 +58,9 @@ public class TaskRunningEventHandler implements TaskEventHandler {
 
     @Autowired
     private MasterConfig masterConfig;
+
+    @Autowired
+    private K8sQueueTaskDao k8sQueueTaskDao;
 
     @Override
     public void handleTaskEvent(TaskEvent taskEvent) throws TaskEventHandleError {
@@ -86,9 +97,14 @@ public class TaskRunningEventHandler implements TaskEventHandler {
             taskInstance.setExecutePath(taskEvent.getExecutePath());
             taskInstance.setPid(taskEvent.getProcessId());
             taskInstance.setAppLink(taskEvent.getAppIds());
+            log.info("Handle task running event updateById:{}", JSONUtils.toPrettyJsonString(taskInstance));
             if (!taskInstanceDao.updateById(taskInstance)) {
                 throw new TaskEventHandleError("Handle task running event error, update taskInstance to db failed");
             }
+
+            //更新队列信息
+            updateK8sQueue(taskInstance);
+
             sendAckToWorker(taskEvent);
         } catch (Exception ex) {
             TaskInstanceUtils.copyTaskInstance(oldTaskInstance, taskInstance);
@@ -105,6 +121,24 @@ public class TaskRunningEventHandler implements TaskEventHandler {
                 .type(StateEventType.TASK_STATE_CHANGE)
                 .build();
         workflowExecuteThreadPool.submitStateEvent(stateEvent);
+    }
+
+    private void updateK8sQueue(TaskInstance taskInstance) {
+        try {
+            Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
+            if (!enable) {
+                return;
+            }
+            //判断是否是K8s任务
+            String taskType = taskInstance.getTaskType();
+            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
+                long taskCode = taskInstance.getTaskCode();
+                k8sQueueTaskDao.updateStatus(taskCode, "运行中");
+            }
+
+        } catch (Exception e) {
+            log.error("updateK8sQueue error:{}", e);
+        }
     }
 
     private void sendAckToWorker(TaskEvent taskEvent) {

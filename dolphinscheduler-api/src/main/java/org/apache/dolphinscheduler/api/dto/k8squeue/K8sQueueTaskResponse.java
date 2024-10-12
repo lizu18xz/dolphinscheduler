@@ -36,13 +36,15 @@ public class K8sQueueTaskResponse {
 
     /**
      * 队列资源信息
-     * */
+     */
     private String resourceInfo;
 
     /**
      * 当前task资源信息
-     * */
+     */
     private String taskResourceInfo;
+
+    private String taskStatus;
 
     private Date updateTime;
 

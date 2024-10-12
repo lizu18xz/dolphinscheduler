@@ -415,6 +415,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
             return;
         }
         String flowName = processDefinition.getName();
+        log.info("save k8s queue task :{}", flowName);
         for (TaskDefinitionLog taskDefinitionLog : taskDefinitionLogs) {
             String taskType = taskDefinitionLog.getTaskType();
             ObjectNode objectNode = JSONUtils.parseObject(taskDefinitionLog.getTaskParams());
@@ -422,7 +423,10 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
             if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
                 K8sQueueTaskRequest request = new K8sQueueTaskRequest();
                 //获取队列名称
-                request.setName(objectNode.get("queue").toString());
+                long projectCode = taskDefinitionLog.getProjectCode();
+                Project project = projectMapper.queryByCode(projectCode);
+                request.setName(objectNode.get("queue").asText());
+                request.setProjectName(project.getName());
                 request.setCode(taskDefinitionLog.getCode());
                 request.setFlowName(flowName);
                 request.setTaskName(taskDefinitionLog.getName());

@@ -233,7 +233,6 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             Volume volume = new Volume();
             volume.setName("fetch-init");
             volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getFetchDataVolume(), "DirectoryOrCreate"));
-            volumes.add(volume);
             List<Volume> preVolumes = template.getSpec().getVolumes();
             preVolumes.add(volume);
             template.getSpec().setVolumes(preVolumes);
@@ -348,7 +347,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 String line;
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(watcher.getOutput()))) {
                     while ((line = reader.readLine()) != null) {
-                        log.info("[K8S-pod-log] {}", line);
+                        log.info("[K8S-pod-log] pod name:{},{}", containerName, line);
                     }
                 }
             } catch (Exception e) {
