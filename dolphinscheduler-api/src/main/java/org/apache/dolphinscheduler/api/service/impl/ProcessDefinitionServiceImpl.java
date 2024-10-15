@@ -432,23 +432,86 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
                 request.setTaskName(taskDefinitionLog.getName());
                 request.setTaskType(taskDefinitionLog.getTaskType());
                 request.setPriority(taskDefinitionLog.getTaskPriority().getCode());
-                JsonNode minCpuCores = objectNode.get("minCpuCores");
-                JsonNode minMemorySpace = objectNode.get("minMemorySpace");
-                JsonNode gpuType = objectNode.get("gpuType");
-                JsonNode gpuLimits = objectNode.get("gpuLimits");
                 Map<String, Object> resourceInfo = new HashMap<>();
-                if (minCpuCores != null) {
-                    resourceInfo.put("cpu", minCpuCores.toString());
+                if (taskType.equals("K8S")) {
+                    JsonNode minCpuCores = objectNode.get("minCpuCores");
+                    JsonNode minMemorySpace = objectNode.get("minMemorySpace");
+                    JsonNode gpuType = objectNode.get("gpuType");
+                    JsonNode gpuLimits = objectNode.get("gpuLimits");
+
+                    if (minCpuCores != null) {
+                        resourceInfo.put("cpu", minCpuCores.toString());
+                    }
+                    if (minMemorySpace != null) {
+                        resourceInfo.put("memory", minMemorySpace.toString());
+                    }
+                    if (gpuType != null) {
+                        resourceInfo.put("gpuType", gpuType.asText());
+                    }
+                    if (gpuLimits != null) {
+                        resourceInfo.put("gpu", gpuLimits.toString());
+                    }
                 }
-                if (minMemorySpace != null) {
-                    resourceInfo.put("memory", minMemorySpace.toString());
+
+                if (taskType.equals("PYTORCH_K8S")) {
+                    JsonNode masterMinCpuCores = objectNode.get("masterMinCpuCores");
+                    JsonNode masterMinMemorySpace = objectNode.get("masterMinMemorySpace");
+                    JsonNode masterGpuLimits = objectNode.get("gpuLimits");
+                    JsonNode workerReplicas = objectNode.get("workerReplicas");
+                    JsonNode workerMinCpuCores = objectNode.get("workerMinCpuCores");
+                    JsonNode workerMinMemorySpace = objectNode.get("workerMinMemorySpace");
+                    JsonNode workerGpuLimits = objectNode.get("workerGpuLimits");
+
+                    //计算占用情况
+                    Double masterMinCpuCoresD = 0d;
+                    if (masterMinCpuCores != null) {
+                        masterMinCpuCoresD = masterMinCpuCores.doubleValue();
+                    }
+                    Double masterMinMemorySpaceD = 0d;
+                    if (masterMinMemorySpace != null) {
+                        masterMinMemorySpaceD = masterMinMemorySpace.doubleValue();
+                    }
+                    Integer workerReplicasI = 1;
+                    if (workerReplicas != null) {
+                        workerReplicasI = workerReplicas.asInt();
+                    }
+
+                    Double workerMinCpuCoresD = 0d;
+                    if (workerMinCpuCores != null) {
+                        workerMinCpuCoresD = workerMinCpuCores.doubleValue();
+                    }
+                    Double workerMinMemorySpaceD = 0d;
+                    if (workerMinMemorySpace != null) {
+                        workerMinMemorySpaceD = workerMinMemorySpace.doubleValue();
+                    }
+                    Integer masterGpuLimitsI = 0;
+                    if (masterGpuLimits != null) {
+                        masterGpuLimitsI = masterGpuLimits.intValue();
+                    }
+                    Integer workerGpuLimitsI = 0;
+                    if (workerGpuLimits != null) {
+                        workerGpuLimitsI = workerGpuLimits.intValue();
+                    }
+
+                    Double totalCpu = masterMinCpuCoresD + (workerMinCpuCoresD * workerReplicasI);
+                    Double totalMemory = masterMinMemorySpaceD + (workerMinMemorySpaceD * workerReplicasI);
+                    Integer totalGpu = masterGpuLimitsI + (workerGpuLimitsI * workerReplicasI);
+
+                    if (totalCpu != null) {
+                        resourceInfo.put("cpu", totalCpu.toString());
+                    }
+                    if (totalMemory != null) {
+                        resourceInfo.put("memory", totalMemory.toString());
+                    }
+                    JsonNode gpuType = objectNode.get("gpuType");
+                    if (gpuType != null) {
+                        resourceInfo.put("gpuType", gpuType.asText());
+                    }
+                    if (totalGpu != null) {
+                        resourceInfo.put("gpu", totalGpu.toString());
+                    }
                 }
-                if (gpuType != null) {
-                    resourceInfo.put("gpuType", gpuType.toString());
-                }
-                if (gpuLimits != null) {
-                    resourceInfo.put("gpu", gpuLimits.toString());
-                }
+
                 //获取namespace
                 String namespace = objectNode.get("namespace").asText();
                 ObjectNode namespaceObjectNode = JSONUtils.parseObject(namespace);
@@ -958,6 +1021,9 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
                 throw new ServiceException(Status.UPDATE_PROCESS_DEFINITION_ERROR);
             }
             saveOtherRelation(loginUser, processDefinition, result, otherParamsJson);
+
+            saveK8sQueueTask(processDefinition, taskDefinitionLogs);
+
         } else {
             log.info(
                     "Process definition does not need to be updated because there is no change, projectCode:{}, processCode:{}, processVersion:{}.",
