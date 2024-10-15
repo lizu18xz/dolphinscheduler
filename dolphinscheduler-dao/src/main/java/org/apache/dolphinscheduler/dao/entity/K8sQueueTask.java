@@ -37,6 +37,13 @@ public class K8sQueueTask {
 
     private String taskType;
 
+    private String nameSpace;
+
+    /**
+     * 动态更新最新的
+     * */
+    private int taskInstanceId;
+
     private int priority;
 
     private String taskResourceInfo;

@@ -449,6 +449,10 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
                 if (gpuLimits != null) {
                     resourceInfo.put("gpu", gpuLimits.toString());
                 }
+                //获取namespace
+                String namespace = objectNode.get("namespace").asText();
+                ObjectNode namespaceObjectNode = JSONUtils.parseObject(namespace);
+                request.setNameSpace(namespaceObjectNode.get("name").asText());
                 request.setTaskResourceInfo(JSONUtils.toJsonString(resourceInfo));
                 k8sQueueTaskService.createOrUpdateK8sQueueTask(request);
             }

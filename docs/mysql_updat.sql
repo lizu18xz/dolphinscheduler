@@ -45,6 +45,8 @@ CREATE TABLE `t_ds_k8s_queue_task`
     `flow_name`    varchar(255) DEFAULT NULL COMMENT 'flowName',
     `task_name`    varchar(255) DEFAULT NULL COMMENT 'taskName',
     `task_type`    varchar(255) DEFAULT NULL COMMENT 'taskType',
+    `name_space`    varchar(255) DEFAULT NULL COMMENT 'nameSpace',
+    `task_instance_id`  int(11) DEFAULT NULL COMMENT 'taskInstanceId',
     `priority`     int(11) NOT NULL COMMENT 'priority',
     `task_resource_info`     text   DEFAULT NULL COMMENT '任务资源信息json',
     `task_status`    varchar(255) DEFAULT NULL COMMENT 'task_status 运行状态',

@@ -17,9 +17,14 @@
 
 package org.apache.dolphinscheduler.api.k8s;
 
+import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import org.apache.dolphinscheduler.dao.entity.K8sNamespace;
 
 import java.io.ByteArrayInputStream;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
@@ -27,10 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.NamespaceList;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ResourceQuota;
 import io.fabric8.kubernetes.client.KubernetesClient;
 
 /**
@@ -130,6 +131,35 @@ public class K8sClientService {
         } catch (Exception e) {
             throw new TaskException("fail to delete yml", e);
         }
+    }
+
+
+    public List<GenericKubernetesResource> getVcJobStatus(String namespace, Long clusterCode) {
+        try {
+            KubernetesClient client = k8sManager.getK8sClient(clusterCode);
+            CustomResourceDefinitionContext context = getQueueJobCustomResourceDefinitionContext();
+            MixedOperation<GenericKubernetesResource, GenericKubernetesResourceList, Resource<GenericKubernetesResource>> resourceMixedOperation =
+                    client.genericKubernetesResources(context);
+            GenericKubernetesResourceList list = resourceMixedOperation
+                    .inNamespace(namespace).list();
+            List<GenericKubernetesResource> items = list.getItems();
+            return items;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new TaskException("fail to check queue job: ", e);
+        }
+
+    }
+
+
+    private CustomResourceDefinitionContext getQueueJobCustomResourceDefinitionContext() {
+        return new CustomResourceDefinitionContext.Builder()
+                .withGroup("batch.volcano.sh")
+                .withVersion("v1alpha1")
+                .withScope("Namespaced")
+                .withPlural("jobs")
+                .withKind("Job")
+                .build();
     }
 
 

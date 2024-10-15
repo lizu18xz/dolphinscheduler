@@ -46,6 +46,8 @@ public class K8sQueueTaskResponse {
 
     private String taskStatus;
 
+    private String taskInQueueStatus;
+
     private Date updateTime;
 
 

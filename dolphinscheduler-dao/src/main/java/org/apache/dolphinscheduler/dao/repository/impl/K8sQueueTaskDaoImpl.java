@@ -51,4 +51,17 @@ public class K8sQueueTaskDaoImpl extends BaseDao<K8sQueueTask, K8sQueueTaskMappe
             mybatisMapper.updateById(k8sQueueTask);
         }
     }
+
+    @Override
+    public void updateByStatusAndTaskInstanceId(long taskCode, String status, int taskInstanceId) {
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("code", taskCode);
+        List<K8sQueueTask> k8sQueueTasks = mybatisMapper.selectByMap(columnMap);
+        if (!CollectionUtils.isEmpty(k8sQueueTasks)) {
+            K8sQueueTask k8sQueueTask = k8sQueueTasks.get(0);
+            k8sQueueTask.setTaskStatus(status);
+            k8sQueueTask.setTaskInstanceId(taskInstanceId);
+            mybatisMapper.updateById(k8sQueueTask);
+        }
+    }
 }

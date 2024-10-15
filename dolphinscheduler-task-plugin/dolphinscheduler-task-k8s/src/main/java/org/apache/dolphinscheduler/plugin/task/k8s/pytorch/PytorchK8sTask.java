@@ -96,7 +96,8 @@ public class PytorchK8sTask extends AbstractK8sTask {
         k8sPytorchTaskMainParameters.setClusterName(clusterName);
         k8sPytorchTaskMainParameters.setMasterMinMemorySpace(k8sTaskParameters.getMasterMinMemorySpace());
         k8sPytorchTaskMainParameters.setMasterMinCpuCores(k8sTaskParameters.getMasterMinCpuCores());
-        k8sPytorchTaskMainParameters.setMasterGpuLimits(k8sTaskParameters.getMasterGpuLimits());
+        k8sPytorchTaskMainParameters.setMasterGpuLimits(k8sTaskParameters.getGpuLimits());
+        //k8sPytorchTaskMainParameters.setMasterGpuLimits(k8sTaskParameters.getMasterGpuLimits());
         k8sPytorchTaskMainParameters.setMasterReplicas(k8sTaskParameters.getMasterReplicas());
         k8sPytorchTaskMainParameters.setWorkerMinMemorySpace(k8sTaskParameters.getWorkerMinMemorySpace());
         k8sPytorchTaskMainParameters.setWorkerMinCpuCores(k8sTaskParameters.getWorkerMinCpuCores());

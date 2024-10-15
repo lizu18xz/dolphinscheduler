@@ -133,7 +133,8 @@ public class TaskRunningEventHandler implements TaskEventHandler {
             String taskType = taskInstance.getTaskType();
             if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
                 long taskCode = taskInstance.getTaskCode();
-                k8sQueueTaskDao.updateStatus(taskCode, "运行中");
+                Integer taskInstanceId = taskInstance.getId();
+                k8sQueueTaskDao.updateByStatusAndTaskInstanceId(taskCode, "运行中", taskInstanceId);
             }
 
         } catch (Exception e) {
