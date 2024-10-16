@@ -26,6 +26,7 @@ import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.CodeGenerateUtils;
 import org.apache.dolphinscheduler.dao.entity.Cluster;
 import org.apache.dolphinscheduler.dao.entity.K8sNamespace;
+import org.apache.dolphinscheduler.dao.entity.Project;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.ClusterMapper;
 import org.apache.dolphinscheduler.dao.mapper.K8sNamespaceMapper;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -75,6 +77,9 @@ public class K8SNamespaceServiceImpl extends BaseServiceImpl implements K8sNames
 
     @Autowired
     private ClusterMapper clusterMapper;
+
+    @Autowired
+    private ProjectMapper projectMapper;
 
     /**
      * query namespace list paging
@@ -430,7 +435,7 @@ public class K8SNamespaceServiceImpl extends BaseServiceImpl implements K8sNames
      * @return namespace list
      */
     @Override
-    public List<K8sNamespace> queryNamespaceAvailable(User loginUser) {
+    public List<K8sNamespace> queryNamespaceAvailable(User loginUser, String projectName) {
         List<K8sNamespace> k8sNamespaces;
         if (isAdmin(loginUser)) {
             k8sNamespaces = k8sNamespaceMapper.selectList(null);
@@ -438,11 +443,19 @@ public class K8SNamespaceServiceImpl extends BaseServiceImpl implements K8sNames
             k8sNamespaces = k8sNamespaceMapper.queryAuthedNamespaceListByUserId(loginUser.getId());
         }
         setClusterName(k8sNamespaces);
+
+        if(!StringUtils.isEmpty(projectName)){
+            Project project = projectMapper.queryByName(projectName);
+            String enName = project.getProjectEnName();
+            k8sNamespaces = k8sNamespaces.stream().filter(x -> x.getNamespace().equals(enName)).collect(Collectors.toList());
+        }
+
         return k8sNamespaces;
     }
 
     /**
      * set cluster_name
+     *
      * @param k8sNamespaces source data
      */
     private void setClusterName(List<K8sNamespace> k8sNamespaces) {
