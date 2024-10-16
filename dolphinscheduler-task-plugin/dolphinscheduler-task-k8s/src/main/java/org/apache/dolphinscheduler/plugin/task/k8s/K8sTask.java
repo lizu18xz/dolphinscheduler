@@ -83,6 +83,17 @@ public class K8sTask extends AbstractK8sTask {
     protected String buildCommand() {
         K8sTaskMainParameters k8sTaskMainParameters = new K8sTaskMainParameters();
         Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
+        String globalParams = taskExecutionContext.getGlobalParams();
+        log.info("paramsMap:{}", JSONUtils.toJsonString(paramsMap));
+        log.info("globalParams:{}", JSONUtils.toJsonString(globalParams));
+        //获取自定义的参数，替换
+        Map<String, String> paramMap = ParameterUtils.convert(paramsMap);
+        //[\"/data\",\"asdad---123\"]",
+        String k8sPodArgs = paramMap.get("k8s_pod_args");
+        if(!StringUtils.isEmpty(k8sPodArgs)){
+            //替换参数为自定义接口传参
+            k8sTaskParameters.setArgs(k8sPodArgs);
+        }
         Map<String, String> namespace = JSONUtils.toMap(k8sTaskParameters.getNamespace());
         String namespaceName = namespace.get(NAMESPACE_NAME);
         String clusterName = namespace.get(CLUSTER);
@@ -98,7 +109,6 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
-
         k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
         k8sTaskMainParameters.setFetchDataVolume(k8sTaskParameters.getFetchDataVolume());
         k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
@@ -112,6 +122,7 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());
         k8sTaskMainParameters.setGpuLimits(k8sTaskParameters.getGpuLimits());
         k8sTaskMainParameters.setQueue(k8sTaskParameters.getQueue());
+
         return JSONUtils.toJsonString(k8sTaskMainParameters);
     }
 
