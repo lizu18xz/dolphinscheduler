@@ -61,11 +61,7 @@ public class K8sTaskParameters extends AbstractParameters {
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;
 
-    /**
-     * 对应页面上面的数据存储下拉，用于回显展示
-     * */
-    private String dataSave;
-
+    private String fetchName;
     /**
      * 类型是local/minio/...
      */
@@ -81,6 +77,11 @@ public class K8sTaskParameters extends AbstractParameters {
      */
     private String fetchDataVolumeArgs;
 
+
+    /**
+     * 对应页面上面的数据存储下拉，用于回显展示
+     */
+    private String dataSave;
 
     /**
      * 节点的输入输出挂载 包含宿主机 和 容器内部地址

@@ -23,6 +23,7 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 
 import static org.apache.dolphinscheduler.api.enums.Status.*;
 import static org.apache.dolphinscheduler.common.constants.Constants.EXTERNAL_ADDRESS_LIST;
+import static org.apache.dolphinscheduler.common.constants.Constants.K8S_VOLUME;
 
 @Service
 @Lazy
@@ -41,7 +43,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
 
     public static final String HARBOR_IMAGE_PATH = "/admin-api/pipeline/harbor/getImageList";
 
-    public static final String SETTING_PATH = "/admin-api/system/setting/page";
+    public static final String FETCH_PATH = "/admin-api/system/base-tp-dataset-detail/folderTreeAll";
 
     public static final String STORAGE_PAGE = "/admin-api/system/storage/page";
 
@@ -79,7 +81,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
             ObjectNode result = JSONUtils.parseObject(resp);
-            log.info("获取镜像列表 resp:{}",resp);
+            log.info("获取镜像列表 resp:{}", resp);
             if (result.get("data") == null) {
                 log.info("获取镜像列表失败");
                 return new ArrayList<>();
@@ -108,7 +110,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         if (StringUtils.isEmpty(address)) {
             throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
         }
-        String url = address + SETTING_PATH;
+        String url = address + FETCH_PATH;
         String msgToJson = JSONUtils.toJsonString(request);
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
         CloseableHttpClient httpClient;
@@ -124,42 +126,20 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             String resp;
             HttpEntity entity = response.getEntity();
             resp = EntityUtils.toString(entity, "utf-8");
-            log.info("fetchVolumeList resp:{}",resp);
+            log.info("fetchVolumeList resp:{}", resp);
             ObjectNode result = JSONUtils.parseObject(resp);
             if (result.get("data") == null) {
-                log.info("获取挂载列表失败");
+                log.info("获取fetch存储列表失败");
                 return new ArrayList<>();
             }
-            if (result.get("data").get("list") == null) {
-                log.info("获取挂载列表失败");
-                return new ArrayList<>();
-            }
-            String data = result.get("data").get("list").toString();
+            String data = result.get("data").toString();
             List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
             });
 
-            List<WrapFetchVolumeResponse> inputVolumeResponseList = responses.stream().map(x -> {
-                WrapFetchVolumeResponse inputVolumeResponse = new WrapFetchVolumeResponse();
-                if (!x.getType().equals(TaskConstants.VOLUME_LOCAL)) {
-                    StringBuilder args = new StringBuilder();
-                    args.append("[").append("\"").append(x.getType()).append("\"").append(",")
-                            .append("\"").append(x.getHost()).append("\"").append(",")
-                            .append("\"").append(x.getAppKey()).append("\"").append(",")
-                            .append("\"").append(x.getAppSecret()).append("\"").append(",")
-                            .append("\"").append(x.getBucketName()).append("\"").append(",")
-                            .append("\"").append(x.getFileUrl()).append("\"").append(",")
-                            //容器内部地址写死
-                            .append("\"").append("/app/downloads").append("\"").append(",")
-                            .append("]");
-                    //拉取数据的参数
-                    inputVolumeResponse.setFetchDataVolumeArgs(args.toString());
-                    //宿主机路径,拉取镜像存储的宿主机路径
-                    inputVolumeResponse.setFetchDataVolume(x.getDownAddr());
-
-                    inputVolumeResponse.setFetchType(x.getType());
-                }
-                return inputVolumeResponse;
-            }).collect(Collectors.toList());
+            String k8sVolume =
+                    PropertyUtils.getString(K8S_VOLUME);
+            List<WrapFetchVolumeResponse> inputVolumeResponseList = new ArrayList<>();
+            parse(responses, inputVolumeResponseList, k8sVolume);
 
             return inputVolumeResponseList;
         } catch (Exception e) {
@@ -173,6 +153,40 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+
+    private void parse(List<FetchVolumeResponse> responses, List<WrapFetchVolumeResponse> responsesList, String k8sVolume) {
+
+        for (FetchVolumeResponse response : responses) {
+            WrapFetchVolumeResponse inputVolumeResponse = new WrapFetchVolumeResponse();
+            if (response.getType() == null) {
+                response.setType("minio");
+            }
+            if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
+                StringBuilder args = new StringBuilder();
+                args.append("[").append("\"").append(response.getType()).append("\"").append(",")
+                        .append("\"").append(response.getHost()).append("\"").append(",")
+                        .append("\"").append(response.getAppKey()).append("\"").append(",")
+                        .append("\"").append(response.getAppSecret()).append("\"").append(",")
+                        .append("\"").append(response.getBucketName()).append("\"").append(",")
+                        .append("\"").append(response.getFilePath()).append("\"").append(",")
+                        //容器内部地址写死
+                        .append("\"").append("/app/downloads").append("\"").append(",")
+                        .append("]");
+                inputVolumeResponse.setFetchName(response.getName());
+                //拉取数据的参数
+                inputVolumeResponse.setFetchDataVolumeArgs(args.toString());
+                //宿主机路径,拉取镜像存储的宿主机路径,最外层,具体目录需要在内部自己修改
+                inputVolumeResponse.setFetchDataVolume(k8sVolume + "/fetch/");
+                inputVolumeResponse.setFetchType(response.getType());
+                responsesList.add(inputVolumeResponse);
+            }
+            if (!CollectionUtils.isEmpty(response.getChildren())) {
+                parse(response.getChildren(), responsesList, k8sVolume);
+            }
+        }
+
     }
 
 
