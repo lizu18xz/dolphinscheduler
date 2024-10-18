@@ -1,5 +1,6 @@
 package org.apache.dolphinscheduler.api.service;
 
+import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueCalculateResponse;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueRequest;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueResponse;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
@@ -22,4 +23,6 @@ public interface K8sQueueService {
     K8sQueue findByName(String name);
 
     Result<List<String>> getGpuType();
+
+    K8sQueueCalculateResponse monitorQueueInfo(String projectName, String type);
 }

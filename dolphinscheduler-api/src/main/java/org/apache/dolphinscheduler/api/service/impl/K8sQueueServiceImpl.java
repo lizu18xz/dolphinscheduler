@@ -18,9 +18,11 @@ import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.dao.entity.K8sQueue;
+import org.apache.dolphinscheduler.dao.entity.K8sQueueTask;
 import org.apache.dolphinscheduler.dao.entity.Project;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.K8sQueueMapper;
+import org.apache.dolphinscheduler.dao.mapper.K8sQueueTaskMapper;
 import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +46,9 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
 
     @Autowired
     private ProjectMapper projectMapper;
+
+    @Autowired
+    private K8sQueueTaskMapper k8sQueueTaskMapper;
 
     @Override
     public Result createK8sQueue(K8sQueueRequest request) {
@@ -183,6 +188,104 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
             res.add(type);
         }
         return Result.success(res);
+    }
+
+    @Override
+    public K8sQueueCalculateResponse monitorQueueInfo(String projectName, String type) {
+        K8sQueueCalculateResponse response = new K8sQueueCalculateResponse();
+        //获取资源情况,队列名称
+        Project project = projectMapper.queryByName(projectName);
+        String queueName = project.getProjectEnName();
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("name", queueName);
+        List<K8sQueue> k8sQueues = k8sQueueMapper.selectByMap(columnMap);
+        if (!CollectionUtils.isEmpty(k8sQueues)) {
+            K8sQueue k8sQueue = k8sQueues.get(0);
+            String resourceInfo = k8sQueue.getResourceInfo();
+            ProjectQueueResourceInfo projectQueueResourceInfo = JSONUtils.parseObject(resourceInfo, ProjectQueueResourceInfo.class);
+            Map<String, Object> useResource = getUseResource(queueName);
+            switch (type) {
+                case "cpu":
+                    Double allocatedCpu = projectQueueResourceInfo.getAllocatedCpu();
+                    //获取当前队列已经使用的运行中的cpu资源
+                    Double totalCpu = (Double) useResource.get("totalCpu");
+                    response.setName("cpu");
+                    response.setUse(String.valueOf(totalCpu));
+                    response.setTotal(String.valueOf(allocatedCpu));
+                    break;
+                case "memory":
+                    Double allocatedMemory = projectQueueResourceInfo.getAllocatedMemory();
+                    Double totalMem = (Double) useResource.get("totalMem");
+                    response.setName("memory");
+                    response.setUse(String.valueOf(totalMem));
+                    response.setTotal(String.valueOf(allocatedMemory));
+                    break;
+                case "highGpu":
+                    Integer highAllocatedGpu = projectQueueResourceInfo.getHighAllocatedGpu();
+                    String highGpuName = projectQueueResourceInfo.getHighGpuName();
+                    Map<String, Integer> totalGpuType1 = (Map<String, Integer>) useResource.get("totalGpuType");
+                    Integer totalHighGpu = totalGpuType1.get(highGpuName) == null ? 0 : totalGpuType1.get(highGpuName);
+                    response.setName("highGpu");
+                    response.setUse(String.valueOf(totalHighGpu));
+                    response.setTotal(String.valueOf(highAllocatedGpu));
+                    break;
+                case "lowGpu":
+                    Integer lowAllocatedGpu = projectQueueResourceInfo.getLowAllocatedGpu();
+                    String lowGpuName = projectQueueResourceInfo.getLowGpuName();
+                    Map<String, Integer> totalGpuType2 = (Map<String, Integer>) useResource.get("totalGpuType");
+                    Integer totalLowGpu = totalGpuType2.get(lowGpuName) == null ? 0 : totalGpuType2.get(lowGpuName);
+                    response.setName("lowGpu");
+                    response.setUse(String.valueOf(totalLowGpu));
+                    response.setTotal(String.valueOf(lowAllocatedGpu));
+                    break;
+                default:
+                    throw new RuntimeException();
+            }
+        }
+
+        return response;
+
+    }
+
+    private Map<String, Object> getUseResource(String name) {
+        //获取当前队列下所有运行的任务
+        Map<String, Object> columnMap = new HashMap<>();
+        columnMap.put("name", name);
+        columnMap.put("task_status", "运行中");
+        List<K8sQueueTask> k8sQueueTasks = k8sQueueTaskMapper.selectByMap(columnMap);
+        Map<String, Object> resMap = new HashMap<>();
+        Double totalCpu = 0d;
+        Double totalMem = 0d;
+        Map<String, Integer> totalGpuType = new HashMap<>();
+        if (!CollectionUtils.isEmpty(k8sQueueTasks)) {
+            for (K8sQueueTask task : k8sQueueTasks) {
+                String taskResourceInfo = task.getTaskResourceInfo();
+                Map<String, String> map = JSONUtils.toMap(taskResourceInfo);
+                String cpu = map.get("cpu");
+                if (!StringUtils.isEmpty(cpu)) {
+                    Double v = Double.valueOf(cpu);
+                    totalCpu = totalCpu + v;
+                }
+                String memory = map.get("memory");
+                if (!StringUtils.isEmpty(memory)) {
+                    Double v = Double.valueOf(memory);
+                    totalMem = totalMem + v;
+                }
+                String gpuType = map.get("gpuType");
+                if (!StringUtils.isEmpty(gpuType)) {
+                    String gpu = map.get("gpu");
+                    if (!StringUtils.isEmpty(gpu)) {
+                        Integer v = Integer.valueOf(gpu);
+                        Integer old = totalGpuType.get(gpuType);
+                        totalGpuType.put(gpuType, old + v);
+                    }
+                }
+            }
+        }
+        resMap.put("totalCpu", totalCpu);
+        resMap.put("totalMem", totalMem);
+        resMap.put("totalGpuType", totalGpuType);
+        return resMap;
     }
 
     private String genDefaultResourceYaml(K8sQueueRequest request) {

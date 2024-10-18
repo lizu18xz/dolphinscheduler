@@ -889,4 +889,8 @@ public final class Constants {
     public static final String ENABLE_K8S_QUEUE = "enable.k8s.queue";
 
     public static final String K8S_GPU_TYPE = "k8s.gpu.type";
+
+    public static final String K8S_VOLUME="k8s.volume";
+
+    public static final String K8S_FETCH_IMAGE="k8s.fetch.image";
 }

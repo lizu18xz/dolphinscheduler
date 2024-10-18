@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.common.thread.ThreadUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.task.api.K8sTaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
@@ -48,7 +49,10 @@ import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.*;
 
+import static org.apache.dolphinscheduler.common.constants.Constants.*;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_FAILURE;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.EXIT_CODE_SUCCESS;
 
 /**
  * K8sTaskExecutor used to submit k8s task to K8S
@@ -146,8 +150,12 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //设置容器挂载
         List<VolumeMount> volumeMounts = new ArrayList<>();
         //设置宿主机挂载
+        String k8sVolume =
+                PropertyUtils.getString(K8S_VOLUME);
+
         List<Volume> volumes = new ArrayList<>();
-        if (!StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
+        //必须有数据来源，这里才会有前置挂载
+        if (!StringUtils.isEmpty(k8STaskMainParameters.getFetchDataVolume())) {
             //容器
             VolumeMount volumeMount = new VolumeMount();
             volumeMount.setName("input-data");
@@ -156,7 +164,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //宿主机
             Volume volume = new Volume();
             volume.setName("input-data");
-            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume() + taskInstanceId, "DirectoryOrCreate"));
             volumes.add(volume);
         }
 
@@ -169,7 +177,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //宿主机
             Volume volume = new Volume();
             volume.setName("output-data");
-            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getOutputDataVolume(), "DirectoryOrCreate"));
+            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getOutputDataVolume() + taskInstanceId, "DirectoryOrCreate"));
             volumes.add(volume);
         }
 
@@ -219,9 +227,13 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             } catch (Exception e) {
                 throw new TaskException("Parse yaml-like init commands and args failed", e);
             }
+
+
+            String fetchImage =
+                    PropertyUtils.getString(K8S_FETCH_IMAGE);
             List<Container> initContainers = new ArrayList<>();
             Container initContainer = new Container();
-            initContainer.setImage("10.78.5.103:3000/projecttmp/data-retriever:1.1");
+            initContainer.setImage(fetchImage);
             initContainer.setImagePullPolicy("IfNotPresent");
             initContainer.setName("fetch-init");
             initContainer.setArgs(inputArgs);
@@ -232,8 +244,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //新增fetch的数据到宿主机
             Volume volume = new Volume();
             volume.setName("fetch-init");
-            volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getFetchDataVolume(), "DirectoryOrCreate"));
-            volumes.add(volume);
+            String fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId;
+            volume.setHostPath(new HostPathVolumeSource(fetchDataVolumeNode, "DirectoryOrCreate"));
             List<Volume> preVolumes = template.getSpec().getVolumes();
             preVolumes.add(volume);
             template.getSpec().setVolumes(preVolumes);
@@ -348,7 +360,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 String line;
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(watcher.getOutput()))) {
                     while ((line = reader.readLine()) != null) {
-                        log.info("[K8S-pod-log] {}", line);
+                        log.info("[K8S-pod-log] pod name:{},{}", containerName, line);
                     }
                 }
             } catch (Exception e) {

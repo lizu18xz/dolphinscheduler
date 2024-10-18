@@ -17,9 +17,13 @@
 
 package org.apache.dolphinscheduler.server.master.event;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.dolphinscheduler.common.enums.StateEventType;
 import org.apache.dolphinscheduler.common.enums.TaskEventType;
+import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.dao.entity.TaskInstance;
+import org.apache.dolphinscheduler.dao.repository.K8sQueueTaskDao;
 import org.apache.dolphinscheduler.dao.repository.TaskInstanceDao;
 import org.apache.dolphinscheduler.dao.utils.TaskInstanceUtils;
 import org.apache.dolphinscheduler.extract.base.client.SingletonJdkDynamicRpcClientProxyFactory;
@@ -38,6 +42,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import static org.apache.dolphinscheduler.common.constants.Constants.ENABLE_K8S_QUEUE;
+
+@Slf4j
 @Component
 public class TaskResultEventHandler implements TaskEventHandler {
 
@@ -58,6 +65,9 @@ public class TaskResultEventHandler implements TaskEventHandler {
 
     @Autowired
     private MasterConfig masterConfig;
+
+    @Autowired
+    private K8sQueueTaskDao k8sQueueTaskDao;
 
     @Override
     public void handleTaskEvent(TaskEvent taskEvent) throws TaskEventHandleError, TaskEventHandleException {
@@ -98,7 +108,9 @@ public class TaskResultEventHandler implements TaskEventHandler {
             taskInstance.setEndTime(taskEvent.getEndTime());
             taskInstance.setVarPool(taskEvent.getVarPool());
             processService.changeOutParam(taskInstance);
+            log.info("Handle task result event updateById:{}", JSONUtils.toPrettyJsonString(taskInstance));
             taskInstanceDao.updateById(taskInstance);
+            updateK8sQueue(taskInstance);
             sendAckToWorker(taskEvent);
         } catch (Exception ex) {
             TaskInstanceUtils.copyTaskInstance(oldTaskInstance, taskInstance);
@@ -112,6 +124,24 @@ public class TaskResultEventHandler implements TaskEventHandler {
                 .build();
         workflowExecuteThreadPool.submitStateEvent(stateEvent);
 
+    }
+
+    private void updateK8sQueue(TaskInstance taskInstance) {
+        try {
+            Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
+            if (!enable) {
+                return;
+            }
+            //判断是否是K8s任务
+            String taskType = taskInstance.getTaskType();
+            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
+                long taskCode = taskInstance.getTaskCode();
+                k8sQueueTaskDao.updateStatus(taskCode, "待下次运行");
+            }
+
+        } catch (Exception e) {
+            log.error("updateK8sQueue error:{}", e);
+        }
     }
 
     public void sendAckToWorker(TaskEvent taskEvent) {

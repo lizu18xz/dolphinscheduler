@@ -250,8 +250,9 @@ public class K8sNamespaceController extends BaseController {
     @GetMapping(value = "/available-list")
     @ResponseStatus(HttpStatus.OK)
     @ApiException(QUERY_CAN_USE_K8S_NAMESPACE_ERROR)
-    public Result queryAvailableNamespaceList(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
-        List<K8sNamespace> result = k8sNamespaceService.queryNamespaceAvailable(loginUser);
+    public Result queryAvailableNamespaceList(@Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+                                              @RequestParam(value = "projectName", required = false) String projectName) {
+        List<K8sNamespace> result = k8sNamespaceService.queryNamespaceAvailable(loginUser, projectName);
         return success(result);
     }
 }

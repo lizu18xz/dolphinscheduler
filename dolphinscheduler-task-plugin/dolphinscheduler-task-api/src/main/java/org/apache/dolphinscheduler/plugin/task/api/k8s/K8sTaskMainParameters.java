@@ -56,6 +56,9 @@ public class K8sTaskMainParameters {
      */
     private String gpuType;
 
+
+    private String fetchName;
+
     /**
      * 类型是local/minio/...
      * */

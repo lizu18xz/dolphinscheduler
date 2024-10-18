@@ -10,8 +10,5 @@ import java.util.List;
 
 public interface K8sQueueTaskMapper extends BaseMapper<K8sQueueTask> {
 
-    IPage<K8sQueueTask> queryK8sQueueTaskListPaging(IPage<K8sQueueTask> page,
-                                          @Param("projectsIds") List<Integer> projectsIds,
-                                          @Param("searchName") String searchName);
 
 }

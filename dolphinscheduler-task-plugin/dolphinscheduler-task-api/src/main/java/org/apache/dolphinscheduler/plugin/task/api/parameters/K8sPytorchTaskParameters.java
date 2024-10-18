@@ -59,6 +59,7 @@ public class K8sPytorchTaskParameters extends AbstractParameters {
     /**
      * gpu resources 设置
      */
+    private double gpuLimits;
     private double masterGpuLimits;
 
     /**

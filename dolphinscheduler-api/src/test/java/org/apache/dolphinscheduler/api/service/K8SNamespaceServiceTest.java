@@ -239,7 +239,7 @@ public class K8SNamespaceServiceTest {
 
         Mockito.when(k8sNamespaceMapper.selectList(Mockito.any())).thenReturn(k8sNamespaces);
         Mockito.when(clusterMapper.queryAllClusterList()).thenReturn(clusters);
-        List<K8sNamespace> result = k8sNamespaceService.queryNamespaceAvailable(getLoginUser());
+        List<K8sNamespace> result = k8sNamespaceService.queryNamespaceAvailable(getLoginUser(),"");
         Assertions.assertEquals(result.get(0).getClusterName(), cluster.getName());
     }
 

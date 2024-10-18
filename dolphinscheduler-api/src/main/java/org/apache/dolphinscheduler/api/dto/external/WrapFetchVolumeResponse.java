@@ -11,6 +11,8 @@ import lombok.Setter;
 @AllArgsConstructor
 public class WrapFetchVolumeResponse {
 
+    private String fetchName;
+
     /**
      * 类型是local/minio/...
      * */

@@ -17,10 +17,12 @@
 
 package org.apache.dolphinscheduler.plugin.task.k8s;
 
+import static org.apache.dolphinscheduler.common.constants.Constants.K8S_VOLUME;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CLUSTER;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAMESPACE_NAME;
 
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
+import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTask;
@@ -83,6 +85,17 @@ public class K8sTask extends AbstractK8sTask {
     protected String buildCommand() {
         K8sTaskMainParameters k8sTaskMainParameters = new K8sTaskMainParameters();
         Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
+        String globalParams = taskExecutionContext.getGlobalParams();
+        log.info("paramsMap:{}", JSONUtils.toJsonString(paramsMap));
+        log.info("globalParams:{}", JSONUtils.toJsonString(globalParams));
+        //获取自定义的参数，替换
+        Map<String, String> paramMap = ParameterUtils.convert(paramsMap);
+        //[\"/data\",\"asdad---123\"]",
+        String k8sPodArgs = paramMap.get("k8s_pod_args");
+        if (!StringUtils.isEmpty(k8sPodArgs)) {
+            //替换参数为自定义接口传参
+            k8sTaskParameters.setArgs(k8sPodArgs);
+        }
         Map<String, String> namespace = JSONUtils.toMap(k8sTaskParameters.getNamespace());
         String namespaceName = namespace.get(NAMESPACE_NAME);
         String clusterName = namespace.get(CLUSTER);
@@ -98,20 +111,21 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
-
         k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
         k8sTaskMainParameters.setFetchDataVolume(k8sTaskParameters.getFetchDataVolume());
         k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
 
-        k8sTaskMainParameters.setOutputDataVolume(k8sTaskParameters.getOutputDataVolume());
-        k8sTaskMainParameters.setInputDataVolume(k8sTaskParameters.getInputDataVolume());
-        k8sTaskMainParameters.setPodInputDataVolume(k8sTaskParameters.getPodInputDataVolume());
-        k8sTaskMainParameters.setPodOutputDataVolume(k8sTaskParameters.getPodOutputDataVolume());
-
+        //直接约定死
+        String k8sVolume = PropertyUtils.getString(K8S_VOLUME);
+        k8sTaskMainParameters.setOutputDataVolume(k8sVolume + "/output/");
+        k8sTaskMainParameters.setInputDataVolume(k8sVolume + "/fetch/");
+        k8sTaskMainParameters.setPodInputDataVolume("/data");
+        k8sTaskMainParameters.setPodOutputDataVolume("/data/output");
 
         k8sTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());
         k8sTaskMainParameters.setGpuLimits(k8sTaskParameters.getGpuLimits());
         k8sTaskMainParameters.setQueue(k8sTaskParameters.getQueue());
+
         return JSONUtils.toJsonString(k8sTaskMainParameters);
     }
 

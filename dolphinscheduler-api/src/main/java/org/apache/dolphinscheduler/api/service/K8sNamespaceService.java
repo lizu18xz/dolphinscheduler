@@ -107,5 +107,5 @@ public interface K8sNamespaceService {
      * @param loginUser login user
      * @return namespace list
      */
-    List<K8sNamespace> queryNamespaceAvailable(User loginUser);
+    List<K8sNamespace> queryNamespaceAvailable(User loginUser, String projectName);
 }

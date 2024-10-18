@@ -5,21 +5,20 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @NoArgsConstructor
 @Getter
 @Setter
 @AllArgsConstructor
 public class FetchVolumeResponse {
 
+    //来源名称
+    private String name;
+
     private String type;
 
     private String id;
-
-    //源
-    private String fileUrl;
-
-    //目标
-    private String downAddr;
 
     private String host;
 
@@ -29,6 +28,11 @@ public class FetchVolumeResponse {
 
     private String bucketName;
 
+    //存储中的路径
+    private String filePath;
+
     private String projectIds;
+
+    private List<FetchVolumeResponse> children;
 
 }

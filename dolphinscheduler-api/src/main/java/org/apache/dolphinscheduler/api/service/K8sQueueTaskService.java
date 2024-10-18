@@ -11,5 +11,7 @@ public interface K8sQueueTaskService {
 
     Result queryK8sQueueTaskListPaging(User loginUser, Integer pageSize, Integer pageNo, String projectName);
 
+    void updateK8sQueueTaskStatus(String taskCode,String status);
+
 
 }
