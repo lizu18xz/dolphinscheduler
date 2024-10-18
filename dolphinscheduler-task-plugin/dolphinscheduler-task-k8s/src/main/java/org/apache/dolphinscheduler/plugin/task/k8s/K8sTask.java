@@ -111,15 +111,18 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
-        k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
-        k8sTaskMainParameters.setFetchDataVolume(k8sTaskParameters.getFetchDataVolume());
-        k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
 
         //直接约定死
-        String k8sVolume = PropertyUtils.getString(K8S_VOLUME);
-        k8sTaskMainParameters.setOutputDataVolume(k8sVolume + "/output/");
-        k8sTaskMainParameters.setInputDataVolume(k8sVolume + "/fetch/");
-        k8sTaskMainParameters.setPodInputDataVolume("/data");
+        String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
+
+        k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
+        k8sTaskMainParameters.setFetchDataVolume(volumePrefix+"/fetch/");
+        k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
+
+
+        k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
+        k8sTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
+        k8sTaskMainParameters.setPodInputDataVolume("/data/input");
         k8sTaskMainParameters.setPodOutputDataVolume("/data/output");
 
         k8sTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());

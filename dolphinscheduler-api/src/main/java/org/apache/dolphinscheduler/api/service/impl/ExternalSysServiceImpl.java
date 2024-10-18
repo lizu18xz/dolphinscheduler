@@ -105,6 +105,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
 
     @Override
     public List<WrapFetchVolumeResponse> fetchVolumeList(FetchVolumeRequest request) {
+
+        //获取项目因为名称，对应仓库的名称
+        Project project = projectMapper.queryByName(request.getProjectName());
+
         String address =
                 PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
         if (StringUtils.isEmpty(address)) {
@@ -135,11 +139,13 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             String data = result.get("data").toString();
             List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
             });
-
+            long projectCode = project.getCode();
             String k8sVolume =
                     PropertyUtils.getString(K8S_VOLUME);
+            String fetchPath = k8sVolume + "/" + projectCode + "/fetch/";
             List<WrapFetchVolumeResponse> inputVolumeResponseList = new ArrayList<>();
-            parse(responses, inputVolumeResponseList, k8sVolume);
+
+            parseParent(responses, inputVolumeResponseList, fetchPath, projectCode);
 
             return inputVolumeResponseList;
         } catch (Exception e) {
@@ -156,8 +162,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     }
 
 
-    private void parse(List<FetchVolumeResponse> responses, List<WrapFetchVolumeResponse> responsesList, String k8sVolume) {
-
+    private void parseParent(List<FetchVolumeResponse> responses, List<WrapFetchVolumeResponse> responsesList, String fetchPath, long projectCode) {
         for (FetchVolumeResponse response : responses) {
             WrapFetchVolumeResponse inputVolumeResponse = new WrapFetchVolumeResponse();
             if (response.getType() == null) {
@@ -178,15 +183,50 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 //拉取数据的参数
                 inputVolumeResponse.setFetchDataVolumeArgs(args.toString());
                 //宿主机路径,拉取镜像存储的宿主机路径,最外层,具体目录需要在内部自己修改
-                inputVolumeResponse.setFetchDataVolume(k8sVolume + "/fetch/");
+                inputVolumeResponse.setFetchDataVolume(fetchPath);
                 inputVolumeResponse.setFetchType(response.getType());
                 responsesList.add(inputVolumeResponse);
             }
             if (!CollectionUtils.isEmpty(response.getChildren())) {
-                parse(response.getChildren(), responsesList, k8sVolume);
+                parse(response.getChildren(), inputVolumeResponse, fetchPath, projectCode);
             }
         }
+    }
 
+    private void parse(List<FetchVolumeResponse> responses, WrapFetchVolumeResponse inputVolumeResponseParent,
+                       String fetchPath, long projectCode) {
+        List<WrapFetchVolumeResponse> inputVolumeResponseList = new ArrayList<>();
+        for (FetchVolumeResponse response : responses) {
+            WrapFetchVolumeResponse inputVolumeResponse = new WrapFetchVolumeResponse();
+            if (response.getType() == null) {
+                response.setType("minio");
+            }
+            if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
+                StringBuilder args = new StringBuilder();
+                args.append("[").append("\"").append(response.getType()).append("\"").append(",")
+                        .append("\"").append(response.getHost()).append("\"").append(",")
+                        .append("\"").append(response.getAppKey()).append("\"").append(",")
+                        .append("\"").append(response.getAppSecret()).append("\"").append(",")
+                        .append("\"").append(response.getBucketName()).append("\"").append(",")
+                        .append("\"").append(response.getFilePath()).append("\"").append(",")
+                        //容器内部地址写死
+                        .append("\"").append("/app/downloads").append("\"").append(",")
+                        .append("]");
+                inputVolumeResponse.setFetchName(response.getName());
+                //拉取数据的参数
+                inputVolumeResponse.setFetchDataVolumeArgs(args.toString());
+                //宿主机路径,拉取镜像存储的宿主机路径,最外层,具体目录需要在内部自己修改
+                inputVolumeResponse.setFetchDataVolume(fetchPath);
+                inputVolumeResponse.setFetchType(response.getType());
+                inputVolumeResponseList.add(inputVolumeResponse);
+            }
+            if (!CollectionUtils.isEmpty(response.getChildren())) {
+                parse(response.getChildren(), inputVolumeResponse, fetchPath, projectCode);
+            }
+        }
+        if (!CollectionUtils.isEmpty(inputVolumeResponseList)) {
+            inputVolumeResponseParent.setChildren(inputVolumeResponseList);
+        }
     }
 
 
@@ -231,6 +271,98 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    @Override
+    public List<OutPutVolumeResponse> getVolumeOutput(StorageRequest request) {
+        String address =
+                PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
+        if (StringUtils.isEmpty(address)) {
+            throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
+        }
+        String url = address + FETCH_PATH;
+        String msgToJson = JSONUtils.toJsonString(request);
+        HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
+        CloseableHttpClient httpClient;
+
+        httpClient = HttpRequestUtil.getHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpPost);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                log.error("get volume list error, return http status code: {} ", statusCode);
+            }
+            String resp;
+            HttpEntity entity = response.getEntity();
+            resp = EntityUtils.toString(entity, "utf-8");
+            log.info("outputFetchVolumeList resp:{}", resp);
+            ObjectNode result = JSONUtils.parseObject(resp);
+            if (result.get("data") == null) {
+                log.info("获取output fetch存储列表失败");
+                return new ArrayList<>();
+            }
+            String data = result.get("data").toString();
+            List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
+            });
+
+            List<OutPutVolumeResponse> outPutVolumeResponseList = new ArrayList<>();
+            parseOutPutParent(responses, outPutVolumeResponseList);
+
+            return outPutVolumeResponseList;
+        } catch (Exception e) {
+            log.error("get output volume error{}", e);
+            return null;
+        } finally {
+            try {
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+
+    private void parseOutPutParent(List<FetchVolumeResponse> responses, List<OutPutVolumeResponse> outPutVolumeResponseList) {
+        for (FetchVolumeResponse response : responses) {
+            OutPutVolumeResponse outPutVolumeResponse = new OutPutVolumeResponse();
+            if (response.getType() == null) {
+                response.setType("minio");
+            }
+            if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
+                outPutVolumeResponse.setId(response.getId());
+                outPutVolumeResponse.setName(response.getName());
+                outPutVolumeResponse.setOutputInfo(JSONUtils.toJsonString(response));
+                outPutVolumeResponseList.add(outPutVolumeResponse);
+            }
+            if (!CollectionUtils.isEmpty(response.getChildren())) {
+                outPutParse(response.getChildren(), outPutVolumeResponse);
+            }
+        }
+
+    }
+
+    private void outPutParse(List<FetchVolumeResponse> responses, OutPutVolumeResponse parentOutPutVolumeResponse) {
+        List<OutPutVolumeResponse> outPutVolumeResponseList = new ArrayList<>();
+        for (FetchVolumeResponse response : responses) {
+            OutPutVolumeResponse outPutVolumeResponse = new OutPutVolumeResponse();
+            if (response.getType() == null) {
+                response.setType("minio");
+            }
+            if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
+                outPutVolumeResponse.setId(response.getId());
+                outPutVolumeResponse.setName(response.getName());
+                outPutVolumeResponse.setOutputInfo(JSONUtils.toJsonString(response));
+                outPutVolumeResponseList.add(outPutVolumeResponse);
+            }
+            if (!CollectionUtils.isEmpty(response.getChildren())) {
+                outPutParse(response.getChildren(), outPutVolumeResponse);
+            }
+        }
+        if (!CollectionUtils.isEmpty(outPutVolumeResponseList)) {
+            parentOutPutVolumeResponse.setChildren(outPutVolumeResponseList);
         }
     }
 

@@ -150,9 +150,6 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //设置容器挂载
         List<VolumeMount> volumeMounts = new ArrayList<>();
         //设置宿主机挂载
-        String k8sVolume =
-                PropertyUtils.getString(K8S_VOLUME);
-
         List<Volume> volumes = new ArrayList<>();
         //必须有数据来源，这里才会有前置挂载
         if (!StringUtils.isEmpty(k8STaskMainParameters.getFetchDataVolume())) {
@@ -239,6 +236,17 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             initContainer.setArgs(inputArgs);
             initContainer.setVolumeMounts(Lists.newArrayList(getFetchVolumeMount()));
             initContainers.add(initContainer);
+
+            //设置初始化操作的资源
+            Double podMem = 1024d;
+            Double podCpu = 1d;
+            Double limitPodMem = podMem * 2;
+            Double limitPodCpu = podCpu * 2;
+            reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
+            limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+            initContainer.setResources(new ResourceRequirements(limitRes, reqRes));
             template.getSpec().setInitContainers(initContainers);
 
             //新增fetch的数据到宿主机
