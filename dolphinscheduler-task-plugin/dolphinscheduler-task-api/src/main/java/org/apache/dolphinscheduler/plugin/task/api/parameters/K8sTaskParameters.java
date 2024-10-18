@@ -78,21 +78,13 @@ public class K8sTaskParameters extends AbstractParameters {
     private String fetchDataVolumeArgs;
 
 
-    /**
-     * 对应页面上面的数据存储下拉，用于回显展示
-     */
-    private String dataSave;
+    //数据存储相关信息
+    private String outputVolumeId;
 
-    /**
-     * 节点的输入输出挂载 包含宿主机 和 容器内部地址
-     */
-    private String podInputDataVolume;
+    private String outputVolumeName;
 
-    private String inputDataVolume;
+    private String outputVolumeNameInfo;
 
-    private String podOutputDataVolume;
-
-    private String outputDataVolume;
 
     /**
      * resource list  所选的资源文件

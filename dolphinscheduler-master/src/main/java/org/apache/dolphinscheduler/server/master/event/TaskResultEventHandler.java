@@ -35,10 +35,12 @@ import org.apache.dolphinscheduler.server.master.processor.queue.TaskEvent;
 import org.apache.dolphinscheduler.server.master.runner.WorkflowExecuteRunnable;
 import org.apache.dolphinscheduler.server.master.runner.WorkflowExecuteThreadPool;
 import org.apache.dolphinscheduler.server.master.utils.DataQualityResultOperator;
+import org.apache.dolphinscheduler.server.master.utils.HttpRequestUtil;
 import org.apache.dolphinscheduler.service.process.ProcessService;
 
 import java.util.Optional;
 
+import org.apache.http.client.methods.HttpPost;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -138,6 +140,11 @@ public class TaskResultEventHandler implements TaskEventHandler {
                 long taskCode = taskInstance.getTaskCode();
                 k8sQueueTaskDao.updateStatus(taskCode, "待下次运行");
             }
+
+            //获取参数
+            String taskParams = taskInstance.getTaskParams();
+            //进行回调，如果存在输出，则通知其上传到对象存储中
+            //HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
 
         } catch (Exception e) {
             log.error("updateK8sQueue error:{}", e);

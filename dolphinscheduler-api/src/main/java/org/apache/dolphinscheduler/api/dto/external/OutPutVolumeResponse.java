@@ -13,11 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 public class OutPutVolumeResponse {
 
-    private String id;
+    private String outputVolumeId;
 
-    private String name;
+    private String outputVolumeName;
 
-    private String outputInfo;
+    private String outputVolumeNameInfo;
 
     private List<OutPutVolumeResponse> children;
 

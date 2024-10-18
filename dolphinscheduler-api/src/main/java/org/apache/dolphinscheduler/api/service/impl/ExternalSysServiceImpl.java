@@ -332,9 +332,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 response.setType("minio");
             }
             if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
-                outPutVolumeResponse.setId(response.getId());
-                outPutVolumeResponse.setName(response.getName());
-                outPutVolumeResponse.setOutputInfo(JSONUtils.toJsonString(response));
+                outPutVolumeResponse.setOutputVolumeId(response.getId());
+                outPutVolumeResponse.setOutputVolumeName(response.getName());
+                outPutVolumeResponse.setOutputVolumeNameInfo(JSONUtils.toJsonString(response));
                 outPutVolumeResponseList.add(outPutVolumeResponse);
             }
             if (!CollectionUtils.isEmpty(response.getChildren())) {
@@ -352,9 +352,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 response.setType("minio");
             }
             if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
-                outPutVolumeResponse.setId(response.getId());
-                outPutVolumeResponse.setName(response.getName());
-                outPutVolumeResponse.setOutputInfo(JSONUtils.toJsonString(response));
+                outPutVolumeResponse.setOutputVolumeId(response.getId());
+                outPutVolumeResponse.setOutputVolumeName(response.getName());
+                outPutVolumeResponse.setOutputVolumeNameInfo(JSONUtils.toJsonString(response));
                 outPutVolumeResponseList.add(outPutVolumeResponse);
             }
             if (!CollectionUtils.isEmpty(response.getChildren())) {
