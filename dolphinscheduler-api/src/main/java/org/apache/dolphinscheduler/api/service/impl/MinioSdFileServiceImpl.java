@@ -21,8 +21,8 @@ public class MinioSdFileServiceImpl {
 
     @Autowired
     private SdFileMinioUtils minioUtils;
-    public List<Map<String, String>> localFolderMultipartUpload(FileCustomUploadVO fileCustom){
-        List<Map<String,String>> uploadResponses = new ArrayList<>();
+    public List<Map<String, String>> localFolderMultipartUpload(FileCustomUploadVO fileCustom) {
+        List<Map<String, String>> uploadResponses = new ArrayList<>();
         File folder = new File(fileCustom.getLocalFilePath());
 
         // 检查文件夹是否存在
@@ -31,50 +31,56 @@ public class MinioSdFileServiceImpl {
             return uploadResponses;
         }
 
-        // 获取文件夹中的所有文件
+        // 递归遍历文件夹
+        uploadFilesFromFolder(folder, fileCustom, uploadResponses);
+
+        return uploadResponses; // 返回上传成功的文件信息
+    }
+
+    private void uploadFilesFromFolder(File folder, FileCustomUploadVO fileCustom, List<Map<String, String>> uploadResponses) {
         File[] files = folder.listFiles();
         if (files != null) {
             for (File file : files) {
                 if (file.isFile()) { // 确保是文件而不是子文件夹
                     String objectKey = file.getName(); // 使用文件名作为对象的 key
                     String path = null;
-                    if(fileCustom.getType() ==0){
-                         path= fileCustom.getDataName()+"/"+file.getAbsolutePath();
-                    }else {
+                    if (fileCustom.getType() == 0) {
+                        path = fileCustom.getDataName() + "/" + file.getAbsolutePath();
+                    } else {
                         path = file.getAbsolutePath();
                     }
-
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
 
                     if (uploadSuccess) {
                         // 构建文件的 URL
-                        String fileUrl = minioUtils.getObjectUrl(fileCustom.getBucketName(), objectKey,fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
-                        Map<String,String> map = new HashMap<>(16);
-                        map.put("key",path+"/"+objectKey);
-                        map.put("url",fileUrl);
+                        String fileUrl = minioUtils.getObjectUrl(fileCustom.getBucketName(), objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
+                        Map<String, String> map = new HashMap<>(16);
+                        map.put("key", path + "/" + objectKey);
+                        map.put("url", fileUrl);
                         uploadResponses.add(map);
                     } else {
                         System.out.println("文件上传失败: " + file.getName());
                     }
+                } else if (file.isDirectory()) { // 如果是目录，递归处理
+                    uploadFilesFromFolder(file, fileCustom, uploadResponses);
                 }
             }
         } else {
-            System.out.println("文件夹 " + fileCustom.getLocalFilePath() + " 为空");
+            System.out.println("文件夹 " + folder.getAbsolutePath() + " 为空");
         }
-        return uploadResponses; // 返回上传成功的文件信息
     }
 
 
-    public static void main(String[] args) {
-        FileCustomUploadVO fileCustom = new FileCustomUploadVO();
-        fileCustom.setHost("http://10.78.5.103:9991");
-        fileCustom.setKey("V0M2NPhCfk1exMSxAbnI");
-        fileCustom.setKey("5Ups2aOwxJQ4oaoVR42QwM1nLHS2GnNIBcSp3XpX");
-        fileCustom.setType(1);
-        fileCustom.setBucketName("other-data");
-        fileCustom.setLocalFilePath("C:\\Users\\swh\\Desktop\\train_mnist");
-    }
+//    public static void main(String[] args) {
+//        FileCustomUploadVO fileCustom = new FileCustomUploadVO();
+//        fileCustom.setHost("http://10.78.5.103:9991");
+//        fileCustom.setKey("V0M2NPhCfk1exMSxAbnI");
+//        fileCustom.setKey("5Ups2aOwxJQ4oaoVR42QwM1nLHS2GnNIBcSp3XpX");
+//        fileCustom.setType(1);
+//        fileCustom.setBucketName("other-data");
+//        fileCustom.setLocalFilePath("C:\\Users\\swh\\Desktop\\train_mnist");
+//    }
 //    public List<String> localFolderMultipartUpload(FileCustomUploadVO fileCustom) {
 //
 //        log.info("递归遍历的目录名为: {}", directoryPath);

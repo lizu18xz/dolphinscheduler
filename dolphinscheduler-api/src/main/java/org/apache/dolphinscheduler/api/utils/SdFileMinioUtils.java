@@ -145,7 +145,7 @@ public class SdFileMinioUtils {
                 .sources(sourceObjectList)
                 .build());
         //String presignedObjectUrl = getPresignedObjectUrl(bucketName, objectName);
-        String objectUrl = getObjectUrl(bucketName, objectName, null, true,host,key,appSecret);
+        String objectUrl = getObjectUrl(bucketName, objectName,host,key,appSecret);
         OssFile ossFile = new OssFile();
         ossFile.setUrl(objectUrl);
         ossFile.setBucketName(bucketName);
@@ -427,7 +427,7 @@ public class SdFileMinioUtils {
     @SneakyThrows
     public String getObjectUrl(String bucketName, String objectName, String host,String  key,String appSecret) {
         Boolean flag = existBucket(bucketName,host,key,appSecret);
-        Integer  expireSeconds = 3600 * 24 * 365 * 20;
+        Integer  expireSeconds = 604800;
         Boolean neverExpires = true;
         String url = "";
         if (flag) {
