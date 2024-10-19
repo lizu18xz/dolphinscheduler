@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @NoArgsConstructor
 @Getter
 @Setter
@@ -27,6 +29,8 @@ public class WrapFetchVolumeResponse {
      * 拉取数据的参数
      * */
     private String fetchDataVolumeArgs;
+
+    private List<WrapFetchVolumeResponse> children;
 
 
 }

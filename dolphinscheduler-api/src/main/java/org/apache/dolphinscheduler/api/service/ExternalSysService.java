@@ -13,4 +13,5 @@ public interface ExternalSysService {
 
     List<StorageResponse> storagePage(StorageRequest request);
 
+    List<OutPutVolumeResponse> getVolumeOutput(StorageRequest request);
 }
