@@ -20,9 +20,8 @@ public class FileMinioController {
 
     @Operation(summary = "文件上传")
     @RequestMapping(value = "/sdUpload")
-    public List<Map<String, String>> sdFileCustomUpload(FileCustomUploadVO fileCustomUploadVO) {
-        List<Map<String, String>>  url= sdFileService.localFileMultipartUpload(fileCustomUploadVO);
-        return url;
+    public Boolean sdFileCustomUpload(FileCustomUploadVO fileCustomUploadVO) {
+        return sdFileService.localFileMultipartUpload(fileCustomUploadVO);
     }
 
 
