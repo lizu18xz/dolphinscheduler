@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.api.utils.*;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
-import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -31,6 +30,7 @@ public class MinioSdFileServiceImpl {
     @Autowired
     private SdFileMinioUtils minioUtils;
     public static final String FETCH_PATH = "/admin-api/system/workRecord/insert";
+
     public Boolean localFolderMultipartUpload(FileCustomUploadVO fileCustom) {
         List<Map<String, Object>> uploadResponses = new ArrayList<>();
         File folder = new File(fileCustom.getLocalFilePath());
@@ -43,7 +43,7 @@ public class MinioSdFileServiceImpl {
 
         // 递归遍历文件夹
         uploadFilesFromFolder(folder, fileCustom, uploadResponses);
-        updateMinio(fileCustom,uploadResponses);
+        updateMinio(fileCustom, uploadResponses);
         return true; // 返回上传成功的文件信息
     }
 
@@ -88,16 +88,17 @@ public class MinioSdFileServiceImpl {
             throw new IllegalArgumentException("文件夹 " + folder.getAbsolutePath() + " 为空");
         }
     }
-    public Boolean updateMinio(FileCustomUploadVO fileCustom,List<Map<String, Object>> uploadResponses) {
-        String address =PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
+
+    public Boolean updateMinio(FileCustomUploadVO fileCustom, List<Map<String, Object>> uploadResponses) {
+        String address = PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
         if (StringUtils.isEmpty(address)) {
             throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
         }
         String url = address + FETCH_PATH;
         WordVO wordVO = new WordVO();
-        if(fileCustom.getType() ==0){
+        if (fileCustom.getType() == 0) {
             List<ModelVO> modelList = new ArrayList<>();
-            for (Map<String,Object> map:uploadResponses) {
+            for (Map<String, Object> map : uploadResponses) {
                 ModelVO modelVO = new ModelVO();
                 modelVO.setModelDesc("");
                 modelVO.setModelName((String) map.get("objectKey"));
@@ -108,14 +109,14 @@ public class MinioSdFileServiceImpl {
             }
             wordVO.setType("0");
             wordVO.setModelList(modelList);
-        }else {
+        } else {
             TpDatasetVO tpDatasetVO = new TpDatasetVO();
             tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
-            List<Map<String,Object>> relativePathList = new ArrayList<>();
-            for (Map<String,Object> map:uploadResponses) {
-                Map<String,Object> dataMap = new HashMap<>(16);
-                dataMap.put("objectKey",map.get("url"));
-                dataMap.put("size",map.get("size"));
+            List<Map<String, Object>> relativePathList = new ArrayList<>();
+            for (Map<String, Object> map : uploadResponses) {
+                Map<String, Object> dataMap = new HashMap<>(16);
+                dataMap.put("objectKey", map.get("url"));
+                dataMap.put("size", map.get("size"));
                 relativePathList.add(dataMap);
             }
             wordVO.setType("1");
@@ -133,7 +134,7 @@ public class MinioSdFileServiceImpl {
             if (statusCode != HttpStatus.SC_OK) {
                 log.error("get volume list error, return http status code: {} ", statusCode);
                 return false;
-            }else {
+            } else {
                 log.info("工作流结束业务文件存储成功并更新业务库 code: {} ", statusCode);
                 return true;
             }
@@ -149,7 +150,8 @@ public class MinioSdFileServiceImpl {
             }
         }
     }
-    public String getSdSignedUrl(String objectKey, Integer expireSeconds, String bucketName,String host,String  key,String appSecret) {
-        return minioUtils.getObjectUrl(bucketName, objectKey, host,key,appSecret);
+
+    public String getSdSignedUrl(String objectKey, Integer expireSeconds, String bucketName, String host, String key, String appSecret) {
+        return minioUtils.getObjectUrl(bucketName, objectKey, host, key, appSecret);
     }
 }
