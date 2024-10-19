@@ -24,7 +24,7 @@ public class MinioFileServiceImpl implements MinioFileService {
      * @param localFilePath 本地文件路径
      * @return CommonResult<String> url
      */
-    public List<Map<String, String>> localFileMultipartUpload(FileCustomUploadVO fileCustomUploadVO) {
+    public Boolean localFileMultipartUpload(FileCustomUploadVO fileCustomUploadVO) {
         return minioSdFileService.localFolderMultipartUpload(fileCustomUploadVO);
     }
 

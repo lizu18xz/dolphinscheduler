@@ -14,7 +14,7 @@ public interface MinioFileService {
 //     * @param localFilePath 本地文件路径
 //     * @return CommonResult<String> url
 //     */
-List<Map<String, String>>  localFileMultipartUpload(FileCustomUploadVO fileCustomUploadVO);
+Boolean  localFileMultipartUpload(FileCustomUploadVO fileCustomUploadVO);
 //    /**
 //     * 获取临时签名的url
 //     * @param objectKey
