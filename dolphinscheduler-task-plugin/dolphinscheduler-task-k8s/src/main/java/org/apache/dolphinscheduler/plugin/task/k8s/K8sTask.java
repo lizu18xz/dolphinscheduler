@@ -120,6 +120,7 @@ public class K8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
 
 
+        //设置约定的挂载信息
         k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
         k8sTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
         k8sTaskMainParameters.setPodInputDataVolume("/data/input");

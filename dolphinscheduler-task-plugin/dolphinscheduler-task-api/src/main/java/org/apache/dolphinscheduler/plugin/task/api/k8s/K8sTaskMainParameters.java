@@ -56,6 +56,7 @@ public class K8sTaskMainParameters {
      */
     private String gpuType;
 
+    private String fetchId;
 
     private String fetchName;
 
@@ -73,6 +74,14 @@ public class K8sTaskMainParameters {
      * 拉取数据的参数
      * */
     private String fetchDataVolumeArgs;
+
+
+    //数据存储相关信息
+    private String outputVolumeId;
+
+    private String outputVolumeName;
+
+    private String outputVolumeNameInfo;
 
     /**
      * 对应页面上面的数据存储下拉，用于回显展示

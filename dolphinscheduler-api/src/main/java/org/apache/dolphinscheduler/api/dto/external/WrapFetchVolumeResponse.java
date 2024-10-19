@@ -13,6 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 public class WrapFetchVolumeResponse {
 
+    private String fetchId;
+
     private String fetchName;
 
     /**

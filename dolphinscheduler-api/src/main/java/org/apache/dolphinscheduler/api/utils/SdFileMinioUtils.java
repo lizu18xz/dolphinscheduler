@@ -145,7 +145,7 @@ public class SdFileMinioUtils {
                 .sources(sourceObjectList)
                 .build());
         //String presignedObjectUrl = getPresignedObjectUrl(bucketName, objectName);
-        String objectUrl = getObjectUrl(bucketName, objectName,host,key,appSecret);
+        String objectUrl = getObjectUrl(bucketName, objectName, host,key,appSecret);
         OssFile ossFile = new OssFile();
         ossFile.setUrl(objectUrl);
         ossFile.setBucketName(bucketName);

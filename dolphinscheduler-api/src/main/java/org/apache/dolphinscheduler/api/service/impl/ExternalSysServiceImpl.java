@@ -28,7 +28,6 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.apache.dolphinscheduler.api.enums.Status.*;
 import static org.apache.dolphinscheduler.common.constants.Constants.EXTERNAL_ADDRESS_LIST;
@@ -137,7 +136,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 return new ArrayList<>();
             }
             String data = result.get("data").toString();
-            List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
+            List<DataSetResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<DataSetResponse>>() {
             });
             long projectCode = project.getCode();
             String k8sVolume =
@@ -162,8 +161,8 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     }
 
 
-    private void parseParent(List<FetchVolumeResponse> responses, List<WrapFetchVolumeResponse> responsesList, String fetchPath, long projectCode) {
-        for (FetchVolumeResponse response : responses) {
+    private void parseParent(List<DataSetResponse> responses, List<WrapFetchVolumeResponse> responsesList, String fetchPath, long projectCode) {
+        for (DataSetResponse response : responses) {
             WrapFetchVolumeResponse inputVolumeResponse = new WrapFetchVolumeResponse();
             if (response.getType() == null) {
                 response.setType("minio");
@@ -193,10 +192,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         }
     }
 
-    private void parse(List<FetchVolumeResponse> responses, WrapFetchVolumeResponse inputVolumeResponseParent,
+    private void parse(List<DataSetResponse> responses, WrapFetchVolumeResponse inputVolumeResponseParent,
                        String fetchPath, long projectCode) {
         List<WrapFetchVolumeResponse> inputVolumeResponseList = new ArrayList<>();
-        for (FetchVolumeResponse response : responses) {
+        for (DataSetResponse response : responses) {
             WrapFetchVolumeResponse inputVolumeResponse = new WrapFetchVolumeResponse();
             if (response.getType() == null) {
                 response.setType("minio");
@@ -304,7 +303,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 return new ArrayList<>();
             }
             String data = result.get("data").toString();
-            List<FetchVolumeResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FetchVolumeResponse>>() {
+            List<DataSetResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<DataSetResponse>>() {
             });
 
             List<OutPutVolumeResponse> outPutVolumeResponseList = new ArrayList<>();
@@ -325,8 +324,8 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     }
 
 
-    private void parseOutPutParent(List<FetchVolumeResponse> responses, List<OutPutVolumeResponse> outPutVolumeResponseList) {
-        for (FetchVolumeResponse response : responses) {
+    private void parseOutPutParent(List<DataSetResponse> responses, List<OutPutVolumeResponse> outPutVolumeResponseList) {
+        for (DataSetResponse response : responses) {
             OutPutVolumeResponse outPutVolumeResponse = new OutPutVolumeResponse();
             if (response.getType() == null) {
                 response.setType("minio");
@@ -344,9 +343,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
 
     }
 
-    private void outPutParse(List<FetchVolumeResponse> responses, OutPutVolumeResponse parentOutPutVolumeResponse) {
+    private void outPutParse(List<DataSetResponse> responses, OutPutVolumeResponse parentOutPutVolumeResponse) {
         List<OutPutVolumeResponse> outPutVolumeResponseList = new ArrayList<>();
-        for (FetchVolumeResponse response : responses) {
+        for (DataSetResponse response : responses) {
             OutPutVolumeResponse outPutVolumeResponse = new OutPutVolumeResponse();
             if (response.getType() == null) {
                 response.setType("minio");

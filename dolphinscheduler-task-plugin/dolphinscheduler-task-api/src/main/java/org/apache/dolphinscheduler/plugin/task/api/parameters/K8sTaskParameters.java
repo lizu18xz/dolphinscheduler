@@ -61,6 +61,8 @@ public class K8sTaskParameters extends AbstractParameters {
     private List<Label> customizedLabels;
     private List<NodeSelectorExpression> nodeSelectors;
 
+    private String fetchId;
+
     private String fetchName;
     /**
      * 类型是local/minio/...

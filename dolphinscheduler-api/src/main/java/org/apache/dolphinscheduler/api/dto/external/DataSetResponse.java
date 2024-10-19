@@ -11,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class FetchVolumeResponse {
+public class DataSetResponse {
 
     //来源名称
     private String name;
@@ -33,6 +33,8 @@ public class FetchVolumeResponse {
 
     private String projectIds;
 
-    private List<FetchVolumeResponse> children;
+    private String tpDatasetId;
+
+    private List<DataSetResponse> children;
 
 }
