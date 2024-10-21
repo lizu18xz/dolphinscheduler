@@ -153,7 +153,7 @@ public class TaskResultEventHandler implements TaskEventHandler {
             }
             //判断是否是K8s任务
             String taskType = taskInstance.getTaskType();
-            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
+            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S") || taskType.equals("DATA_SET_K8S")) {
                 long taskCode = taskInstance.getTaskCode();
                 k8sQueueTaskDao.updateStatus(taskCode, "待下次运行");
             }

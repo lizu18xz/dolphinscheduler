@@ -263,8 +263,8 @@ public class TaskExecutionContextFactory {
         dataQualityTaskExecutionContext.setHdfsPath(
                 PropertyUtils.getString(Constants.FS_DEFAULT_FS)
                         + PropertyUtils.getString(
-                                Constants.DATA_QUALITY_ERROR_OUTPUT_PATH,
-                                "/user/" + tenantCode + "/data_quality_error_data"));
+                        Constants.DATA_QUALITY_ERROR_OUTPUT_PATH,
+                        "/user/" + tenantCode + "/data_quality_error_data"));
 
         setSourceConfig(dataQualityTaskExecutionContext, config);
         setTargetConfig(dataQualityTaskExecutionContext, config);
@@ -277,6 +277,7 @@ public class TaskExecutionContextFactory {
         String namespace = "";
         switch (taskInstance.getTaskType()) {
             case "K8S":
+            case "DATA_SET_K8S":
             case "KUBEFLOW":
                 K8sTaskParameters k8sTaskParameters =
                         JSONUtils.parseObject(taskInstance.getTaskParams(), K8sTaskParameters.class);
@@ -456,6 +457,7 @@ public class TaskExecutionContextFactory {
     /**
      * The StatisticsValueWriterConfig will be used in DataQualityApplication that
      * writes the statistics value into dolphin scheduler datasource
+     *
      * @param dataQualityTaskExecutionContext
      */
     private void setStatisticsValueWriterConfig(DataQualityTaskExecutionContext dataQualityTaskExecutionContext) {

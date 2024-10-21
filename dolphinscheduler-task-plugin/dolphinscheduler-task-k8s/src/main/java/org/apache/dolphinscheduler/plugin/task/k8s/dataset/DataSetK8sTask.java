@@ -15,40 +15,32 @@
  * limitations under the License.
  */
 
-package org.apache.dolphinscheduler.plugin.task.k8s.pytorch;
+package org.apache.dolphinscheduler.plugin.task.k8s.dataset;
 
-import static org.apache.dolphinscheduler.common.constants.Constants.K8S_VOLUME;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CLUSTER;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAMESPACE_NAME;
-import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.PYTORCH_K8S_OPERATOR;
-
+import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTask;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sPytorchTaskMainParameters;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sTaskMainParameters;
 import org.apache.dolphinscheduler.plugin.task.api.model.Label;
 import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
 import org.apache.dolphinscheduler.plugin.task.api.model.Property;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
-import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sPytorchTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
+import static org.apache.dolphinscheduler.common.constants.Constants.K8S_VOLUME;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CLUSTER;
+import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAMESPACE_NAME;
 
-public class PytorchK8sTask extends AbstractK8sTask {
+public class DataSetK8sTask extends AbstractK8sTask {
 
     /**
      * taskExecutionContext
@@ -56,20 +48,20 @@ public class PytorchK8sTask extends AbstractK8sTask {
     private final TaskExecutionContext taskExecutionContext;
 
     /**
-     * task parameters  页面参数，保持一致
+     * task parameters
      */
-    private final K8sPytorchTaskParameters k8sTaskParameters;
+    private final K8sTaskParameters k8sTaskParameters;
 
     /**
      * @param taskRequest taskRequest
      */
-    public PytorchK8sTask(TaskExecutionContext taskRequest) {
-        super(taskRequest, PYTORCH_K8S_OPERATOR);
+    public DataSetK8sTask(TaskExecutionContext taskRequest) {
+        super(taskRequest);
         this.taskExecutionContext = taskRequest;
-        this.k8sTaskParameters = JSONUtils.parseObject(taskExecutionContext.getTaskParams(), K8sPytorchTaskParameters.class);
-        log.info("Initialize pytorch k8s task parameters {}", JSONUtils.toPrettyJsonString(k8sTaskParameters));
+        this.k8sTaskParameters = JSONUtils.parseObject(taskExecutionContext.getTaskParams(), K8sTaskParameters.class);
+        log.info("Initialize data set k8s task parameters {}", JSONUtils.toPrettyJsonString(k8sTaskParameters));
         if (k8sTaskParameters == null || !k8sTaskParameters.checkParameters()) {
-            throw new TaskException("PYTORCH K8S task params is not valid");
+            throw new TaskException("data set K8S task params is not valid");
         }
     }
 
@@ -83,49 +75,57 @@ public class PytorchK8sTask extends AbstractK8sTask {
         return k8sTaskParameters;
     }
 
-    /**
-     * 当前任务类型自定义参数
-     */
     @Override
     protected String buildCommand() {
-        K8sPytorchTaskMainParameters k8sPytorchTaskMainParameters = new K8sPytorchTaskMainParameters();
+        K8sTaskMainParameters k8sTaskMainParameters = new K8sTaskMainParameters();
         Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
+        String globalParams = taskExecutionContext.getGlobalParams();
+        log.info("paramsMap:{}", JSONUtils.toJsonString(paramsMap));
+        log.info("globalParams:{}", JSONUtils.toJsonString(globalParams));
+        //获取自定义的参数，替换
+        Map<String, String> paramMap = ParameterUtils.convert(paramsMap);
+        //[\"/data\",\"asdad---123\"]",
+        String k8sPodArgs = paramMap.get("k8s_pod_args");
+        if (!StringUtils.isEmpty(k8sPodArgs)) {
+            //替换参数为自定义接口传参
+            k8sTaskParameters.setArgs(k8sPodArgs);
+        }
         Map<String, String> namespace = JSONUtils.toMap(k8sTaskParameters.getNamespace());
         String namespaceName = namespace.get(NAMESPACE_NAME);
         String clusterName = namespace.get(CLUSTER);
-        k8sPytorchTaskMainParameters.setImage(k8sTaskParameters.getImage());
-        k8sPytorchTaskMainParameters.setNamespaceName(namespaceName);
-        k8sPytorchTaskMainParameters.setClusterName(clusterName);
-        k8sPytorchTaskMainParameters.setMasterMinMemorySpace(k8sTaskParameters.getMasterMinMemorySpace());
-        k8sPytorchTaskMainParameters.setMasterMinCpuCores(k8sTaskParameters.getMasterMinCpuCores());
-        k8sPytorchTaskMainParameters.setMasterGpuLimits(k8sTaskParameters.getGpuLimits());
-        //k8sPytorchTaskMainParameters.setMasterGpuLimits(k8sTaskParameters.getMasterGpuLimits());
-        k8sPytorchTaskMainParameters.setMasterReplicas(k8sTaskParameters.getMasterReplicas());
-        k8sPytorchTaskMainParameters.setWorkerMinMemorySpace(k8sTaskParameters.getWorkerMinMemorySpace());
-        k8sPytorchTaskMainParameters.setWorkerMinCpuCores(k8sTaskParameters.getWorkerMinCpuCores());
-        k8sPytorchTaskMainParameters.setWorkerGpuLimits(k8sTaskParameters.getWorkerGpuLimits());
-        k8sPytorchTaskMainParameters.setWorkerReplicas(k8sTaskParameters.getWorkerReplicas());
-        k8sPytorchTaskMainParameters.setParamsMap(ParameterUtils.convert(paramsMap));
-        k8sPytorchTaskMainParameters.setLabelMap(convertToLabelMap(k8sTaskParameters.getCustomizedLabels()));
-        k8sPytorchTaskMainParameters
+        k8sTaskMainParameters.setImage(k8sTaskParameters.getImage());
+        k8sTaskMainParameters.setNamespaceName(namespaceName);
+        k8sTaskMainParameters.setClusterName(clusterName);
+        k8sTaskMainParameters.setMinCpuCores(k8sTaskParameters.getMinCpuCores());
+        k8sTaskMainParameters.setMinMemorySpace(k8sTaskParameters.getMinMemorySpace());
+        k8sTaskMainParameters.setParamsMap(ParameterUtils.convert(paramsMap));
+        k8sTaskMainParameters.setLabelMap(convertToLabelMap(k8sTaskParameters.getCustomizedLabels()));
+        k8sTaskMainParameters
                 .setNodeSelectorRequirements(convertToNodeSelectorRequirements(k8sTaskParameters.getNodeSelectors()));
-        k8sPytorchTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
-        k8sPytorchTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
-        k8sPytorchTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
-
-
-        k8sPytorchTaskMainParameters.setQueue(k8sTaskParameters.getQueue());
-        k8sPytorchTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());
+        k8sTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
+        k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
+        k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
 
         //直接约定死
         String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
-        //设置约定的挂载信息
-        k8sPytorchTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
-        k8sPytorchTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
-        k8sPytorchTaskMainParameters.setPodInputDataVolume("/data/input");
-        k8sPytorchTaskMainParameters.setPodOutputDataVolume("/data/output");
 
-        return JSONUtils.toJsonString(k8sPytorchTaskMainParameters);
+        if (!StringUtils.isEmpty(k8sTaskParameters.getFetchId())) {
+            k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
+            k8sTaskMainParameters.setFetchDataVolume(volumePrefix + "/fetch/");
+            k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
+        }
+
+        //设置约定的挂载信息
+        k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
+        k8sTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
+        k8sTaskMainParameters.setPodInputDataVolume("/data/input");
+        k8sTaskMainParameters.setPodOutputDataVolume("/data/output");
+
+        k8sTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());
+        k8sTaskMainParameters.setGpuLimits(k8sTaskParameters.getGpuLimits());
+        k8sTaskMainParameters.setQueue(k8sTaskParameters.getQueue());
+
+        return JSONUtils.toJsonString(k8sTaskMainParameters);
     }
 
     public List<NodeSelectorRequirement> convertToNodeSelectorRequirements(List<NodeSelectorExpression> expressions) {

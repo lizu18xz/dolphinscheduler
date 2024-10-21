@@ -34,6 +34,7 @@ task:
     - 'EMR'
     - 'K8S'
     - 'PYTORCH_K8S'
+    - 'DATA_SET_K8S'
     - 'DMS'
     - 'DATA_FACTORY'
   logic:

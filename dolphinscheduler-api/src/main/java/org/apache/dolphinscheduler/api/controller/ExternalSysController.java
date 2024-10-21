@@ -81,4 +81,17 @@ public class ExternalSysController {
     }
 
 
+    @GetMapping(value = "/model-list")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<ModelResponse>> getModelList(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            @RequestParam(value = "projectName") String projectName) {
+        StorageRequest request = new StorageRequest();
+        request.setProjectName(projectName);
+        request.setPageNo("1");
+        request.setPageSize("1000");
+        return Result.success(externalSysService.getModelList(request));
+    }
+
+
 }

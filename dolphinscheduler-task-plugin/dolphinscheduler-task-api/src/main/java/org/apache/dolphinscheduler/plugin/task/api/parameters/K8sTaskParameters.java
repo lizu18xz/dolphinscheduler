@@ -87,6 +87,9 @@ public class K8sTaskParameters extends AbstractParameters {
 
     private String outputVolumeNameInfo;
 
+    //模型ID
+    private String modelId;
+
 
     /**
      * resource list  所选的资源文件

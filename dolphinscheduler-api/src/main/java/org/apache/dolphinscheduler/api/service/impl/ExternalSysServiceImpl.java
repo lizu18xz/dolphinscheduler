@@ -17,6 +17,7 @@ import org.apache.dolphinscheduler.plugin.task.api.TaskConstants;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -28,6 +29,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.apache.dolphinscheduler.api.enums.Status.*;
 import static org.apache.dolphinscheduler.common.constants.Constants.EXTERNAL_ADDRESS_LIST;
@@ -44,6 +46,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
 
     public static final String FETCH_PATH = "/admin-api/system/base-tp-dataset-detail/folderTreeAll";
 
+    public static final String MODEL_PATH = "/admin-api/system/model/getModelList";
     public static final String STORAGE_PAGE = "/admin-api/system/storage/page";
 
     @Autowired
@@ -314,6 +317,54 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             return outPutVolumeResponseList;
         } catch (Exception e) {
             log.error("get output volume error{}", e);
+            return null;
+        } finally {
+            try {
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public List<ModelResponse> getModelList(StorageRequest request) {
+        String address =
+                PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
+        if (StringUtils.isEmpty(address)) {
+            throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
+        }
+        //获取项目因为名称，对应仓库的名称
+        Project project = projectMapper.queryByName(request.getProjectName());
+        request.setProjectName(project.getProjectEnName());
+        String url = address + MODEL_PATH+"?projectName="+project.getProjectEnName();
+        HttpGet get = new HttpGet(url);
+        CloseableHttpClient httpClient;
+        httpClient = HttpRequestUtil.getHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(get);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                log.error("get model list error, return http status code: {} ", statusCode);
+            }
+            String resp;
+            HttpEntity entity = response.getEntity();
+            resp = EntityUtils.toString(entity, "utf-8");
+            log.info("model resp:{}", resp);
+            ObjectNode result = JSONUtils.parseObject(resp);
+            if (result.get("data") == null) {
+                log.info("获取model存储列表失败");
+                return new ArrayList<>();
+            }
+            String data = result.get("data").toString();
+            List<ModelResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<ModelResponse>>() {
+            });
+            responses = responses.stream().peek(x -> x.setModelId(x.getId())).collect(Collectors.toList());
+            return responses;
+        } catch (Exception e) {
+            log.error("get model list error{}", e);
             return null;
         } finally {
             try {

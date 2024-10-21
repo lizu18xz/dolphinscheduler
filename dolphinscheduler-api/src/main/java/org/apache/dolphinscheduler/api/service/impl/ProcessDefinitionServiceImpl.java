@@ -420,7 +420,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
             String taskType = taskDefinitionLog.getTaskType();
             ObjectNode objectNode = JSONUtils.parseObject(taskDefinitionLog.getTaskParams());
 
-            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S")) {
+            if (taskType.equals("K8S") || taskType.equals("PYTORCH_K8S") || taskType.equals("DATA_SET_K8S")) {
                 K8sQueueTaskRequest request = new K8sQueueTaskRequest();
                 //获取队列名称
                 long projectCode = taskDefinitionLog.getProjectCode();
@@ -433,7 +433,7 @@ public class ProcessDefinitionServiceImpl extends BaseServiceImpl implements Pro
                 request.setTaskType(taskDefinitionLog.getTaskType());
                 request.setPriority(taskDefinitionLog.getTaskPriority().getCode());
                 Map<String, Object> resourceInfo = new HashMap<>();
-                if (taskType.equals("K8S")) {
+                if (taskType.equals("K8S") || taskType.equals("DATA_SET_K8S")) {
                     JsonNode minCpuCores = objectNode.get("minCpuCores");
                     JsonNode minMemorySpace = objectNode.get("minMemorySpace");
                     JsonNode gpuType = objectNode.get("gpuType");
