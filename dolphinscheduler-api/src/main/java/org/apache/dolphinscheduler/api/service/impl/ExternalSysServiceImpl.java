@@ -178,6 +178,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                         //容器内部地址写死
                         .append("\"").append("/app/downloads").append("\"").append(",")
                         .append("]");
+                inputVolumeResponse.setFetchId(response.getId());
                 inputVolumeResponse.setFetchName(response.getName());
                 //拉取数据的参数
                 inputVolumeResponse.setFetchDataVolumeArgs(args.toString());
@@ -211,6 +212,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                         //容器内部地址写死
                         .append("\"").append("/app/downloads").append("\"").append(",")
                         .append("]");
+                inputVolumeResponse.setFetchId(response.getId());
                 inputVolumeResponse.setFetchName(response.getName());
                 //拉取数据的参数
                 inputVolumeResponse.setFetchDataVolumeArgs(args.toString());

@@ -10,24 +10,50 @@ import java.io.Serializable;
 public class FileCustomUploadVO implements Serializable {
 
     private String localFilePath;
-    //数据集id
+
+    /**
+     * 数据集id
+     */
     private Long dataId;
-    //桶名称
+
+    /**
+     * 桶名称
+     */
     private String bucketName;
-    //minio地址
+
+    /**
+     * minio地址
+     */
     private String host;
-    //对象存储key
+
+    /**
+     * 对象存储key
+     */
     private String key;
-    //对象存储secret
+
+    /**
+     * 对象存储secret
+     */
     private String appSecret;
-    //项目名称
+
+    /**
+     * 项目名称
+     */
     private String projectName;
-    //项目名称
+
+    /**
+     * 项目名称
+     */
     private Long projectId;
-    //对象存储前缀路径（比如说桶的前缀路径） 输出文件路径
+
+    /**
+     * 对象存储前缀路径（比如说桶的前缀路径） 输出文件路径
+     */
     private String path;
-//    //数据集集合名称
-//    private String dataName;
-    //0训练平台 1数据集处理
+
+    /**
+     * 0-训练平台 1-数据集处理
+     */
     private int type;
+
 }

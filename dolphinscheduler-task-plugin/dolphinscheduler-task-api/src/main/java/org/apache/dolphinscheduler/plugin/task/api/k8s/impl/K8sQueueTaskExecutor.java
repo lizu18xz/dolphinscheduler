@@ -225,7 +225,6 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 throw new TaskException("Parse yaml-like init commands and args failed", e);
             }
 
-
             String fetchImage =
                     PropertyUtils.getString(K8S_FETCH_IMAGE);
             List<Container> initContainers = new ArrayList<>();
@@ -252,7 +251,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //新增fetch的数据到宿主机
             Volume volume = new Volume();
             volume.setName("fetch-init");
-            String fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId;
+            //TODO 临时写死
+            String fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId + "/MNIST/raw";
             volume.setHostPath(new HostPathVolumeSource(fetchDataVolumeNode, "DirectoryOrCreate"));
             List<Volume> preVolumes = template.getSpec().getVolumes();
             preVolumes.add(volume);

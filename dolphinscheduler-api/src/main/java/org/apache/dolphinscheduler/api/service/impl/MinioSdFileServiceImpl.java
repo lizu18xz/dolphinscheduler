@@ -44,7 +44,7 @@ public class MinioSdFileServiceImpl {
         // 递归遍历文件夹
         uploadFilesFromFolder(folder, fileCustom, uploadResponses);
         updateMinio(fileCustom, uploadResponses);
-        return true; // 返回上传成功的文件信息
+        return true;
     }
 
     private void uploadFilesFromFolder(File folder, FileCustomUploadVO fileCustom, List<Map<String, Object>> uploadResponses) {
@@ -55,14 +55,14 @@ public class MinioSdFileServiceImpl {
                     String objectKey = file.getName(); // 使用文件名作为对象的 key
                     String path = null;
                     if (fileCustom.getType() == 0) {
-                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
-                    } else {
                         //TODO 临时使用
                         fileCustom.setBucketName("defect-prod");
                         fileCustom.setHost("http://10.78.5.103:9991");
                         fileCustom.setKey("V0M2NPhCfk1exMSxAbnI");
                         fileCustom.setAppSecret("5Ups2aOwxJQ4oaoVR42QwM1nLHS2GnNIBcSp3XpX");
                         path = file.getAbsolutePath();//训练的时候使用本地目录
+                    } else {
+                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
                     }
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
@@ -78,7 +78,7 @@ public class MinioSdFileServiceImpl {
 
                         uploadResponses.add(map);
                     } else {
-                        System.out.println("文件上传失败: " + file.getName());
+                        log.error("文件上传失败: {}", file.getName());
                     }
                 } else if (file.isDirectory()) { // 如果是目录，递归处理
                     uploadFilesFromFolder(file, fileCustom, uploadResponses);
@@ -130,16 +130,17 @@ public class MinioSdFileServiceImpl {
         CloseableHttpResponse response = null;
         try {
             response = httpClient.execute(httpPost);
+            log.info("minio response:{}", response);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
-                log.error("get volume list error, return http status code: {} ", statusCode);
+                log.error("update minio error, return http status code: {} ", statusCode);
                 return false;
             } else {
                 log.info("工作流结束业务文件存储成功并更新业务库 code: {} ", statusCode);
                 return true;
             }
         } catch (Exception e) {
-            log.error("get volume error{}", e);
+            log.error("update minio error{}", e);
             return null;
         } finally {
             try {

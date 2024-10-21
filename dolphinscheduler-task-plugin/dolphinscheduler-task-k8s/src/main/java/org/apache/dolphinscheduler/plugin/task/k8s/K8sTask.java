@@ -115,10 +115,11 @@ public class K8sTask extends AbstractK8sTask {
         //直接约定死
         String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
 
-        k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
-        k8sTaskMainParameters.setFetchDataVolume(volumePrefix+"/fetch/");
-        k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
-
+        if(!StringUtils.isEmpty(k8sTaskParameters.getFetchId())){
+            k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
+            k8sTaskMainParameters.setFetchDataVolume(volumePrefix+"/fetch/");
+            k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
+        }
 
         //设置约定的挂载信息
         k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
