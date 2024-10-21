@@ -55,5 +55,14 @@ public class FileCustomUploadVO implements Serializable {
      * 0-训练平台 1-数据集处理
      */
     private int type;
+    /**
+     * 模型id
+     */
+    private Long modelId;
+
+    /**
+     * 工作流id
+     */
+    private Long workFlowId;
 
 }

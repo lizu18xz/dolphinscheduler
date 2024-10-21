@@ -16,4 +16,9 @@ public class TpDatasetVO {
 
     @Schema(description = "*数据集版本id")
     private Long datasetVersionId;
+
+    /**
+     * 工作流id
+     */
+    private Long workFlowId;
 }

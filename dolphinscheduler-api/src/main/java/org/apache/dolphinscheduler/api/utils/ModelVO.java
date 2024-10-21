@@ -26,4 +26,12 @@ public class ModelVO implements Serializable {
 
     @Schema(description = "模型描述")
     private String modelDesc;
+
+    //模型id
+    private  Long modelId;
+    /**
+     * 工作流id
+     */
+    private Long workFlowId;
+
 }
