@@ -96,6 +96,7 @@ public class MinioSdFileServiceImpl {
         }
         String url = address + FETCH_PATH;
         WordVO wordVO = new WordVO();
+        //处理训练平类型
         if (fileCustom.getType() == 0) {
             List<ModelVO> modelList = new ArrayList<>();
             for (Map<String, Object> map : uploadResponses) {
@@ -111,19 +112,39 @@ public class MinioSdFileServiceImpl {
             }
             wordVO.setType("0");
             wordVO.setModelList(modelList);
-        } else {
-            TpDatasetVO tpDatasetVO = new TpDatasetVO();
-            tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
-            tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
-            List<Map<String, Object>> relativePathList = new ArrayList<>();
-            for (Map<String, Object> map : uploadResponses) {
-                Map<String, Object> dataMap = new HashMap<>(16);
-                dataMap.put("objectKey", map.get("url"));
-                dataMap.put("size", map.get("size"));
-                relativePathList.add(dataMap);
+        } else {//处理数据处理类型
+            if(fileCustom.getDataType() ==0) {//处理数据集数据
+                TpDatasetVO tpDatasetVO = new TpDatasetVO();
+                tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
+                tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
+                tpDatasetVO.setSourceId(fileCustom.getSourceId());
+                tpDatasetVO.setDataType(0);
+                List<Map<String, Object>> relativePathList = new ArrayList<>();
+                for (Map<String, Object> map : uploadResponses) {
+                    Map<String, Object> dataMap = new HashMap<>(16);
+                    dataMap.put("objectKey", map.get("objectKey"));
+                    dataMap.put("size", map.get("size"));
+                    relativePathList.add(dataMap);
+                }
+                wordVO.setType("1");
+                wordVO.setTpDatasetVO(tpDatasetVO);
+            }else {//处理切片数据类型
+                List<Map<String, Object>> relativePathList = new ArrayList<>();
+                TpDatasetVO tpDatasetVO = new TpDatasetVO();
+                tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
+                tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
+                tpDatasetVO.setSourceId(fileCustom.getSourceId());
+                tpDatasetVO.setDataType(1);
+                for (Map<String, Object> map : uploadResponses) {
+                    Map<String, Object> dataMap = new HashMap<>(16);
+                    dataMap.put("objectKey", map.get("objectKey"));
+                    dataMap.put("size", map.get("size"));
+                    dataMap.put("url",map.get("url"));
+                    relativePathList.add(dataMap);
+                }
+                wordVO.setType("1");
+                wordVO.setTpDatasetVO(tpDatasetVO);
             }
-            wordVO.setType("1");
-            wordVO.setTpDatasetVO(tpDatasetVO);
         }
         String msgToJson = JSONUtils.toJsonString(wordVO);
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);

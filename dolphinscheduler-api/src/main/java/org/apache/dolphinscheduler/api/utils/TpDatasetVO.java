@@ -21,4 +21,13 @@ public class TpDatasetVO {
      * 工作流id
      */
     private Long workFlowId;
+    /**
+     *  数据源id
+     */
+    private Long sourceId;
+
+    /**
+     * 0 数据集 1切片
+     */
+    private int dataType;
 }

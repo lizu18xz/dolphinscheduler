@@ -64,5 +64,15 @@ public class FileCustomUploadVO implements Serializable {
      * 工作流id
      */
     private Long workFlowId;
+    /**
+     * 0 数据集 1切片
+     */
+    private int dataType;
+    /**
+     * 来源id 例如车端数据id 切片数据id
+     */
+    private Long sourceId;
+
+
 
 }
