@@ -14,10 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.apache.dolphinscheduler.api.enums.Status.EXTERNAL_ADDRESS_NOT_EXIST;
 import static org.apache.dolphinscheduler.common.constants.Constants.EXTERNAL_ADDRESS_LIST;
@@ -53,6 +50,10 @@ public class MinioSdFileServiceImpl {
             for (File file : files) {
                 if (file.isFile()) { // 确保是文件而不是子文件夹
                     String objectKey = file.getName(); // 使用文件名作为对象的 key
+                    int lastDotIndex = objectKey.lastIndexOf(".");
+                    String prefix  = objectKey.substring(0, lastDotIndex);
+                    String suffix = objectKey.substring(lastDotIndex);
+                    objectKey = prefix+ UUID.randomUUID()+"."+suffix;
                     String path = null;
                     if (fileCustom.getType() == 0) {
                         //TODO 临时使用
