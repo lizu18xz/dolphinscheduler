@@ -72,12 +72,12 @@ public class ExternalSysController {
     @ResponseStatus(HttpStatus.OK)
     public Result<List<OutPutVolumeResponse>> getVolumeOutput(
             @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
-            @RequestParam(value = "projectName") String projectName) {
+            @RequestParam(value = "projectName") String projectName, @RequestParam(value = "type", required = false) String type) {
         StorageRequest request = new StorageRequest();
         request.setProjectName(projectName);
         request.setPageNo("1");
         request.setPageSize("1000");
-        return Result.success(externalSysService.getVolumeOutput(request));
+        return Result.success(externalSysService.getVolumeOutput(request, type));
     }
 
 
@@ -93,5 +93,26 @@ public class ExternalSysController {
         return Result.success(externalSysService.getModelList(request));
     }
 
+
+    @GetMapping(value = "/dataset-dir")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<TreeResponse>> getDataSetTreeList(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            @RequestParam(value = "projectName") String projectName,
+            @RequestParam(value = "type") String type) {
+
+        return Result.success(externalSysService.getDataSetTree(type));
+    }
+
+
+    @GetMapping(value = "/dataset-file")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<WrapFetchVolumeResponse>> getDataSetFileList(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            @RequestParam(value = "projectName") String projectName,
+            @RequestParam(value = "type") String type, @RequestParam(value = "dirId") String dirId) {
+
+        return Result.success(externalSysService.getDataSetFileList(type, projectName, dirId));
+    }
 
 }

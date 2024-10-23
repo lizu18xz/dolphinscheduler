@@ -80,15 +80,27 @@ public class K8sTaskParameters extends AbstractParameters {
     private String fetchDataVolumeArgs;
 
 
-    //数据存储相关信息
+    /**
+     * 数据存储相关信息,最终文件要上传的地方
+     */
     private String outputVolumeId;
 
     private String outputVolumeName;
 
     private String outputVolumeNameInfo;
 
-    //模型ID
+    /**
+     * 模型ID
+     */
     private String modelId;
+
+
+    /**
+     * 数据集相关参数
+     */
+    private String sourceId;
+
+    private String dataType;
 
 
     /**

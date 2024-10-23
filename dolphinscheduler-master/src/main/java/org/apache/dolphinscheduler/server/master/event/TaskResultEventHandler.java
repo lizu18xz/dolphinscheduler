@@ -158,7 +158,7 @@ public class TaskResultEventHandler implements TaskEventHandler {
                 k8sQueueTaskDao.updateStatus(taskCode, "待下次运行");
             }
             //进行回调，如果存在输出，则通知其上传到对象存储中
-            if (taskType.equals("K8S")) {
+            if (taskType.equals("K8S") || taskType.equals("DATA_SET_K8S")) {
                 K8sTaskParameters k8sTaskParameters =
                         JSONUtils.parseObject(taskInstance.getTaskParams(), K8sTaskParameters.class);
                 log.info("k8sTaskParameters:{}", JSONUtils.toJsonString(k8sTaskParameters));
@@ -186,13 +186,22 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     outputInfoMap.put("localFilePath", taskOutPutPath);
                     outputInfoMap.put("path", outputInfoMap.get("filePath"));
                     outputInfoMap.put("key", outputInfoMap.get("appKey"));
+                    outputInfoMap.put("appSecret",outputInfoMap.get("appSecret"));
+
+                    outputInfoMap.put("dataType", "");
+
+                    outputInfoMap.put("sourceId", "");
+
                 } else {
+                    String modelId = k8sTaskParameters.getModelId();
                     outputInfoMap = new HashMap<>();
                     outputInfoMap.put("projectName", projectEnName);
                     outputInfoMap.put("type", 0);
+                    outputInfoMap.put("modelId", modelId);
                     String taskOutPutPath = PropertyUtils.getString(K8S_VOLUME) + "/" + taskInstance.getProjectCode()
                             + "/output/" + taskInstance.getId();
                     outputInfoMap.put("localFilePath", taskOutPutPath);
+                    outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
                 }
                 log.info("request map:{}", JSONUtils.toJsonString(outputInfoMap));
                 HttpPost httpPost = HttpRequestUtil.constructHttpPost(address, JSONUtils.toJsonString(outputInfoMap));

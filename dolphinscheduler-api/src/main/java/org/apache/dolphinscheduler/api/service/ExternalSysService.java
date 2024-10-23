@@ -13,7 +13,12 @@ public interface ExternalSysService {
 
     List<StorageResponse> storagePage(StorageRequest request);
 
-    List<OutPutVolumeResponse> getVolumeOutput(StorageRequest request);
+    List<OutPutVolumeResponse> getVolumeOutput(StorageRequest request, String type);
 
     List<ModelResponse> getModelList(StorageRequest request);
+
+
+    List<TreeResponse> getDataSetTree(String type);
+
+    List<WrapFetchVolumeResponse> getDataSetFileList(String type, String projectName, String dirId);
 }
