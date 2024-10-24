@@ -50,25 +50,26 @@ public class MinioSdFileServiceImpl {
             for (File file : files) {
                 if (file.isFile()) { // 确保是文件而不是子文件夹
                     String objectKey = file.getName(); // 使用文件名作为对象的 key
-                    int lastDotIndex = objectKey.lastIndexOf(".");
-                    String prefix  = objectKey.substring(0, lastDotIndex);
-                    String suffix = objectKey.substring(lastDotIndex);
-                    objectKey = prefix+ UUID.randomUUID()+"."+suffix;
-                    String path = null;
+                    String path = file.getAbsolutePath();
                     if (fileCustom.getType() == 0) {
                         //TODO 临时使用
                         fileCustom.setBucketName("defect-prod");
                         fileCustom.setHost("http://10.78.5.103:9991");
                         fileCustom.setKey("V0M2NPhCfk1exMSxAbnI");
                         fileCustom.setAppSecret("5Ups2aOwxJQ4oaoVR42QwM1nLHS2GnNIBcSp3XpX");
-                        path = file.getAbsolutePath();//训练的时候使用本地目录
+                        int lastDotIndex = objectKey.lastIndexOf(".");
+                        String prefix  = objectKey.substring(0, lastDotIndex);
+                        String suffix = objectKey.substring(lastDotIndex);
+                        objectKey = prefix+ UUID.randomUUID()+suffix;
+//                        path = file.getAbsolutePath();//训练的时候使用本地目录
                     } else {
-                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
+                        objectKey = fileCustom.getPath()+"/"+ objectKey;
+//                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
                     }
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
                     log.info("uploadSuccess"+uploadSuccess);
-                    log.info(fileCustom.getBucketName()+":path="+path+":objectKey="+objectKey+":ileCustom.getHost()="+fileCustom.getHost()+":ileCustom.getHost()="+fileCustom.getAppSecret());
+                    log.info(fileCustom.getBucketName()+":path="+path+":objectKey="+objectKey+":ileCustom.key()="+fileCustom.getKey()+":ileCustom.getHost()="+fileCustom.getAppSecret());
                     if (uploadSuccess) {
                         // 构建文件的 URL
                         String fileUrl = minioUtils.getObjectUrl(fileCustom.getBucketName(), objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
