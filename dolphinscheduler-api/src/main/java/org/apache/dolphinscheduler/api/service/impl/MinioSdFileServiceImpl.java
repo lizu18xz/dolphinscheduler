@@ -67,7 +67,8 @@ public class MinioSdFileServiceImpl {
                     }
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
-
+                    log.info("uploadSuccess"+uploadSuccess);
+                    log.info(fileCustom.getBucketName()+":path="+path+":objectKey="+objectKey+":ileCustom.getHost()="+fileCustom.getHost()+":ileCustom.getHost()="+fileCustom.getAppSecret());
                     if (uploadSuccess) {
                         // 构建文件的 URL
                         String fileUrl = minioUtils.getObjectUrl(fileCustom.getBucketName(), objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
@@ -76,7 +77,7 @@ public class MinioSdFileServiceImpl {
                         map.put("size", file.length());
                         map.put("objectKey", objectKey);
                         map.put("url", fileUrl);
-
+                        log.info("fileUrl"+fileUrl);
                         uploadResponses.add(map);
                     } else {
                         log.error("文件上传失败: {}", file.getName());
