@@ -129,6 +129,7 @@ public class MinioSdFileServiceImpl {
                     dataMap.put("size", map.get("size"));
                     relativePathList.add(dataMap);
                 }
+                tpDatasetVO.setRelativePathList(relativePathList);
                 wordVO.setType("1");
                 wordVO.setTpDatasetVO(tpDatasetVO);
             }else {//处理切片数据类型
@@ -146,6 +147,7 @@ public class MinioSdFileServiceImpl {
                     relativePathList.add(dataMap);
                 }
                 wordVO.setType("1");
+                tpDatasetVO.setRelativePathList(relativePathList);
                 wordVO.setTpDatasetVO(tpDatasetVO);
             }
         }
