@@ -186,11 +186,13 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     outputInfoMap.put("localFilePath", taskOutPutPath);
                     outputInfoMap.put("path", outputInfoMap.get("filePath"));
                     outputInfoMap.put("key", outputInfoMap.get("appKey"));
-                    outputInfoMap.put("appSecret",outputInfoMap.get("appSecret"));
+                    outputInfoMap.put("appSecret", outputInfoMap.get("appSecret"));
 
-                    outputInfoMap.put("dataType", "");
+                    outputInfoMap.put("dataType", k8sTaskParameters.getDataType());
 
-                    outputInfoMap.put("sourceId", "");
+                    //源ID
+                    outputInfoMap.put("sourceId", k8sTaskParameters.getFetchId());
+                    outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
 
                 } else {
                     String modelId = k8sTaskParameters.getModelId();

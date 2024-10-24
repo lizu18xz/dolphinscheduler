@@ -29,6 +29,8 @@ import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 @Data
 public class K8sTaskMainParameters {
 
+    private String taskType;
+
     private String image;
     private String command;
     private String args;

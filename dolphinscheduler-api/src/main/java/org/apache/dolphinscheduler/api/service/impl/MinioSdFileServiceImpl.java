@@ -58,18 +58,18 @@ public class MinioSdFileServiceImpl {
                         fileCustom.setKey("V0M2NPhCfk1exMSxAbnI");
                         fileCustom.setAppSecret("5Ups2aOwxJQ4oaoVR42QwM1nLHS2GnNIBcSp3XpX");
                         int lastDotIndex = objectKey.lastIndexOf(".");
-                        String prefix  = objectKey.substring(0, lastDotIndex);
+                        String prefix = objectKey.substring(0, lastDotIndex);
                         String suffix = objectKey.substring(lastDotIndex);
-                        objectKey = prefix+ UUID.randomUUID()+suffix;
+                        objectKey = prefix + UUID.randomUUID() + suffix;
 //                        path = file.getAbsolutePath();//训练的时候使用本地目录
                     } else {
-                        objectKey = fileCustom.getPath()+"/"+ objectKey;
+                        objectKey = fileCustom.getPath() + objectKey;
 //                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
                     }
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
-                    log.info("uploadSuccess"+uploadSuccess);
-                    log.info(fileCustom.getBucketName()+":path="+path+":objectKey="+objectKey+":ileCustom.key()="+fileCustom.getKey()+":ileCustom.getHost()="+fileCustom.getAppSecret());
+                    log.info("uploadSuccess" + uploadSuccess);
+                    log.info(fileCustom.getBucketName() + ":path=" + path + ":objectKey=" + objectKey + ":ileCustom.key()=" + fileCustom.getKey() + ":ileCustom.getHost()=" + fileCustom.getAppSecret());
                     if (uploadSuccess) {
                         // 构建文件的 URL
                         String fileUrl = minioUtils.getObjectUrl(fileCustom.getBucketName(), objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
@@ -78,7 +78,7 @@ public class MinioSdFileServiceImpl {
                         map.put("size", file.length());
                         map.put("objectKey", objectKey);
                         map.put("url", fileUrl);
-                        log.info("fileUrl"+fileUrl);
+                        log.info("fileUrl" + fileUrl);
                         uploadResponses.add(map);
                     } else {
                         log.error("文件上传失败: {}", file.getName());
@@ -116,7 +116,7 @@ public class MinioSdFileServiceImpl {
             wordVO.setType("0");
             wordVO.setModelList(modelList);
         } else {//处理数据处理类型
-            if(fileCustom.getDataType() ==0) {//处理数据集数据
+            if (fileCustom.getDataType() == 0) {//处理数据集数据
                 TpDatasetVO tpDatasetVO = new TpDatasetVO();
                 tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
                 tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
@@ -132,7 +132,7 @@ public class MinioSdFileServiceImpl {
                 tpDatasetVO.setRelativePathList(relativePathList);
                 wordVO.setType("1");
                 wordVO.setTpDatasetVO(tpDatasetVO);
-            }else {//处理切片数据类型
+            } else {//处理切片数据类型
                 List<Map<String, Object>> relativePathList = new ArrayList<>();
                 TpDatasetVO tpDatasetVO = new TpDatasetVO();
                 tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
@@ -143,7 +143,7 @@ public class MinioSdFileServiceImpl {
                     Map<String, Object> dataMap = new HashMap<>(16);
                     dataMap.put("objectKey", map.get("objectKey"));
                     dataMap.put("size", map.get("size"));
-                    dataMap.put("url",map.get("url"));
+                    dataMap.put("url", map.get("url"));
                     relativePathList.add(dataMap);
                 }
                 wordVO.setType("1");
@@ -152,6 +152,7 @@ public class MinioSdFileServiceImpl {
             }
         }
         String msgToJson = JSONUtils.toJsonString(wordVO);
+        log.info("minio msgToJson:{}", msgToJson);
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
         CloseableHttpClient httpClient;
 

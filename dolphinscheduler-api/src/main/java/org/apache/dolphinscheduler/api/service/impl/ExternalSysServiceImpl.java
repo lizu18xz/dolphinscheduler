@@ -271,6 +271,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
         }
         String url = address + FETCH_PATH;
+        if (type == null) {
+            type = "0";
+        }
         if (StringUtils.isEmpty(type)) {
             type = "0";
         }
@@ -492,6 +495,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     }
 
     private void parseOutPutParent(List<DataSetResponse> responses, List<OutPutVolumeResponse> outPutVolumeResponseList) {
+        if (CollectionUtils.isEmpty(responses)) {
+            return;
+        }
         for (DataSetResponse response : responses) {
             OutPutVolumeResponse outPutVolumeResponse = new OutPutVolumeResponse();
             if (response.getType() == null) {

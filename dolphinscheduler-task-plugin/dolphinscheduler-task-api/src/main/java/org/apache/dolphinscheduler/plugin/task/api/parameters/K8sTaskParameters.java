@@ -34,6 +34,8 @@ import lombok.Data;
 @Data
 public class K8sTaskParameters extends AbstractParameters {
 
+    private String taskType;
+
     private String image;
     private String namespace;
     private String command;
