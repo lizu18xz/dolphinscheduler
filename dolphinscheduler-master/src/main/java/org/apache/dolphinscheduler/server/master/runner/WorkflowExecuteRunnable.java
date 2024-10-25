@@ -1924,6 +1924,7 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
             DependResult dependResult = getDependResultForTask(task);
             if (DependResult.SUCCESS == dependResult) {
                 log.info("The dependResult of task {} is success, so ready to submit to execute", task.getName());
+                //在这俩提交任务
                 if (!executeTask(task)) {
                     this.taskFailedSubmit = true;
                     // Remove and add to complete map and error map

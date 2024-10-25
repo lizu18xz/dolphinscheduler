@@ -45,8 +45,13 @@ public abstract class AbstractK8sTask extends AbstractRemoteTask {
         super(taskRequest);
         Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
         if (enable) {
-            log.info("k8s queue enable");
-            this.abstractK8sTaskExecutor = new K8sQueueTaskExecutor(log, taskRequest);
+            String taskType = taskRequest.getTaskType();
+            if (taskType.equalsIgnoreCase("DATA_SET_K8S")) {
+                this.abstractK8sTaskExecutor = new DataSetK8sQueueTaskExecutor(log, taskRequest);
+            } else {
+                log.info("k8s queue enable");
+                this.abstractK8sTaskExecutor = new K8sQueueTaskExecutor(log, taskRequest);
+            }
         } else {
             this.abstractK8sTaskExecutor = new K8sTaskExecutor(log, taskRequest);
         }
@@ -62,7 +67,7 @@ public abstract class AbstractK8sTask extends AbstractRemoteTask {
                 Boolean enable = PropertyUtils.getBoolean(ENABLE_K8S_QUEUE, false);
                 if (enable) {
                     this.abstractK8sTaskExecutor = new PytorchK8sQueueTaskExecutor(log, taskRequest);
-                }else {
+                } else {
                     this.abstractK8sTaskExecutor = new PytorchK8sOperatorTaskExecutor(log, taskRequest);
                 }
                 break;

@@ -25,12 +25,13 @@ import org.apache.dolphinscheduler.common.utils.PropertyUtils;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTask;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sTaskMainParameters;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.DataSetK8sTaskMainParameters;
+import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
 import org.apache.dolphinscheduler.plugin.task.api.model.Label;
 import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
 import org.apache.dolphinscheduler.plugin.task.api.model.Property;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
-import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
+import org.apache.dolphinscheduler.plugin.task.api.parameters.DataSetK8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
 
 import java.util.*;
@@ -50,7 +51,7 @@ public class DataSetK8sTask extends AbstractK8sTask {
     /**
      * task parameters
      */
-    private final K8sTaskParameters k8sTaskParameters;
+    private final DataSetK8sTaskParameters k8sTaskParameters;
 
     /**
      * @param taskRequest taskRequest
@@ -58,7 +59,7 @@ public class DataSetK8sTask extends AbstractK8sTask {
     public DataSetK8sTask(TaskExecutionContext taskRequest) {
         super(taskRequest);
         this.taskExecutionContext = taskRequest;
-        this.k8sTaskParameters = JSONUtils.parseObject(taskExecutionContext.getTaskParams(), K8sTaskParameters.class);
+        this.k8sTaskParameters = JSONUtils.parseObject(taskExecutionContext.getTaskParams(), DataSetK8sTaskParameters.class);
         log.info("Initialize data set k8s task parameters {}", JSONUtils.toPrettyJsonString(k8sTaskParameters));
         if (k8sTaskParameters == null || !k8sTaskParameters.checkParameters()) {
             throw new TaskException("data set K8S task params is not valid");
@@ -77,7 +78,7 @@ public class DataSetK8sTask extends AbstractK8sTask {
 
     @Override
     protected String buildCommand() {
-        K8sTaskMainParameters k8sTaskMainParameters = new K8sTaskMainParameters();
+        DataSetK8sTaskMainParameters k8sTaskMainParameters = new DataSetK8sTaskMainParameters();
         Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
         String globalParams = taskExecutionContext.getGlobalParams();
         log.info("paramsMap:{}", JSONUtils.toJsonString(paramsMap));
@@ -109,12 +110,14 @@ public class DataSetK8sTask extends AbstractK8sTask {
         //直接约定死
         String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
 
-        if (!StringUtils.isEmpty(k8sTaskParameters.getFetchId())) {
-            k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
-            k8sTaskMainParameters.setFetchDataVolume(volumePrefix + "/fetch/");
-            k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
+        if (!CollectionUtils.isEmpty(k8sTaskParameters.getFetchInfos())) {
+            List<FetchInfo> fetchInfos = k8sTaskParameters.getFetchInfos();
+            fetchInfos = fetchInfos.stream().map(x -> {
+                x.setFetchDataVolume(volumePrefix + "/fetch/");
+                return x;
+            }).collect(Collectors.toList());
+            k8sTaskMainParameters.setFetchInfos(fetchInfos);
         }
-
         //设置约定的挂载信息
         k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
         k8sTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
