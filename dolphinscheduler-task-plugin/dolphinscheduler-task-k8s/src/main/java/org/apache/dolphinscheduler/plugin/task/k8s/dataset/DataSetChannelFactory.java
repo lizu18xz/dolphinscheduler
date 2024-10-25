@@ -20,7 +20,6 @@ package org.apache.dolphinscheduler.plugin.task.k8s.dataset;
 import com.google.auto.service.AutoService;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannel;
 import org.apache.dolphinscheduler.plugin.task.api.TaskChannelFactory;
-import org.apache.dolphinscheduler.plugin.task.k8s.K8sTaskChannel;
 import org.apache.dolphinscheduler.spi.params.base.PluginParams;
 
 import java.util.List;
@@ -40,6 +39,6 @@ public class DataSetChannelFactory implements TaskChannelFactory {
 
     @Override
     public TaskChannel create() {
-        return new K8sTaskChannel();
+        return new DataSetK8sTaskChannel();
     }
 }
