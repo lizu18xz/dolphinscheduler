@@ -57,3 +57,27 @@ CREATE TABLE `t_ds_k8s_queue_task`
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE = utf8_bin;
 
 
+
+
+
+DROP TABLE IF EXISTS `t_ds_k8s_dataset_file`;
+CREATE TABLE `t_ds_k8s_dataset_file`
+(
+    `id`           int(11) NOT NULL AUTO_INCREMENT COMMENT 'key',
+    `name`         varchar(255) DEFAULT NULL COMMENT 'queue name',
+    `code`         bigint(20) NOT NULL COMMENT 'task的标识code',
+    `flow_name`    varchar(255) DEFAULT NULL COMMENT 'flowName',
+    `task_name`    varchar(255) DEFAULT NULL COMMENT 'taskName',
+    `task_type`    varchar(255) DEFAULT NULL COMMENT 'taskType',
+    `task_instance_id`  int(11) DEFAULT NULL COMMENT 'taskInstanceId',
+    `status`       varchar(255) DEFAULT NULL COMMENT '文件处理状态',
+    `create_time`  datetime NOT NULL COMMENT 'create time',
+    `update_time`  datetime     DEFAULT NULL COMMENT 'update time',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_name`(`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE = utf8_bin;
+
+
+
+
+

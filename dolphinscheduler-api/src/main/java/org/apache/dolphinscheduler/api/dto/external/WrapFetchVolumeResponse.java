@@ -13,6 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 public class WrapFetchVolumeResponse {
 
+    //前端需要
+    private String dirId;
+
     private String fetchId;
 
     private String fetchName;

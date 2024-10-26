@@ -478,6 +478,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
                 //宿主机路径,拉取镜像存储的宿主机路径,最外层,具体目录需要在内部自己修改
                 inputVolumeResponse.setFetchDataVolume(fetchPath);
                 inputVolumeResponse.setFetchType(fileResponse.getType());
+                inputVolumeResponse.setDirId(dirId);
                 fetchVolumeResponses.add(inputVolumeResponse);
             }
             return fetchVolumeResponses;

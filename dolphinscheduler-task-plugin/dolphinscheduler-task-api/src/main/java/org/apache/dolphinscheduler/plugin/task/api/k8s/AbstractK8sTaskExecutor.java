@@ -51,5 +51,6 @@ public abstract class AbstractK8sTaskExecutor {
 
     public abstract void submitJob2k8s(String k8sParameterStr);
 
+
     public abstract void stopJobOnK8s(String k8sParameterStr);
 }
