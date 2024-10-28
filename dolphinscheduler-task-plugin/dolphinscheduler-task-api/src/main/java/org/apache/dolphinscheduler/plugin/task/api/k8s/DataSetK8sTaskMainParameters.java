@@ -62,6 +62,8 @@ public class DataSetK8sTaskMainParameters {
      */
     private List<FetchInfo> fetchInfos;
 
+    private Boolean multiple;
+
 
     //数据存储相关信息
     private String outputVolumeId;

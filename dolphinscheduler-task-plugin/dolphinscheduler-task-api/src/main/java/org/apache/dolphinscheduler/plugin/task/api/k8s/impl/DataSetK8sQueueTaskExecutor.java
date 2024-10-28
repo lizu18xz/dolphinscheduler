@@ -489,8 +489,9 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         k8sUtils.buildClient(configYaml);
         //根据选择的数据来源来进行任务的执行
         List<FetchInfo> fetchInfos = k8STaskMainParameters.getFetchInfos();
-        if (!CollectionUtils.isEmpty(fetchInfos)) {
-
+        Boolean multiple = k8STaskMainParameters.getMultiple();
+        if (multiple) {
+            log.info("多pod 执行");
             if (null == TaskExecutionContextCacheManager.getByTaskInstanceId(taskInstanceId)) {
                 result.setExitStatusCode(EXIT_CODE_KILL);
                 return result;
@@ -503,6 +504,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             doBatchSubmitJob2K8s(fetchInfos, k8sParameterStr, taskInstanceId, k8STaskMainParameters, result);
 
         } else {
+            log.info("单pod 执行");
             if (null == TaskExecutionContextCacheManager.getByTaskInstanceId(taskInstanceId)) {
                 result.setExitStatusCode(EXIT_CODE_KILL);
                 return result;

@@ -286,6 +286,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         if (type.equals("1")) {
             url = address + TREE2;
         }
+        if (type.equals("2")) {
+            url = address + TREE3;
+        }
         String msgToJson = JSONUtils.toJsonString(request);
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
         CloseableHttpClient httpClient;

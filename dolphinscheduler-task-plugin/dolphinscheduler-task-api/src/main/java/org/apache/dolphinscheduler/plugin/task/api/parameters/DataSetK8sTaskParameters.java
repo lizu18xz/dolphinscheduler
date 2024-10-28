@@ -66,6 +66,11 @@ public class DataSetK8sTaskParameters extends AbstractParameters {
     private List<FetchInfo> fetchInfos;
 
     /**
+     * 是否多pod运行
+     * */
+    private Boolean multiple;
+
+    /**
      * 数据存储相关信息,最终文件要上传的地方
      */
     private String outputVolumeId;
