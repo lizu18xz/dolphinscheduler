@@ -49,8 +49,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     public static final String STORAGE_PAGE = "/admin-api/system/storage/page";
     public static final String TREE1 = "/admin-api/system/baseOriginalData/haitun/folderOriginalTreeAll";
     public static final String TREE2 = "/admin-api/system/baseOriginalData/haitun/folderProblemTreeAll";
+    public static final String TREE3 = "/admin-api/system/sdFileDetail/haitun/sdFileDetailFolderTreeAll";
     public static final String FILE1 = "/admin-api/system/baseOriginalData/haitun/haitunOriginalFileByParentId";
     public static final String FILE2 = "/admin-api/system/baseOriginalData/haitun/haitunProblemFileByParentId";
+    public static final String FILE3 = "/admin-api/system/sdFileDetail/haitun/haitunSdFileByParentId";
 
     @Autowired
     private ProjectMapper projectMapper;
@@ -172,7 +174,11 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             }
             if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
                 StringBuilder args = new StringBuilder();
-                args.append("[").append("\"").append(response.getType()).append("\"").append(",").append("\"").append(response.getHost()).append("\"").append(",").append("\"").append(response.getAppKey()).append("\"").append(",").append("\"").append(response.getAppSecret()).append("\"").append(",").append("\"").append(response.getBucketName()).append("\"").append(",").append("\"").append(response.getFilePath()).append("\"").append(",")
+                args.append("[").append("\"").append(response.getType()).append("\"").append(",").append("\"")
+                        .append(response.getHost()).append("\"").append(",").append("\"").append(response.getAppKey()).append("\"")
+                        .append(",").append("\"").append(response.getAppSecret()).append("\"").append(",").append("\"")
+                        .append(response.getBucketName()).append("\"").append(",").append("\"")
+                        .append(response.getRelativePath()).append("\"").append(",")
                         //容器内部地址写死
                         .append("\"").append("/app/downloads").append("\"").append(",").append("]");
                 inputVolumeResponse.setFetchId(response.getId());
@@ -199,7 +205,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             }
             if (!response.getType().equals(TaskConstants.VOLUME_LOCAL)) {
                 StringBuilder args = new StringBuilder();
-                args.append("[").append("\"").append(response.getType()).append("\"").append(",").append("\"").append(response.getHost()).append("\"").append(",").append("\"").append(response.getAppKey()).append("\"").append(",").append("\"").append(response.getAppSecret()).append("\"").append(",").append("\"").append(response.getBucketName()).append("\"").append(",").append("\"").append(response.getFilePath()).append("\"").append(",")
+                args.append("[").append("\"").append(response.getType()).append("\"").append(",").append("\"").append(response.getHost()).append("\"").append(",").append("\"").append(response.getAppKey()).append("\"").append(",").append("\"").append(response.getAppSecret()).append("\"").append(",").append("\"").append(response.getBucketName()).append("\"").append(",").append("\"").append(response.getRelativePath()).append("\"").append(",")
                         //容器内部地址写死
                         .append("\"").append("/app/downloads").append("\"").append(",").append("]");
                 inputVolumeResponse.setFetchId(response.getId());
@@ -378,8 +384,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         String url = address;
         if (type.equals("0")) {
             url = url + TREE1;
-        } else {
+        } else if (type.equals("1")) {
             url = url + TREE2;
+        } else {
+            url = url + TREE3;
         }
         Map<String, Object> map = new HashMap<>();
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, JSONUtils.toJsonString(map));
@@ -428,8 +436,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         String url = address;
         if (type.equals("0")) {
             url = url + FILE1;
-        } else {
+        } else if (type.equals("1")) {
             url = url + FILE2;
+        } else {
+            url = url + FILE3;
         }
 
         Map<String, Object> map = new HashMap<>();

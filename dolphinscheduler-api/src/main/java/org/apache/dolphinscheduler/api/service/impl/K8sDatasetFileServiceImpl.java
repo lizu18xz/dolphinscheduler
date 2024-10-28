@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,12 +30,13 @@ public class K8sDatasetFileServiceImpl extends BaseServiceImpl implements K8sDat
     private K8sDatasetFileMapper k8sDatasetFileMapper;
 
     @Override
-    public Result<PageInfo<K8sDatasetFileResponse>> queryListPaging(User loginUser, Integer pageSize, Integer pageNo, String taskInstanceId) {
+    public Result<PageInfo<K8sDatasetFileResponse>> queryListPaging(User loginUser, Integer pageSize, Integer pageNo, String processInstanceId) {
         Result<PageInfo<K8sDatasetFileResponse>> result = new Result();
         PageInfo<K8sDatasetFileResponse> pageInfo = new PageInfo<>(pageNo, pageSize);
         Page<K8sDatasetFile> page = new Page<>(pageNo, pageSize);
         QueryWrapper<K8sDatasetFile> wrapper = new QueryWrapper();
-        wrapper.eq("task_instance_id", taskInstanceId);
+        //wrapper.eq("task_instance_id", taskInstanceId);
+        wrapper.eq("process_instance_id", processInstanceId);
         Page<K8sDatasetFile> k8sDatasetFilePage = k8sDatasetFileMapper.selectPage(page, wrapper);
         List<K8sDatasetFile> k8sDatasetFiles = k8sDatasetFilePage.getRecords();
         List<K8sDatasetFileResponse> responseList = k8sDatasetFiles.stream().map(x -> {
@@ -54,6 +56,8 @@ public class K8sDatasetFileServiceImpl extends BaseServiceImpl implements K8sDat
         Result result = new Result();
         K8sDatasetFile k8sDatasetFile = new K8sDatasetFile();
         BeanUtils.copyProperties(request, k8sDatasetFile);
+        k8sDatasetFile.setCreateTime(new Date());
+        k8sDatasetFile.setUpdateTime(new Date());
         k8sDatasetFileMapper.insert(k8sDatasetFile);
         result.setData(k8sDatasetFile);
         putMsg(result, Status.SUCCESS);

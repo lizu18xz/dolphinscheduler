@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface K8sDatasetFileService {
 
-    Result<PageInfo<K8sDatasetFileResponse>> queryListPaging(User loginUser, Integer pageSize, Integer pageNo, String taskInstanceId);
+    Result<PageInfo<K8sDatasetFileResponse>> queryListPaging(User loginUser, Integer pageSize, Integer pageNo, String processInstanceId);
 
     Result create(K8sDatasetFileRequest request);
 
