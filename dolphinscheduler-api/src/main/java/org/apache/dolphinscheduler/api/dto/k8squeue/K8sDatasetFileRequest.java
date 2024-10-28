@@ -18,18 +18,7 @@ public class K8sDatasetFileRequest {
      */
     private Integer id;
 
-    /**
-     * 队列名称
-     */
     private String name;
-
-    private Long code;
-
-    private String flowName;
-
-    private String taskName;
-
-    private String taskType;
 
     /**
      * 动态更新最新的

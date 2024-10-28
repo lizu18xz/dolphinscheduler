@@ -64,11 +64,7 @@ DROP TABLE IF EXISTS `t_ds_k8s_dataset_file`;
 CREATE TABLE `t_ds_k8s_dataset_file`
 (
     `id`           int(11) NOT NULL AUTO_INCREMENT COMMENT 'key',
-    `name`         varchar(255) DEFAULT NULL COMMENT 'queue name',
-    `code`         bigint(20) NOT NULL COMMENT 'task的标识code',
-    `flow_name`    varchar(255) DEFAULT NULL COMMENT 'flowName',
-    `task_name`    varchar(255) DEFAULT NULL COMMENT 'taskName',
-    `task_type`    varchar(255) DEFAULT NULL COMMENT 'taskType',
+    `name`         varchar(255) DEFAULT NULL COMMENT '文件 name',
     `task_instance_id`  int(11) DEFAULT NULL COMMENT 'taskInstanceId',
     `status`       varchar(255) DEFAULT NULL COMMENT '文件处理状态',
     `create_time`  datetime NOT NULL COMMENT 'create time',

@@ -61,7 +61,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static org.apache.dolphinscheduler.common.constants.Constants.K8S_FETCH_IMAGE;
-import static org.apache.dolphinscheduler.common.constants.Constants.TASK_UPLOAD_ADDRESS;
+import static org.apache.dolphinscheduler.common.constants.Constants.TASK_DATASET_ADDRESS;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.*;
 
 /**
@@ -550,8 +550,8 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 TaskResponse response = (TaskResponse) future.get();
                 //处理所有的返回,获取每个任务成功失败情况
                 int exitStatusCode = response.getExitStatusCode();
-                log.info("exitStatusCode:{},{}", exitStatusCode, response.getResultString());
-                dataSetInfos.add(response.getResultString());
+                dataSetInfos.add(response.getResultString() + "," + exitStatusCode);
+                log.info("exitStatusCode:{}", response.getResultString() + "," + exitStatusCode);
             }
             saveDataSetInfo(dataSetInfos);
             //设置成功
@@ -568,14 +568,19 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
     private void saveDataSetInfo(List<String> dataSetInfo) {
         try {
             String address =
-                    PropertyUtils.getString(TASK_UPLOAD_ADDRESS);
+                    PropertyUtils.getString(TASK_DATASET_ADDRESS);
             if (StringUtils.isEmpty(address)) {
                 throw new IllegalArgumentException("task.upload.address not found");
             }
             List<Map<String, Object>> lists = new ArrayList<>();
             Map<String, Object> outputInfoMap = new HashMap<>();
             for (String info : dataSetInfo) {
-
+                //index + "," + fetchInfo.getFetchName() + "," + taskInstanceId
+                String[] split = info.split(",");
+                outputInfoMap.put("name", split[1]);
+                outputInfoMap.put("taskInstanceId", split[2]);
+                outputInfoMap.put("status", split[3]);
+                lists.add(outputInfoMap);
             }
             HttpPost httpPost = HttpRequestUtil.constructHttpPost(address, JSONUtils.toJsonString(lists));
             CloseableHttpClient httpClient = HttpRequestUtil.getHttpClient();
@@ -636,6 +641,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 registerSingleBatchJobWatcher(Integer.toString(taskInstanceId), result,
                         k8STaskMainParameters, index, queueJob);
             } catch (Exception e) {
+                result.setExitStatusCode(EXIT_CODE_FAILURE);
                 cancelApplication(k8sParameterStr);
                 log.info("批量任务中单个任务异常:{}", e);
             }

@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sDatasetFileRequest;
 import org.apache.dolphinscheduler.api.dto.k8squeue.K8sDatasetFileResponse;
-import org.apache.dolphinscheduler.api.dto.k8squeue.K8sQueueResponse;
 import org.apache.dolphinscheduler.api.enums.Status;
 import org.apache.dolphinscheduler.api.service.K8sDatasetFileService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
@@ -18,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -44,13 +44,10 @@ public class K8sDatasetFileController extends BaseController {
     }
 
 
-    /**
-     * 创建队列
-     */
     @PostMapping(value = "/create")
     @ResponseStatus(HttpStatus.OK)
     public Result create(@RequestBody K8sDatasetFileRequest request) {
-        log.info("create queue:{}", JSONUtils.toPrettyJsonString(request));
+        log.info("create dataset file:{}", JSONUtils.toPrettyJsonString(request));
         //保存数据库
         return k8sDatasetFileService.create(request);
     }
@@ -62,7 +59,7 @@ public class K8sDatasetFileController extends BaseController {
     @PostMapping(value = "/createBatch")
     @ResponseStatus(HttpStatus.OK)
     public Result batchCreate(@RequestBody List<K8sDatasetFileRequest> requests) {
-        log.info("create queue:{}", JSONUtils.toPrettyJsonString(requests));
+        log.info("create dataset file:{}", JSONUtils.toPrettyJsonString(requests));
         //保存数据库
         return k8sDatasetFileService.batchCreate(requests);
     }
