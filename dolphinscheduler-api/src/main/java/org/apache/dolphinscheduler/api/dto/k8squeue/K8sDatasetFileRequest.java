@@ -25,6 +25,8 @@ public class K8sDatasetFileRequest {
      */
     private int taskInstanceId;
 
+    private int processInstanceId;
+
     private String status;
 
     /**

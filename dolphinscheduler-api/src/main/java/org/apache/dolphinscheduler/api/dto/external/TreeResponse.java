@@ -23,7 +23,7 @@ public class TreeResponse {
 
     private String bucketName;
 
-    private String filePath;
+    private String relativePath;
 
     private String host;
 

@@ -567,6 +567,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
 
     private void saveDataSetInfo(List<String> dataSetInfo) {
         try {
+            int processInstanceId = taskRequest.getProcessInstanceId();
             String address =
                     PropertyUtils.getString(TASK_DATASET_ADDRESS);
             if (StringUtils.isEmpty(address)) {
@@ -580,6 +581,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 outputInfoMap.put("name", split[1]);
                 outputInfoMap.put("taskInstanceId", split[2]);
                 outputInfoMap.put("status", split[3]);
+                outputInfoMap.put("processInstanceId", processInstanceId);
                 lists.add(outputInfoMap);
             }
             HttpPost httpPost = HttpRequestUtil.constructHttpPost(address, JSONUtils.toJsonString(lists));

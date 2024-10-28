@@ -60,17 +60,18 @@ CREATE TABLE `t_ds_k8s_queue_task`
 
 
 
+
 DROP TABLE IF EXISTS `t_ds_k8s_dataset_file`;
 CREATE TABLE `t_ds_k8s_dataset_file`
 (
     `id`           int(11) NOT NULL AUTO_INCREMENT COMMENT 'key',
     `name`         varchar(255) DEFAULT NULL COMMENT '文件 name',
     `task_instance_id`  int(11) DEFAULT NULL COMMENT 'taskInstanceId',
+    `process_instance_id`  int(11) DEFAULT NULL COMMENT 'processInstanceId',
     `status`       varchar(255) DEFAULT NULL COMMENT '文件处理状态',
     `create_time`  datetime NOT NULL COMMENT 'create time',
     `update_time`  datetime     DEFAULT NULL COMMENT 'update time',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `unique_name`(`name`)
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE = utf8_bin;
 
 

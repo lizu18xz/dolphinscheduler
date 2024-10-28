@@ -29,7 +29,7 @@ public class DataSetResponse {
     private String bucketName;
 
     //存储中的路径
-    private String filePath;
+    private String relativePath ;
 
     private String projectIds;
 

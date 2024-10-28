@@ -184,7 +184,7 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     String taskOutPutPath = PropertyUtils.getString(K8S_VOLUME) + "/" + taskInstance.getProjectCode()
                             + "/output/" + taskInstance.getId();
                     outputInfoMap.put("localFilePath", taskOutPutPath);
-                    outputInfoMap.put("path", outputInfoMap.get("filePath"));
+                    outputInfoMap.put("path", outputInfoMap.get("relativePath"));
                     outputInfoMap.put("key", outputInfoMap.get("appKey"));
                     outputInfoMap.put("appSecret", outputInfoMap.get("appSecret"));
 

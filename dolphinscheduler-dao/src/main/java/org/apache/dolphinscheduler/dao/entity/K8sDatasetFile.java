@@ -33,6 +33,8 @@ public class K8sDatasetFile {
      */
     private int taskInstanceId;
 
+    private int processInstanceId;
+
     private String status;
 
     /**
