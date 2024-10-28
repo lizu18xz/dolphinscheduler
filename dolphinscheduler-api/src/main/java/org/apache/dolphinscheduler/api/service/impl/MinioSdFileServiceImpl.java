@@ -63,8 +63,10 @@ public class MinioSdFileServiceImpl {
                         objectKey = prefix + UUID.randomUUID() + suffix;
 //                        path = file.getAbsolutePath();//训练的时候使用本地目录
                     } else {
-                        objectKey = fileCustom.getPath() + objectKey;
+//                        objectKey = fileCustom.getPath() + objectKey;
 //                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
+                        objectKey = fileCustom.getPath()+path+ objectKey;
+                        objectKey= objectKey.replaceAll("/{2,}", "/");
                     }
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
