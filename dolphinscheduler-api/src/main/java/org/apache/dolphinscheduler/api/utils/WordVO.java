@@ -8,6 +8,15 @@ import java.util.List;
 @Data
 public class WordVO implements Serializable {
     private String type;
+    /**
+     * 租户id
+     */
+    private int tenantCode;
+
+    /**
+     * 用户名称
+     */
+    private  String userName;
 
     private List<ModelVO> modelList;
 

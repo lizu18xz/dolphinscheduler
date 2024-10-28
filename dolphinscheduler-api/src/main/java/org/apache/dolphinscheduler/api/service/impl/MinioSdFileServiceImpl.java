@@ -115,6 +115,8 @@ public class MinioSdFileServiceImpl {
                 modelVO.setWorkFlowId(fileCustom.getWorkFlowId());
                 modelList.add(modelVO);
             }
+            wordVO.setTenantCode(fileCustom.getTenantCode());
+            wordVO.setUserName(fileCustom.getUserName());
             wordVO.setType("0");
             wordVO.setModelList(modelList);
         } else {//处理数据处理类型
@@ -132,6 +134,8 @@ public class MinioSdFileServiceImpl {
                     relativePathList.add(dataMap);
                 }
                 tpDatasetVO.setRelativePathList(relativePathList);
+                wordVO.setTenantCode(fileCustom.getTenantCode());
+                wordVO.setUserName(fileCustom.getUserName());
                 wordVO.setType("1");
                 wordVO.setTpDatasetVO(tpDatasetVO);
             } else {//处理切片数据类型
@@ -149,6 +153,8 @@ public class MinioSdFileServiceImpl {
                     relativePathList.add(dataMap);
                 }
                 wordVO.setType("1");
+                wordVO.setTenantCode(fileCustom.getTenantCode());
+                wordVO.setUserName(fileCustom.getUserName());
                 tpDatasetVO.setRelativePathList(relativePathList);
                 wordVO.setTpDatasetVO(tpDatasetVO);
             }

@@ -72,7 +72,15 @@ public class FileCustomUploadVO implements Serializable {
      * 来源id 例如车端数据id 切片数据id
      */
     private Long sourceId;
+    /**
+     * 租户id
+     */
+    private int tenantCode;
 
+    /**
+     * 用户名称
+     */
+    private  String userName;
 
 
 }
