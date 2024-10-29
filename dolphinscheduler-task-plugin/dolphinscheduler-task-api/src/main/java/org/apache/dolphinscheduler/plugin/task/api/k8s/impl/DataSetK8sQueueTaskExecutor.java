@@ -490,6 +490,9 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //根据选择的数据来源来进行任务的执行
         List<FetchInfo> fetchInfos = k8STaskMainParameters.getFetchInfos();
         Boolean multiple = k8STaskMainParameters.getMultiple();
+        if (multiple == null) {
+            multiple = false;
+        }
         if (multiple) {
             log.info("多pod 执行");
             if (null == TaskExecutionContextCacheManager.getByTaskInstanceId(taskInstanceId)) {

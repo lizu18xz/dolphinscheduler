@@ -192,7 +192,7 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     //源ID
                     outputInfoMap.put("sourceId", k8sTaskParameters.getFetchId());
                     outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
-                    outputInfoMap.put("tenantCode", "default");
+                    outputInfoMap.put("tenantCode", "1");
                     outputInfoMap.put("userName", "admin");
                 } else {
                     String modelId = k8sTaskParameters.getModelId();
@@ -204,6 +204,8 @@ public class TaskResultEventHandler implements TaskEventHandler {
                             + "/output/" + taskInstance.getId();
                     outputInfoMap.put("localFilePath", taskOutPutPath);
                     outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
+                    outputInfoMap.put("tenantCode", "1");
+                    outputInfoMap.put("userName", "admin");
                 }
                 log.info("模型训练request map:{}", JSONUtils.toJsonString(outputInfoMap));
                 request(address, outputInfoMap);
