@@ -127,6 +127,7 @@ public class DataSetK8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setGpuType(k8sTaskParameters.getGpuType());
         k8sTaskMainParameters.setGpuLimits(k8sTaskParameters.getGpuLimits());
         k8sTaskMainParameters.setQueue(k8sTaskParameters.getQueue());
+        k8sTaskMainParameters.setMultiple(k8sTaskParameters.getMultiple());
 
         return JSONUtils.toJsonString(k8sTaskMainParameters);
     }

@@ -33,6 +33,8 @@ import org.apache.dolphinscheduler.dao.utils.TaskInstanceUtils;
 import org.apache.dolphinscheduler.extract.base.client.SingletonJdkDynamicRpcClientProxyFactory;
 import org.apache.dolphinscheduler.extract.worker.ITaskInstanceExecutionEventAckListener;
 import org.apache.dolphinscheduler.extract.worker.transportor.TaskInstanceExecutionFinishEventAck;
+import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
+import org.apache.dolphinscheduler.plugin.task.api.parameters.DataSetK8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.server.master.cache.ProcessInstanceExecCacheManager;
 import org.apache.dolphinscheduler.server.master.config.MasterConfig;
@@ -157,24 +159,23 @@ public class TaskResultEventHandler implements TaskEventHandler {
                 long taskCode = taskInstance.getTaskCode();
                 k8sQueueTaskDao.updateStatus(taskCode, "待下次运行");
             }
-            //进行回调，如果存在输出，则通知其上传到对象存储中
-            if (taskType.equals("K8S") || taskType.equals("DATA_SET_K8S")) {
+            String address =
+                    PropertyUtils.getString(TASK_UPLOAD_ADDRESS);
+            if (StringUtils.isEmpty(address)) {
+                throw new IllegalArgumentException("task.upload.address not found");
+            }
+            String projectEnName = "";
+            List<Project> projects = projectDao.queryByCodes(Lists.newArrayList(taskInstance.getProjectCode()));
+            if (!CollectionUtils.isEmpty(projects)) {
+                Project project = projects.get(0);
+                projectEnName = project.getProjectEnName();
+            }
+            Map<String, Object> outputInfoMap = new HashMap<>();
+            if (taskType.equals("K8S")) {
                 K8sTaskParameters k8sTaskParameters =
                         JSONUtils.parseObject(taskInstance.getTaskParams(), K8sTaskParameters.class);
                 log.info("k8sTaskParameters:{}", JSONUtils.toJsonString(k8sTaskParameters));
                 String outputVolumeNameInfo = k8sTaskParameters.getOutputVolumeNameInfo();
-                String address =
-                        PropertyUtils.getString(TASK_UPLOAD_ADDRESS);
-                if (StringUtils.isEmpty(address)) {
-                    throw new IllegalArgumentException("task.upload.address not found");
-                }
-                String projectEnName = "";
-                List<Project> projects = projectDao.queryByCodes(Lists.newArrayList(taskInstance.getProjectCode()));
-                if (!CollectionUtils.isEmpty(projects)) {
-                    Project project = projects.get(0);
-                    projectEnName = project.getProjectEnName();
-                }
-                Map<String, Object> outputInfoMap = new HashMap<>();
                 if (!StringUtils.isEmpty(outputVolumeNameInfo)) {
                     outputInfoMap = JSONUtils.toMap(outputVolumeNameInfo, String.class, Object.class);
                     outputInfoMap.put("projectName", projectEnName);
@@ -187,13 +188,12 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     outputInfoMap.put("path", outputInfoMap.get("relativePath"));
                     outputInfoMap.put("key", outputInfoMap.get("appKey"));
                     outputInfoMap.put("appSecret", outputInfoMap.get("appSecret"));
-
                     outputInfoMap.put("dataType", k8sTaskParameters.getDataType());
-
                     //源ID
                     outputInfoMap.put("sourceId", k8sTaskParameters.getFetchId());
                     outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
-
+                    outputInfoMap.put("tenantCode", "default");
+                    outputInfoMap.put("userName", "admin");
                 } else {
                     String modelId = k8sTaskParameters.getModelId();
                     outputInfoMap = new HashMap<>();
@@ -205,30 +205,42 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     outputInfoMap.put("localFilePath", taskOutPutPath);
                     outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
                 }
-                log.info("request map:{}", JSONUtils.toJsonString(outputInfoMap));
-                HttpPost httpPost = HttpRequestUtil.constructHttpPost(address, JSONUtils.toJsonString(outputInfoMap));
-                CloseableHttpClient httpClient;
-                httpClient = HttpRequestUtil.getHttpClient();
-                CloseableHttpResponse response = null;
-                try {
-                    httpPost.setHeader("token", "cdd8c9bab1596b12dbe45ecb6979bc95");
-                    response = httpClient.execute(httpPost);
-                    int statusCode = response.getStatusLine().getStatusCode();
-                    if (statusCode != HttpStatus.SC_OK) {
-                        log.error("return http status code: {} ", statusCode);
-                    }
-                    String resp;
-                    HttpEntity entity = response.getEntity();
-                    resp = EntityUtils.toString(entity, "utf-8");
-                    log.info("output resp :{}", resp.toString());
-                } catch (Exception e) {
-                    log.error("output error:{},e:{}", "", e);
-                } finally {
-                    try {
-                        response.close();
-                        httpClient.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
+                log.info("模型训练request map:{}", JSONUtils.toJsonString(outputInfoMap));
+                request(address, outputInfoMap);
+
+            } else if (taskType.equals("DATA_SET_K8S")) {
+                DataSetK8sTaskParameters dataSetK8sTaskParameters =
+                        JSONUtils.parseObject(taskInstance.getTaskParams(), DataSetK8sTaskParameters.class);
+                log.info("dataSetK8sTaskParameters:{}", JSONUtils.toJsonString(dataSetK8sTaskParameters));
+                String outputVolumeNameInfo = dataSetK8sTaskParameters.getOutputVolumeNameInfo();
+                if (!StringUtils.isEmpty(outputVolumeNameInfo)) {
+                    outputInfoMap = JSONUtils.toMap(outputVolumeNameInfo, String.class, Object.class);
+                    outputInfoMap.put("projectName", projectEnName);
+                    outputInfoMap.put("type", 1);
+                    outputInfoMap.put("dataId", outputInfoMap.get("tpDatasetId"));
+                    //获取输出路径
+                    String taskOutPutPath = PropertyUtils.getString(K8S_VOLUME) + "/" + taskInstance.getProjectCode()
+                            + "/output/" + taskInstance.getId();
+                    outputInfoMap.put("localFilePath", taskOutPutPath);
+                    outputInfoMap.put("path", outputInfoMap.get("relativePath"));
+                    outputInfoMap.put("key", outputInfoMap.get("appKey"));
+                    outputInfoMap.put("appSecret", outputInfoMap.get("appSecret"));
+                    outputInfoMap.put("dataType", dataSetK8sTaskParameters.getDataType());
+                    //源ID
+                    outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
+                    outputInfoMap.put("tenantCode", "1");
+                    outputInfoMap.put("userName", "admin");
+                    List<FetchInfo> fetchInfos = dataSetK8sTaskParameters.getFetchInfos();
+                    log.info("fetchInfos size:{}", fetchInfos.size());
+                    if (!CollectionUtils.isEmpty(fetchInfos)) {
+                        for (int i = 0; i < fetchInfos.size(); i++) {
+                            FetchInfo fetchInfo = fetchInfos.get(i);
+                            outputInfoMap.put("sourceId", fetchInfo.getFetchId());
+                            String volumeSuffix = "/" + i;
+                            outputInfoMap.put("localFilePath", taskOutPutPath + volumeSuffix);
+                            log.info("数据集request map:{}", JSONUtils.toJsonString(outputInfoMap));
+                            request(address,outputInfoMap);
+                        }
                     }
                 }
             }
@@ -236,6 +248,36 @@ public class TaskResultEventHandler implements TaskEventHandler {
             e.printStackTrace();
             log.error("updateK8sQueueAndDoHttp error:{}", e);
         }
+    }
+
+    private void request(String address, Map<String, Object> outputInfoMap) {
+        //进行回调，如果存在输出，则通知其上传到对象存储中
+        HttpPost httpPost = HttpRequestUtil.constructHttpPost(address, JSONUtils.toJsonString(outputInfoMap));
+        CloseableHttpClient httpClient;
+        httpClient = HttpRequestUtil.getHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            httpPost.setHeader("token", "cdd8c9bab1596b12dbe45ecb6979bc95");
+            response = httpClient.execute(httpPost);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                log.error("return http status code: {} ", statusCode);
+            }
+            String resp;
+            HttpEntity entity = response.getEntity();
+            resp = EntityUtils.toString(entity, "utf-8");
+            log.info("output resp :{}", resp.toString());
+        } catch (Exception e) {
+            log.error("output error:{},e:{}", "", e);
+        } finally {
+            try {
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
     }
 
     public void sendAckToWorker(TaskEvent taskEvent) {
