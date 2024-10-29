@@ -3,6 +3,7 @@ package org.apache.dolphinscheduler.api.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.api.dto.processTemplate.ProcessTemplateRequest;
 import org.apache.dolphinscheduler.api.dto.processTemplate.ProcessTemplateResponse;
 import org.apache.dolphinscheduler.api.enums.Status;
@@ -49,7 +50,9 @@ public class ProcessTemplateServiceImpl extends BaseServiceImpl implements Proce
         PageInfo<ProcessTemplateResponse> pageInfo = new PageInfo<>(pageNo, pageSize);
         Page<ProcessTemplate> page = new Page<>(pageNo, pageSize);
         QueryWrapper<ProcessTemplate> wrapper = new QueryWrapper();
-        wrapper.eq("name", keyword);
+        if(!StringUtils.isEmpty(keyword)){
+            wrapper.eq("name", keyword);
+        }
         Page<ProcessTemplate> processTemplatePage = processTemplateMapper.selectPage(page, wrapper);
         List<ProcessTemplate> processTemplates = processTemplatePage.getRecords();
         List<ProcessTemplateResponse> responseList = processTemplates.stream().map(x -> {

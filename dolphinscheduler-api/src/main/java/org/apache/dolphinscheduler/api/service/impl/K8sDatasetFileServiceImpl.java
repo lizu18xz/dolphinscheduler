@@ -41,6 +41,11 @@ public class K8sDatasetFileServiceImpl extends BaseServiceImpl implements K8sDat
         List<K8sDatasetFile> k8sDatasetFiles = k8sDatasetFilePage.getRecords();
         List<K8sDatasetFileResponse> responseList = k8sDatasetFiles.stream().map(x -> {
             K8sDatasetFileResponse response = new K8sDatasetFileResponse();
+            if(x.getStatus().equals("0")){
+                x.setStatus("处理成功");
+            }else {
+                x.setStatus("处理失败");
+            }
             BeanUtils.copyProperties(x, response);
             return response;
         }).collect(Collectors.toList());
