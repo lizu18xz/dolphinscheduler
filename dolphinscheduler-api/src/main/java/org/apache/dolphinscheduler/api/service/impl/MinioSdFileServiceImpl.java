@@ -125,7 +125,7 @@ public class MinioSdFileServiceImpl {
                 tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
                 tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
                 tpDatasetVO.setSourceId(fileCustom.getSourceId());
-                tpDatasetVO.setDataType(0);
+                tpDatasetVO.setDataType(fileCustom.getDataType());
                 List<Map<String, Object>> relativePathList = new ArrayList<>();
                 for (Map<String, Object> map : uploadResponses) {
                     Map<String, Object> dataMap = new HashMap<>(16);
@@ -138,13 +138,13 @@ public class MinioSdFileServiceImpl {
                 wordVO.setUserName(fileCustom.getUserName());
                 wordVO.setType("1");
                 wordVO.setTpDatasetVO(tpDatasetVO);
-            } else {//处理切片数据类型
+            } else {//处理切片/数据类型
                 List<Map<String, Object>> relativePathList = new ArrayList<>();
                 TpDatasetVO tpDatasetVO = new TpDatasetVO();
                 tpDatasetVO.setTpDatasetId(fileCustom.getDataId());
                 tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
                 tpDatasetVO.setSourceId(fileCustom.getSourceId());
-                tpDatasetVO.setDataType(1);
+                tpDatasetVO.setDataType(fileCustom.getDataType());
                 for (Map<String, Object> map : uploadResponses) {
                     Map<String, Object> dataMap = new HashMap<>(16);
                     dataMap.put("objectKey", map.get("objectKey"));
