@@ -45,6 +45,7 @@ public class ProcessTemplate {
      */
     private long code;
 
+    private long projectCode;
     /**
      * name
      */
