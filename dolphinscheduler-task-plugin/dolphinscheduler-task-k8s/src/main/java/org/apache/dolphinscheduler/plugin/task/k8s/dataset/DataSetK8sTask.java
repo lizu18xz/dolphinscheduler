@@ -17,6 +17,7 @@
 
 package org.apache.dolphinscheduler.plugin.task.k8s.dataset;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -91,6 +92,24 @@ public class DataSetK8sTask extends AbstractK8sTask {
             //替换参数为自定义接口传参
             k8sTaskParameters.setArgs(k8sPodArgs);
         }
+
+        //直接约定死
+        String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
+        //替换数据集参数
+        String k8sFetchArgs = paramMap.get("k8s_fetch_args");
+        if (!StringUtils.isEmpty(k8sFetchArgs)) {
+            log.info("k8s_fetch_args string :{}",k8sFetchArgs);
+            List<FetchInfo> fetchInfos = JSONUtils.parseObject(k8sFetchArgs, new TypeReference<List<FetchInfo>>() {
+            });
+            log.info("k8s_fetch_args fetchInfos:{},{}", fetchInfos.size(),JSONUtils.toJsonString(fetchInfos));
+            fetchInfos = fetchInfos.stream().map(x -> {
+                x.setFetchDataVolume(volumePrefix + "/fetch/");
+                return x;
+            }).collect(Collectors.toList());
+            //替换模版中的参数
+            k8sTaskParameters.setFetchInfos(fetchInfos);
+        }
+
         Map<String, String> namespace = JSONUtils.toMap(k8sTaskParameters.getNamespace());
         String namespaceName = namespace.get(NAMESPACE_NAME);
         String clusterName = namespace.get(CLUSTER);
@@ -106,9 +125,6 @@ public class DataSetK8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setCommand(k8sTaskParameters.getCommand());
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
-
-        //直接约定死
-        String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
 
         if (!CollectionUtils.isEmpty(k8sTaskParameters.getFetchInfos())) {
             List<FetchInfo> fetchInfos = k8sTaskParameters.getFetchInfos();
