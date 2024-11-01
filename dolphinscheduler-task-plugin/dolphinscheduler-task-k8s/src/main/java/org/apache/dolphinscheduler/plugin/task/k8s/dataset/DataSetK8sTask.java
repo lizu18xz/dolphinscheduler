@@ -21,10 +21,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.NodeSelectorRequirement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dolphinscheduler.common.constants.Constants;
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
+import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
+import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
+import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTask;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.DataSetK8sTaskMainParameters;
 import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
@@ -39,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.dolphinscheduler.common.constants.Constants.K8S_VOLUME;
+import static org.apache.dolphinscheduler.common.constants.Constants.PRE_NODE_OUTPUT;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CLUSTER;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAMESPACE_NAME;
 
@@ -82,8 +87,7 @@ public class DataSetK8sTask extends AbstractK8sTask {
         DataSetK8sTaskMainParameters k8sTaskMainParameters = new DataSetK8sTaskMainParameters();
         Map<String, Property> paramsMap = taskExecutionContext.getPrepareParamsMap();
         String globalParams = taskExecutionContext.getGlobalParams();
-        log.info("paramsMap:{}", JSONUtils.toJsonString(paramsMap));
-        log.info("globalParams:{}", JSONUtils.toJsonString(globalParams));
+        log.info("dataset command paramsMap:{}", JSONUtils.toJsonString(paramsMap));
         //获取自定义的参数，替换
         Map<String, String> paramMap = ParameterUtils.convert(paramsMap);
         //[\"/data\",\"asdad---123\"]",
@@ -92,16 +96,15 @@ public class DataSetK8sTask extends AbstractK8sTask {
             //替换参数为自定义接口传参
             k8sTaskParameters.setArgs(k8sPodArgs);
         }
-
         //直接约定死
         String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
         //替换数据集参数
         String k8sFetchArgs = paramMap.get("k8s_fetch_args");
         if (!StringUtils.isEmpty(k8sFetchArgs)) {
-            log.info("k8s_fetch_args string :{}",k8sFetchArgs);
+            log.info("k8s_fetch_args string :{}", k8sFetchArgs);
             List<FetchInfo> fetchInfos = JSONUtils.parseObject(k8sFetchArgs, new TypeReference<List<FetchInfo>>() {
             });
-            log.info("k8s_fetch_args fetchInfos:{},{}", fetchInfos.size(),JSONUtils.toJsonString(fetchInfos));
+            log.info("k8s_fetch_args fetchInfos:{},{}", fetchInfos.size(), JSONUtils.toJsonString(fetchInfos));
             fetchInfos = fetchInfos.stream().map(x -> {
                 x.setFetchDataVolume(volumePrefix + "/fetch/");
                 return x;
@@ -126,6 +129,8 @@ public class DataSetK8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
 
+
+        String inputDataVolume = volumePrefix + "/fetch/";
         if (!CollectionUtils.isEmpty(k8sTaskParameters.getFetchInfos())) {
             List<FetchInfo> fetchInfos = k8sTaskParameters.getFetchInfos();
             fetchInfos = fetchInfos.stream().map(x -> {
@@ -133,10 +138,15 @@ public class DataSetK8sTask extends AbstractK8sTask {
                 return x;
             }).collect(Collectors.toList());
             k8sTaskMainParameters.setFetchInfos(fetchInfos);
+        } else {
+            //设置前置节点的输出作为输入
+            String preTaskInstanceId = paramMap.get(PRE_NODE_OUTPUT);
+            inputDataVolume = inputDataVolume + preTaskInstanceId;
+            log.info("pre task output set now task:{}", inputDataVolume);
         }
         //设置约定的挂载信息
         k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
-        k8sTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
+        k8sTaskMainParameters.setInputDataVolume(inputDataVolume);
         k8sTaskMainParameters.setPodInputDataVolume("/data/input");
         k8sTaskMainParameters.setPodOutputDataVolume("/data/output");
 
@@ -173,4 +183,17 @@ public class DataSetK8sTask extends AbstractK8sTask {
         return labelMap;
     }
 
+    @Override
+    public void handle(TaskCallBack taskCallBack) throws TaskException {
+        super.handle(taskCallBack);
+        // put response in output
+        Property outputProperty = new Property();
+        //outputProperty.setProp(String.format("%s_%s", taskExecutionContext.getTaskName(), "output"));
+        outputProperty.setProp(PRE_NODE_OUTPUT);
+        outputProperty.setDirect(Direct.OUT);
+        outputProperty.setType(DataType.VARCHAR);
+        outputProperty.setValue(String.valueOf(taskExecutionContext.getTaskInstanceId()));
+        log.info("data set task call back:{},{}", outputProperty.getProp(), outputProperty.getValue());
+        k8sTaskParameters.addPropertyToValPool(outputProperty);
+    }
 }

@@ -17,7 +17,6 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 
-import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;

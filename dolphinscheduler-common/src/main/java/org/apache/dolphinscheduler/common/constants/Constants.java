@@ -890,13 +890,15 @@ public final class Constants {
 
     public static final String K8S_GPU_TYPE = "k8s.gpu.type";
 
-    public static final String K8S_VOLUME="k8s.volume";
+    public static final String K8S_VOLUME = "k8s.volume";
 
-    public static final String K8S_FETCH_IMAGE="k8s.fetch.image";
+    public static final String K8S_FETCH_IMAGE = "k8s.fetch.image";
 
     public static final String TASK_UPLOAD_ADDRESS = "task.upload.address";
 
     public static final String TASK_DATASET_ADDRESS = "task.dataset.address";
+
+    public static final String PRE_NODE_OUTPUT = "pre_node_output";
 
 
 }

@@ -71,7 +71,6 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
      * 构建有队列的任务
      */
     public QueueJob buildK8sQueueJob(K8sTaskMainParameters k8STaskMainParameters) {
-        String taskType = taskRequest.getTaskType();
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         String image = k8STaskMainParameters.getImage();
@@ -252,11 +251,9 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //新增fetch的数据到宿主机
             Volume volume = new Volume();
             volume.setName("fetch-init");
-            //TODO 临时写死
             String fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId;
-            if (taskType.equalsIgnoreCase("K8S")) {
-                fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId + "/MNIST/raw";
-            }
+            //fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId + "/MNIST/raw";
+            fetchDataVolumeNode = k8STaskMainParameters.getFetchDataVolume() + taskInstanceId;
             volume.setHostPath(new HostPathVolumeSource(fetchDataVolumeNode, "DirectoryOrCreate"));
             List<Volume> preVolumes = template.getSpec().getVolumes();
             preVolumes.add(volume);
