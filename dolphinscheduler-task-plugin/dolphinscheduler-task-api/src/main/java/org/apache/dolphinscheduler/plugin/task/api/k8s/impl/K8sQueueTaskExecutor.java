@@ -163,6 +163,19 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             volume.setName("input-data");
             volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume() + taskInstanceId, "DirectoryOrCreate"));
             volumes.add(volume);
+        } else {
+            //没有数据来源的节点从前置节点中获取
+            if (!StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
+                VolumeMount volumeMount = new VolumeMount();
+                volumeMount.setName("input-data");
+                volumeMount.setMountPath(k8STaskMainParameters.getPodInputDataVolume());
+                volumeMounts.add(volumeMount);
+                //宿主机
+                Volume volume = new Volume();
+                volume.setName("input-data");
+                volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
+                volumes.add(volume);
+            }
         }
 
         if (!StringUtils.isEmpty(k8STaskMainParameters.getOutputDataVolume())) {

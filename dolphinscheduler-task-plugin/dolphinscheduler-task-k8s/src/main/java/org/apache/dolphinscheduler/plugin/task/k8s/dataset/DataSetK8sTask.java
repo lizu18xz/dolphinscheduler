@@ -139,9 +139,9 @@ public class DataSetK8sTask extends AbstractK8sTask {
             }).collect(Collectors.toList());
             k8sTaskMainParameters.setFetchInfos(fetchInfos);
         } else {
-            //设置前置节点的输出作为输入
+            //设置前置节点的输出作为输入 /mnt/k8s_volume/14912393717952/output/455/0
             String preTaskInstanceId = paramMap.get(PRE_NODE_OUTPUT);
-            inputDataVolume = inputDataVolume + preTaskInstanceId;
+            inputDataVolume = volumePrefix + "/output/" + preTaskInstanceId;
             log.info("pre task output set now task:{}", inputDataVolume);
         }
         //设置约定的挂载信息
