@@ -67,12 +67,19 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         super(logger, taskRequest);
     }
 
+    private String getK8sJobName() {
+        // 设置job名称
+        String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
+        String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT).replaceAll("_", "");
+        String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
+        return k8sJobName;
+    }
+
     /**
      * 构建有队列的任务
      */
     public QueueJob buildK8sQueueJob(K8sTaskMainParameters k8STaskMainParameters) {
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
-        String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         String image = k8STaskMainParameters.getImage();
         String namespaceName = k8STaskMainParameters.getNamespaceName();
         String imagePullPolicy = k8STaskMainParameters.getImagePullPolicy();
@@ -81,7 +88,7 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //设置资源
         Map<String, Quantity> limitRes = new HashMap<>();
         Map<String, Quantity> reqRes = new HashMap<>();
-        String k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
+        String k8sJobName = getK8sJobName();
         if (k8STaskMainParameters.getGpuLimits() == null || k8STaskMainParameters.getGpuLimits() <= 0) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
             Double podCpu = k8STaskMainParameters.getMinCpuCores();
@@ -216,6 +223,12 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         container.setEnv(envVars);
         container.setVolumeMounts(volumeMounts.size() == 0 ? null : volumeMounts);
         containers.add(container);
+        //设置拉取镜像权限
+        List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+        LocalObjectReference reference = new LocalObjectReference();
+        reference.setName("registry-harbor");
+        imagePullSecrets.add(reference);
+        template.getSpec().setImagePullSecrets(imagePullSecrets);
 
         PodSpec podSpec = new PodSpec();
         template.setSpec(podSpec);
@@ -254,11 +267,13 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             Double podCpu = 1d;
             Double limitPodMem = podMem * 2;
             Double limitPodCpu = podCpu * 2;
-            reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
-            reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
-            limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
-            limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
-            initContainer.setResources(new ResourceRequirements(limitRes, reqRes));
+            Map<String, Quantity> initReqRes = new HashMap<>();
+            Map<String, Quantity> initLimitRes = new HashMap<>();
+            initReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            initReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
+            initLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            initLimitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+            initContainer.setResources(new ResourceRequirements(initLimitRes, initReqRes));
             template.getSpec().setInitContainers(initContainers);
 
             //新增fetch的数据到宿主机

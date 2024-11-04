@@ -233,6 +233,12 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         template.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         template.getSpec().setAffinity(affinity);
         template.getSpec().setRestartPolicy(RESTART_POLICY);
+        //设置拉取镜像权限
+        List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+        LocalObjectReference reference = new LocalObjectReference();
+        reference.setName("registry-harbor");
+        imagePullSecrets.add(reference);
+        template.getSpec().setImagePullSecrets(imagePullSecrets);
         master.setTemplate(template);
 
         //设置worker
@@ -262,6 +268,8 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         workerTemplate.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         workerTemplate.getSpec().setAffinity(affinity);
         workerTemplate.getSpec().setRestartPolicy(RESTART_POLICY);
+        //设置拉取镜像权限
+        workerTemplate.getSpec().setImagePullSecrets(imagePullSecrets);
         worker.setTemplate(workerTemplate);
         queueJob.setSpec(queueJobSpec);
         return queueJob;

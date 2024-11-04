@@ -35,6 +35,7 @@ import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContextCacheMana
 import org.apache.dolphinscheduler.plugin.task.api.enums.TaskTimeoutStrategy;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.DataSetK8sTaskMainParameters;
+import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sFlinkOperatorTaskMainParameters;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.queueJob.QueueJob;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.queueJob.QueueJobSpec;
 import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
@@ -80,11 +81,18 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         this.batchJobs = new ArrayList<>();
     }
 
+    private String getK8sJobName(int index) {
+        // 设置job名称
+        String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
+        String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT).replaceAll("_", "");
+        String k8sJobName = String.format("%s-%s-%s", taskName, taskInstanceId, index);
+        return k8sJobName;
+    }
+
     /**
      * 构建有队列的任务
      */
     public QueueJob buildK8sQueueJob(DataSetK8sTaskMainParameters k8STaskMainParameters, int index) {
-        String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         //目录加上索引，区分
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String image = k8STaskMainParameters.getImage();
@@ -95,7 +103,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //设置资源
         Map<String, Quantity> limitRes = new HashMap<>();
         Map<String, Quantity> reqRes = new HashMap<>();
-        String k8sJobName = String.format("%s-%s-%s", taskName, taskInstanceId, index);
+        String k8sJobName = getK8sJobName(index);
         if (k8STaskMainParameters.getGpuLimits() == null || k8STaskMainParameters.getGpuLimits() <= 0) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
             Double podCpu = k8STaskMainParameters.getMinCpuCores();
@@ -105,6 +113,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
             limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+            log.info("cpu param set :{},{}", podMem, podCpu);
         } else {
             //nvidia.com/gpu: 1
             String gpuType = k8STaskMainParameters.getGpuType();
@@ -112,6 +121,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             if (StringUtils.isEmpty(gpuType)) {
                 gpuType = GPU;
             }
+            log.info("gpu param set :{}", gpuType, podGpu);
             limitRes.put(gpuType, new Quantity(String.valueOf(podGpu)));
         }
 
@@ -238,6 +248,12 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         PodSpec podSpec = new PodSpec();
         template.setSpec(podSpec);
         template.getSpec().setContainers(containers);
+        //设置拉取镜像权限
+        List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+        LocalObjectReference reference = new LocalObjectReference();
+        reference.setName("registry-harbor");
+        imagePullSecrets.add(reference);
+        template.getSpec().setImagePullSecrets(imagePullSecrets);
         template.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         template.getSpec().setAffinity(affinity);
         template.getSpec().setRestartPolicy(RESTART_POLICY);
@@ -272,11 +288,13 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             Double podCpu = 1d;
             Double limitPodMem = podMem * 2;
             Double limitPodCpu = podCpu * 2;
-            reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
-            reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
-            limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
-            limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
-            initContainer.setResources(new ResourceRequirements(limitRes, reqRes));
+            Map<String, Quantity> initReqRes = new HashMap<>();
+            Map<String, Quantity> initLimitRes = new HashMap<>();
+            initReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            initReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
+            initLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            initLimitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+            initContainer.setResources(new ResourceRequirements(initLimitRes, initReqRes));
             template.getSpec().setInitContainers(initContainers);
 
             //新增fetch的数据到宿主机
