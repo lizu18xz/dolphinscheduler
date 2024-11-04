@@ -35,7 +35,6 @@ import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContextCacheMana
 import org.apache.dolphinscheduler.plugin.task.api.enums.TaskTimeoutStrategy;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTaskExecutor;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.DataSetK8sTaskMainParameters;
-import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sFlinkOperatorTaskMainParameters;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.queueJob.QueueJob;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.queueJob.QueueJobSpec;
 import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
