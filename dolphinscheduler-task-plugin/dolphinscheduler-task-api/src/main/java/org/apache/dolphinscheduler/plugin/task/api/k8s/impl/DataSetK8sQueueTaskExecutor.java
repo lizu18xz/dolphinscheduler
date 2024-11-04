@@ -81,18 +81,23 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         this.batchJobs = new ArrayList<>();
     }
 
-    private String getK8sJobName(int index) {
+    private String getK8sJobName(Integer index) {
         // 设置job名称
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT).replaceAll("_", "");
-        String k8sJobName = String.format("%s-%s-%s", taskName, taskInstanceId, index);
+        String k8sJobName = "";
+        if (index == null) {
+            k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
+        } else {
+            k8sJobName = String.format("%s-%s-%s", taskName, taskInstanceId, index);
+        }
         return k8sJobName;
     }
 
     /**
      * 构建有队列的任务
      */
-    public QueueJob buildK8sQueueJob(DataSetK8sTaskMainParameters k8STaskMainParameters, int index) {
+    public QueueJob buildK8sQueueJob(DataSetK8sTaskMainParameters k8STaskMainParameters, Integer index) {
         //目录加上索引，区分
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String image = k8STaskMainParameters.getImage();
@@ -173,8 +178,12 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 .endRequiredDuringSchedulingIgnoredDuringExecution()
                 .endNodeAffinity().build();
 
-
-        String volumeSuffix = "/" + index;
+        String volumeSuffix = "";
+        if (index == null) {
+            volumeSuffix = "";
+        } else {
+            volumeSuffix = "/" + index;
+        }
         //设置容器挂载
         List<VolumeMount> volumeMounts = new ArrayList<>();
         //设置宿主机挂载
@@ -261,6 +270,9 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //需要从远程拉取数据的情况下，设置Init容器初始化操作, 从接口获取挂载信息
         List<FetchInfo> fetchInfos = k8STaskMainParameters.getFetchInfos();
         if (!CollectionUtils.isEmpty(fetchInfos)) {
+            if (index == null) {
+                index = 0;
+            }
             FetchInfo fetchInfo = fetchInfos.get(index);
             List<String> inputArgs = new ArrayList<>();
             String fetchDataVolumeArgs = fetchInfo.getFetchDataVolumeArgs();
@@ -480,6 +492,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         String containerName = String.format("%s-%s", taskName, taskInstanceId);
+        log.info("pod log name:{}", containerName);
         podLogOutputFuture = collectPodLogExecutorService.submit(() -> {
             try (
                     LogWatch watcher = ProcessUtils.getPodLogWatcher(taskRequest.getK8sTaskExecutionContext(),
@@ -740,7 +753,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
     }
 
     private String asApplyYaml(DataSetK8sTaskMainParameters parameters) {
-        this.job = buildK8sQueueJob(parameters, 0);
+        this.job = buildK8sQueueJob(parameters, null);
         return Serialization.asYaml(this.job);
     }
 
