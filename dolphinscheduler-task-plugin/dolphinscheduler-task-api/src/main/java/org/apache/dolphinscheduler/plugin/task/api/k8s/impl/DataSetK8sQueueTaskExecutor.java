@@ -251,6 +251,19 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         container.setResources(new ResourceRequirements(limitRes, reqRes));
         container.setEnv(envVars);
         container.setVolumeMounts(volumeMounts.size() == 0 ? null : volumeMounts);
+        //设置钩子函数 post start：容器创建之后执行，如果失败了会重启容器。
+        Lifecycle lifecycle = new Lifecycle();
+        Handler handler = new Handler();
+        ExecAction execAction = new ExecAction();
+        //["/bin/sh", "-c", "mkdir -p /data/input && mkdir -p /data/output"]
+        List<String> startCmd = new ArrayList<>();
+        startCmd.add("/bin/sh");
+        startCmd.add("-c");
+        startCmd.add("mkdir -p /data/input && mkdir -p /data/output");
+        execAction.setCommand(startCmd);
+        handler.setExec(execAction);
+        lifecycle.setPostStart(handler);
+        container.setLifecycle(lifecycle);
         containers.add(container);
 
         PodSpec podSpec = new PodSpec();
