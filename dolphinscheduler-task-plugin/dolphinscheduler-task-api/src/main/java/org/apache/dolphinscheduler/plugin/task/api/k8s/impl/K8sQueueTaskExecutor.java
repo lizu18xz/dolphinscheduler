@@ -413,6 +413,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                     }
                 }
             } catch (Exception e) {
+                log.error("parse pod log output error:{}", e);
+                e.printStackTrace();
                 throw new RuntimeException(e);
             } finally {
                 LogUtils.removeTaskInstanceLogFullPathMDC();

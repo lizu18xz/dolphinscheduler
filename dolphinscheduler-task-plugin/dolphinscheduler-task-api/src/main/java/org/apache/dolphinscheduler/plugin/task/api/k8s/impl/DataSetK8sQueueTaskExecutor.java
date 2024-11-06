@@ -517,13 +517,14 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                     }
                 }
             } catch (Exception e) {
+                log.error("parse pod log output error:{}", e);
+                e.printStackTrace();
                 throw new RuntimeException(e);
             } finally {
                 LogUtils.removeTaskInstanceLogFullPathMDC();
                 podLogOutputIsFinished = true;
             }
         });
-
         collectPodLogExecutorService.shutdown();
     }
 
