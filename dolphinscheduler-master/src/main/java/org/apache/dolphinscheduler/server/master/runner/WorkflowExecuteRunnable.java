@@ -223,16 +223,16 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
     private final MasterConfig masterConfig;
 
     public WorkflowExecuteRunnable(
-                                   @NonNull IWorkflowExecuteContext workflowExecuteContext,
-                                   @NonNull CommandService commandService,
-                                   @NonNull ProcessService processService,
-                                   @NonNull ProcessInstanceDao processInstanceDao,
-                                   @NonNull ProcessAlertManager processAlertManager,
-                                   @NonNull MasterConfig masterConfig,
-                                   @NonNull StateWheelExecuteThread stateWheelExecuteThread,
-                                   @NonNull CuringParamsService curingParamsService,
-                                   @NonNull TaskInstanceDao taskInstanceDao,
-                                   @NonNull DefaultTaskExecuteRunnableFactory defaultTaskExecuteRunnableFactory) {
+            @NonNull IWorkflowExecuteContext workflowExecuteContext,
+            @NonNull CommandService commandService,
+            @NonNull ProcessService processService,
+            @NonNull ProcessInstanceDao processInstanceDao,
+            @NonNull ProcessAlertManager processAlertManager,
+            @NonNull MasterConfig masterConfig,
+            @NonNull StateWheelExecuteThread stateWheelExecuteThread,
+            @NonNull CuringParamsService curingParamsService,
+            @NonNull TaskInstanceDao taskInstanceDao,
+            @NonNull DefaultTaskExecuteRunnableFactory defaultTaskExecuteRunnableFactory) {
         this.processService = processService;
         this.commandService = commandService;
         this.processInstanceDao = processInstanceDao;
@@ -440,7 +440,6 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
 
     /**
      * release task group
-     *
      */
     public void releaseTaskGroup(TaskInstance taskInstance) throws InterruptedException {
         ProcessInstance workflowInstance = workflowExecuteContext.getWorkflowInstance();
@@ -476,7 +475,6 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
 
     /**
      * crate new task instance to retry, different objects from the original
-     *
      */
     private void retryTaskInstance(TaskInstance taskInstance) throws StateEventHandleException {
         ProcessInstance workflowInstance = workflowExecuteContext.getWorkflowInstance();
@@ -755,6 +753,10 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
             // release task group
             processService.releaseAllTaskGroup(workflowInstance.getId());
         }
+
+        //清理文件
+        processService.cleanProcess(workflowInstance.getId());
+
         // Log the workflowInstance in detail
         log.info(WorkflowInstanceUtils.logWorkflowInstanceInDetails(workflowInstance));
     }
@@ -1079,7 +1081,7 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
      * new a taskInstance
      *
      * @param processInstance process instance
-     * @param taskNode task node
+     * @param taskNode        task node
      * @return task instance
      */
     public TaskInstance newTaskInstance(ProcessInstance processInstance, TaskNode taskNode) {
@@ -1642,7 +1644,7 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
             }
         }
         if (readyToSubmitTaskQueue.size() > 0) {
-            for (Iterator<TaskInstance> iter = readyToSubmitTaskQueue.iterator(); iter.hasNext();) {
+            for (Iterator<TaskInstance> iter = readyToSubmitTaskQueue.iterator(); iter.hasNext(); ) {
                 iter.next().setState(TaskExecutionStatus.PAUSE);
             }
         }
@@ -1836,7 +1838,7 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
      * @return Boolean whether has retry task in standby
      */
     private boolean hasRetryTaskInStandBy() {
-        for (Iterator<TaskInstance> iter = readyToSubmitTaskQueue.iterator(); iter.hasNext();) {
+        for (Iterator<TaskInstance> iter = readyToSubmitTaskQueue.iterator(); iter.hasNext(); ) {
             if (iter.next().getState().isFailure()) {
                 return true;
             }
@@ -1975,7 +1977,7 @@ public class WorkflowExecuteRunnable implements IWorkflowExecuteRunnable {
         // todo: Can we use a better way to set the recover taskInstanceId list? rather then use the cmdParam
         if (paramMap != null && paramMap.containsKey(CMD_PARAM_RECOVERY_START_NODE_STRING)) {
             List<Integer> startTaskInstanceIds = Arrays.stream(paramMap.get(CMD_PARAM_RECOVERY_START_NODE_STRING)
-                    .split(COMMA))
+                            .split(COMMA))
                     .filter(StringUtils::isNotEmpty)
                     .map(Integer::valueOf)
                     .collect(Collectors.toList());

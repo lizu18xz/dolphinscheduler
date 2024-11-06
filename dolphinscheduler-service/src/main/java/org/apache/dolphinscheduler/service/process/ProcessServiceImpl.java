@@ -131,6 +131,7 @@ import org.apache.dolphinscheduler.plugin.task.api.parameters.ParametersNode;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.SubProcessParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.TaskTimeoutParameter;
 import org.apache.dolphinscheduler.plugin.task.api.utils.TaskUtils;
+import org.apache.dolphinscheduler.service.clean.K8sTaskCleanService;
 import org.apache.dolphinscheduler.service.command.CommandService;
 import org.apache.dolphinscheduler.service.cron.CronUtils;
 import org.apache.dolphinscheduler.service.exceptions.CronParseException;
@@ -297,7 +298,11 @@ public class ProcessServiceImpl implements ProcessService {
     private CommandService commandService;
 
     @Autowired
+    private K8sTaskCleanService k8sTaskCleanService;
+
+    @Autowired
     private TriggerRelationService triggerRelationService;
+
     /**
      * todo: split this method
      * handle Command (construct ProcessInstance from Command) , wrapped in transaction
@@ -685,13 +690,13 @@ public class ProcessServiceImpl implements ProcessService {
 
     /**
      * Get workflow runtime tenant
-     *
+     * <p>
      * the workflow provides a tenant and uses the provided tenant;
      * when no tenant is provided or the provided tenant is the default tenant, \
      * the user's tenant created by the workflow is used
      *
      * @param tenantCode tenantCode
-     * @param userId   userId
+     * @param userId     userId
      * @return tenant code
      */
     @Override
@@ -2465,9 +2470,9 @@ public class ProcessServiceImpl implements ProcessService {
                 }
             } while (thisTaskGroupQueue.getForceStart() == Flag.NO.getCode()
                     && taskGroupMapper.releaseTaskGroupResource(taskGroup.getId(),
-                            taskGroup.getUseSize(),
-                            thisTaskGroupQueue.getId(),
-                            TaskGroupQueueStatus.ACQUIRE_SUCCESS.getCode()) != 1);
+                    taskGroup.getUseSize(),
+                    thisTaskGroupQueue.getId(),
+                    TaskGroupQueueStatus.ACQUIRE_SUCCESS.getCode()) != 1);
         } catch (Exception e) {
             log.error("release the task group error", e);
             return null;
@@ -2619,6 +2624,11 @@ public class ProcessServiceImpl implements ProcessService {
     @Override
     public void saveCommandTrigger(Integer commandId, Integer processInstanceId) {
         triggerRelationService.saveCommandTrigger(commandId, processInstanceId);
+    }
+
+    @Override
+    public void cleanProcess(Integer processInstanceId) {
+        k8sTaskCleanService.cleanK8sTaskStorageDir(processInstanceId);
     }
 
     private Map<String, Object> createCommandParams(ProcessInstance processInstance) {

@@ -235,4 +235,6 @@ public interface ProcessService {
     void forceProcessInstanceSuccessByTaskInstanceId(Integer taskInstanceId);
 
     void saveCommandTrigger(Integer commandId, Integer processInstanceId);
+
+    void cleanProcess(Integer processInstanceId);
 }
