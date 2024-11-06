@@ -250,11 +250,18 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     outputInfoMap.put("userName", "admin");
                     List<FetchInfo> fetchInfos = dataSetK8sTaskParameters.getFetchInfos();
                     log.info("fetchInfos size:{}", fetchInfos.size());
+                    Boolean multiple = dataSetK8sTaskParameters.getMultiple();
+                    if (multiple == null) {
+                        multiple = false;
+                    }
                     if (!CollectionUtils.isEmpty(fetchInfos)) {
                         for (int i = 0; i < fetchInfos.size(); i++) {
                             FetchInfo fetchInfo = fetchInfos.get(i);
                             outputInfoMap.put("sourceId", fetchInfo.getFetchId());
-                            String volumeSuffix = "/" + i;
+                            String volumeSuffix = "";
+                            if(multiple){
+                                volumeSuffix = "/" + i;
+                            }
                             outputInfoMap.put("localFilePath", taskOutPutPath + volumeSuffix);
                             log.info("数据集request map:{}", JSONUtils.toJsonString(outputInfoMap));
                             request(address, outputInfoMap);
