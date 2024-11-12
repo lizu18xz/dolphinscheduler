@@ -236,7 +236,7 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //设置拉取镜像权限
         List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
         LocalObjectReference reference = new LocalObjectReference();
-        reference.setName("registry-harbor");
+        reference.setName(DOLPHIN_HARBOR);
         imagePullSecrets.add(reference);
         template.getSpec().setImagePullSecrets(imagePullSecrets);
         master.setTemplate(template);
