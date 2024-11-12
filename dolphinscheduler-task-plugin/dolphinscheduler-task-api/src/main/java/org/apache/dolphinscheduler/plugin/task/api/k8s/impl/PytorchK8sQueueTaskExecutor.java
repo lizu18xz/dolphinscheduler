@@ -93,8 +93,8 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             // 资源设置
             Double podMem = parameters.getMasterMinMemorySpace();
             Double podCpu = parameters.getMasterMinCpuCores();
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             masterReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
             masterReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             masterLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
@@ -115,8 +115,8 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         } else {
             Double podMem = parameters.getWorkerMinMemorySpace();
             Double podCpu = parameters.getWorkerMinCpuCores();
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             workerReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
             workerReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             workerLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));

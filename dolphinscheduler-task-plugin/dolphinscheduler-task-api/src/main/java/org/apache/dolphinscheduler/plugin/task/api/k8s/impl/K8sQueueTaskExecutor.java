@@ -92,8 +92,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         if (k8STaskMainParameters.getGpuLimits() == null || k8STaskMainParameters.getGpuLimits() <= 0) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
             Double podCpu = k8STaskMainParameters.getMinCpuCores();
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
             reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
@@ -277,8 +277,8 @@ public class K8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //设置初始化操作的资源
             Double podMem = 1024d;
             Double podCpu = 1d;
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             Map<String, Quantity> initReqRes = new HashMap<>();
             Map<String, Quantity> initLimitRes = new HashMap<>();
             initReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));

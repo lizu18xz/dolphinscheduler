@@ -17,5 +17,7 @@ public class StorageRequest {
 
     private String pageNo;
 
+    private String projectCode;
+
 
 }

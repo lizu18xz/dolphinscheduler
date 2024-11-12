@@ -101,7 +101,7 @@ public class ExternalSysController {
             @RequestParam(value = "projectName") String projectName,
             @RequestParam(value = "type") String type) {
 
-        return Result.success(externalSysService.getDataSetTree(type));
+        return Result.success(externalSysService.getDataSetTree(type, projectName));
     }
 
 

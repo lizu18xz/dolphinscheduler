@@ -13,4 +13,6 @@ public class FetchVolumeRequest {
 
     private String projectName;
 
+    private String projectCode;
+
 }
