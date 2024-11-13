@@ -395,7 +395,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         } else {
             url = url + TREE3;
         }
+        Project project = projectMapper.queryByName(projectName);
         Map<String, Object> map = new HashMap<>();
+        map.put("projectCode", project.getProjectEnName());
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, JSONUtils.toJsonString(map));
         CloseableHttpClient httpClient;
         httpClient = HttpRequestUtil.getHttpClient();
