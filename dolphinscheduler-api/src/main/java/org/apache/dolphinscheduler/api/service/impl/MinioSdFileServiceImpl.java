@@ -113,6 +113,7 @@ public class MinioSdFileServiceImpl {
                 modelVO.setModelFile((String) map.get("url"));
                 modelVO.setModelId(fileCustom.getModelId());
                 modelVO.setWorkFlowId(fileCustom.getWorkFlowId());
+                modelVO.setProjectCode(fileCustom.getProjectName());
                 modelList.add(modelVO);
             }
             wordVO.setTenantCode(fileCustom.getTenantCode());
@@ -135,6 +136,7 @@ public class MinioSdFileServiceImpl {
                     relativePathList.add(dataMap);
                 }
                 tpDatasetVO.setRelativePathList(relativePathList);
+                tpDatasetVO.setProjectCode(fileCustom.getProjectName());
                 wordVO.setTenantCode(fileCustom.getTenantCode());
                 wordVO.setUserName(fileCustom.getUserName());
                 wordVO.setType("1");
@@ -147,6 +149,7 @@ public class MinioSdFileServiceImpl {
                 tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
                 tpDatasetVO.setSourceId(fileCustom.getSourceId());
                 tpDatasetVO.setDataType(fileCustom.getDataType());
+                tpDatasetVO.setProjectCode(fileCustom.getProjectName());
                 for (Map<String, Object> map : uploadResponses) {
                     Map<String, Object> dataMap = new HashMap<>(16);
                     dataMap.put("objectKey", map.get("objectKey"));
