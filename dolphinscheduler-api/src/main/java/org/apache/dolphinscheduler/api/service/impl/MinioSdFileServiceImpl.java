@@ -19,6 +19,18 @@ import java.util.*;
 import static org.apache.dolphinscheduler.api.enums.Status.EXTERNAL_ADDRESS_NOT_EXIST;
 import static org.apache.dolphinscheduler.common.constants.Constants.EXTERNAL_ADDRESS_LIST;
 
+import static org.apache.dolphinscheduler.common.constants.Constants.MINIO_BACKNAME;
+import static org.apache.dolphinscheduler.common.constants.Constants.MINIO_HOST;
+import static org.apache.dolphinscheduler.common.constants.Constants.MINIO_KEY;
+import static org.apache.dolphinscheduler.common.constants.Constants.MINIO_SECRET;
+
+import static org.apache.dolphinscheduler.common.constants.Constants.OBS_BACKNAME;
+import static org.apache.dolphinscheduler.common.constants.Constants.OBS_HOST;
+import static org.apache.dolphinscheduler.common.constants.Constants.OBS_KEY;
+import static org.apache.dolphinscheduler.common.constants.Constants.OBS_SECRET;
+import static org.apache.dolphinscheduler.common.constants.Constants.OSS_TYPE;
+
+
 
 @Service
 @Slf4j
@@ -39,10 +51,13 @@ public class MinioSdFileServiceImpl {
             log.info("指定的路径不存在或不是一个文件夹: " + fileCustom.getLocalFilePath());
             return false;
         }
-
+        String ossType = PropertyUtils.getString(OSS_TYPE);
+        if (StringUtils.isEmpty(ossType)) {
+            throw new IllegalArgumentException(OSS_TYPE);
+        }
 
         // 递归遍历文件夹
-        if(fileCustom.getOssType().equals("minio")){
+        if(ossType.equals("minio")){
             uploadFilesFromFolder(folder, fileCustom, uploadResponses);
             updateMinio(fileCustom, uploadResponses);
         }else {
@@ -67,11 +82,26 @@ public class MinioSdFileServiceImpl {
                     String objectKey = file.getName(); // 使用文件名作为对象的 key
                     String path = file.getAbsolutePath();
                     if (fileCustom.getType() == 0) {
-                        //TODO 临时使用
-                        fileCustom.setBucketName("defect-data");
-                        fileCustom.setHost("https://obs.cn-north-11.myhuaweicloud.com");
-                        fileCustom.setKey("3AHTIUS5C9EELB2YKAIV");
-                        fileCustom.setAppSecret("kCrRFSwhcIflFssvaMmzKbKdgIIbCeCYNheY5QVy");
+                        String backname = PropertyUtils.getString(OBS_BACKNAME);
+                        if (StringUtils.isEmpty(backname)) {
+                            throw new IllegalArgumentException("OBS_BACKNAME 获取失败");
+                        }
+                        String host = PropertyUtils.getString(OBS_HOST);
+                        if (StringUtils.isEmpty(host)) {
+                            throw new IllegalArgumentException("OBS_HOST 获取失败");
+                        }
+                        String key = PropertyUtils.getString(OBS_KEY);
+                        if (StringUtils.isEmpty(key)) {
+                            throw new IllegalArgumentException("OBS_KEY 获取失败");
+                        }
+                        String secret = PropertyUtils.getString(OBS_SECRET);
+                        if (StringUtils.isEmpty(secret)) {
+                            throw new IllegalArgumentException("OBS_SECRET 获取失败");
+                        }
+                        fileCustom.setBucketName(backname);
+                        fileCustom.setHost(host);
+                        fileCustom.setKey(key);
+                        fileCustom.setAppSecret(secret);
                         int lastDotIndex = objectKey.lastIndexOf(".");
                         String prefix = objectKey.substring(0, lastDotIndex);
                         String suffix = objectKey.substring(lastDotIndex);
@@ -118,11 +148,28 @@ public class MinioSdFileServiceImpl {
                     String objectKey = file.getName(); // 使用文件名作为对象的 key
                     String path = file.getAbsolutePath();
                     if (fileCustom.getType() == 0) {
-                        //TODO 临时使用
-                        fileCustom.setBucketName("defect-prod");
-                        fileCustom.setHost("http://10.78.5.103:9991");
-                        fileCustom.setKey("V0M2NPhCfk1exMSxAbnI");
-                        fileCustom.setAppSecret("5Ups2aOwxJQ4oaoVR42QwM1nLHS2GnNIBcSp3XpX");
+                        String backname = PropertyUtils.getString(MINIO_BACKNAME);
+                        if (StringUtils.isEmpty(backname)) {
+                            throw new IllegalArgumentException("MINIO_BACKNAME 获取失败");
+                        }
+                        String host = PropertyUtils.getString(MINIO_HOST);
+                        if (StringUtils.isEmpty(host)) {
+                            throw new IllegalArgumentException("MINIO_HOST 获取失败");
+                        }
+                        String key = PropertyUtils.getString(MINIO_KEY);
+                        if (StringUtils.isEmpty(key)) {
+                            throw new IllegalArgumentException("MINIO_KEY 获取失败");
+                        }
+                        String secret = PropertyUtils.getString(MINIO_SECRET);
+                        if (StringUtils.isEmpty(secret)) {
+                            throw new IllegalArgumentException("MINIO_SECRET 获取失败");
+                        }
+                        fileCustom.setBucketName(backname);
+                        fileCustom.setHost(host);
+                        fileCustom.setKey(key);
+                        fileCustom.setAppSecret(secret);
+
+
                         int lastDotIndex = objectKey.lastIndexOf(".");
                         String prefix = objectKey.substring(0, lastDotIndex);
                         String suffix = objectKey.substring(lastDotIndex);

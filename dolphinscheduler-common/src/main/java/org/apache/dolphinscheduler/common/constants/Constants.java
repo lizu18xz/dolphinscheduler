@@ -900,5 +900,17 @@ public final class Constants {
 
     public static final String PRE_NODE_OUTPUT = "pre_node_output";
 
+    //s3
+
+    public static final String MINIO_BACKNAME = "minio.backname";
+    public static final String MINIO_HOST = "minio.host";
+    public static final String MINIO_KEY = "minio.key";
+    public static final String MINIO_SECRET = "minio.secret";
+
+    public static final String OBS_BACKNAME = "obs.backname";
+    public static final String OBS_HOST = "obs.host";
+    public static final String OBS_KEY = "obs.key";
+    public static final String OBS_SECRET = "obs.secret";
+    public static final String OSS_TYPE = "oss.type";
 
 }
