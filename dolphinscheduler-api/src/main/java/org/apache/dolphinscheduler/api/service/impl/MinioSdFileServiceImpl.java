@@ -26,6 +26,8 @@ public class MinioSdFileServiceImpl {
 
     @Autowired
     private SdFileMinioUtils minioUtils;
+    @Autowired
+    private SdFileObsUtils obsUtils;
     public static final String FETCH_PATH = "/admin-api/system/workRecord/insert";
 
     public Boolean localFolderMultipartUpload(FileCustomUploadVO fileCustom) {
@@ -38,10 +40,74 @@ public class MinioSdFileServiceImpl {
             return false;
         }
 
+
         // 递归遍历文件夹
-        uploadFilesFromFolder(folder, fileCustom, uploadResponses);
-        updateMinio(fileCustom, uploadResponses);
+        if(fileCustom.getOssType().equals("minio")){
+            uploadFilesFromFolder(folder, fileCustom, uploadResponses);
+            updateMinio(fileCustom, uploadResponses);
+        }else {
+            uploadObsFilesFromFolder(folder, fileCustom, uploadResponses);
+            updateMinio(fileCustom, uploadResponses);
+        }
+
         return true;
+    }
+
+    /**
+     * obs上传
+     * @param folder
+     * @param fileCustom
+     * @param uploadResponses
+     */
+    private void uploadObsFilesFromFolder(File folder, FileCustomUploadVO fileCustom, List<Map<String, Object>> uploadResponses) {
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) { // 确保是文件而不是子文件夹
+                    String objectKey = file.getName(); // 使用文件名作为对象的 key
+                    String path = file.getAbsolutePath();
+                    if (fileCustom.getType() == 0) {
+                        //TODO 临时使用
+                        fileCustom.setBucketName("defect-data");
+                        fileCustom.setHost("https://obs.cn-north-11.myhuaweicloud.com");
+                        fileCustom.setKey("3AHTIUS5C9EELB2YKAIV");
+                        fileCustom.setAppSecret("kCrRFSwhcIflFssvaMmzKbKdgIIbCeCYNheY5QVy");
+                        int lastDotIndex = objectKey.lastIndexOf(".");
+                        String prefix = objectKey.substring(0, lastDotIndex);
+                        String suffix = objectKey.substring(lastDotIndex);
+                        objectKey = prefix + UUID.randomUUID() + suffix;
+//                        path = file.getAbsolutePath();//训练的时候使用本地目录
+                    } else {
+//                        objectKey = fileCustom.getPath() + objectKey;
+//                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
+                        objectKey = fileCustom.getPath()+path;
+                        objectKey= objectKey.replaceAll("/{2,}", "/");
+                    }
+
+                    // 上传文件
+                    Boolean uploadSuccess = obsUtils.localFileMultipartUpload(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
+                    log.info("uploadSuccess" + uploadSuccess);
+                    log.info(fileCustom.getBucketName() + ":path=" + path + ":objectKey=" + objectKey + ":ileCustom.key()=" + fileCustom.getKey() + ":ileCustom.getHost()=" + fileCustom.getAppSecret());
+                    if (uploadSuccess) {
+                        // 构建文件的 URL
+                        String fileUrl = obsUtils.getSignedUrl(fileCustom.getBucketName(), objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
+                        Map<String, Object> map = new HashMap<>(16);
+                        map.put("key", path + "/" + objectKey);
+                        map.put("size", file.length());
+                        map.put("objectKey", objectKey);
+                        map.put("url", fileUrl);
+                        log.info("fileUrl" + fileUrl);
+                        uploadResponses.add(map);
+                    } else {
+                        log.error("文件上传失败: {}", file.getName());
+                    }
+                } else if (file.isDirectory()) { // 如果是目录，递归处理
+                    uploadFilesFromFolder(file, fileCustom, uploadResponses);
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("文件夹 " + folder.getAbsolutePath() + " 为空");
+        }
     }
 
     private void uploadFilesFromFolder(File folder, FileCustomUploadVO fileCustom, List<Map<String, Object>> uploadResponses) {
