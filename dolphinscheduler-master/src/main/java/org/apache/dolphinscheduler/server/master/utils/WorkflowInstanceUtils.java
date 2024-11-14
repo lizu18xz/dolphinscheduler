@@ -38,6 +38,7 @@ public class WorkflowInstanceUtils {
         logBuilder.append("\n").append(Strings.repeat("*", horizontalLineLength)).append("\n")
                 .append(centeredTitle).append("\n")
                 .append(Strings.repeat("*", horizontalLineLength)).append("\n")
+                .append("Workflow Instance ID:             ").append(workflowInstance.getId()).append("\n")
                 .append("Workflow Name:             ").append(workflowInstance.getProcessDefinition().getName())
                 .append("\n")
                 .append("Workflow Instance Name:    ").append(workflowInstance.getName()).append("\n")

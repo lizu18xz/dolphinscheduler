@@ -195,6 +195,10 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
         K8sQueueCalculateResponse response = new K8sQueueCalculateResponse();
         //获取资源情况,队列名称
         Project project = projectMapper.queryByName(projectName);
+        if (project == null) {
+            log.info("monitorQueueInfo projectName:{}", projectName);
+            return response;
+        }
         String queueName = project.getProjectEnName();
         Map<String, Object> columnMap = new HashMap<>();
         columnMap.put("name", queueName);

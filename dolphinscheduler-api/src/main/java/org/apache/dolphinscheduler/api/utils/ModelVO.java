@@ -34,4 +34,7 @@ public class ModelVO implements Serializable {
      */
     private Long workFlowId;
 
+
+    private String projectCode;
+
 }

@@ -12,7 +12,7 @@ public class TpDatasetVO {
     private Long tpDatasetId;
 
     @Schema(description = "*对象存储中存储桶下的文件相对路径名集合,每个map接收两个数据如objectKey:a,size:10")
-    private List<Map<String,Object>> relativePathList;
+    private List<Map<String, Object>> relativePathList;
 
     @Schema(description = "*数据集版本id")
     private Long datasetVersionId;
@@ -22,7 +22,7 @@ public class TpDatasetVO {
      */
     private Long workFlowId;
     /**
-     *  数据源id
+     * 数据源id
      */
     private Long sourceId;
 
@@ -30,4 +30,6 @@ public class TpDatasetVO {
      * 0 数据集 1切片
      */
     private int dataType;
+
+    private String projectCode;
 }

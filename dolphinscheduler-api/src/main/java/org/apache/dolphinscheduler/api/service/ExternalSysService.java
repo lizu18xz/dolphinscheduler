@@ -18,7 +18,7 @@ public interface ExternalSysService {
     List<ModelResponse> getModelList(StorageRequest request);
 
 
-    List<TreeResponse> getDataSetTree(String type);
+    List<TreeResponse> getDataSetTree(String type, String projectName);
 
     List<WrapFetchVolumeResponse> getDataSetFileList(String type, String projectName, String dirId);
 }

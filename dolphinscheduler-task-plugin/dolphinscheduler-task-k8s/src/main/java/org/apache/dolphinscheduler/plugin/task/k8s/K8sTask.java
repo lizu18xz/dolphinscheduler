@@ -18,13 +18,17 @@
 package org.apache.dolphinscheduler.plugin.task.k8s;
 
 import static org.apache.dolphinscheduler.common.constants.Constants.K8S_VOLUME;
+import static org.apache.dolphinscheduler.common.constants.Constants.PRE_NODE_OUTPUT;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.CLUSTER;
 import static org.apache.dolphinscheduler.plugin.task.api.TaskConstants.NAMESPACE_NAME;
 
 import org.apache.dolphinscheduler.common.utils.JSONUtils;
 import org.apache.dolphinscheduler.common.utils.PropertyUtils;
+import org.apache.dolphinscheduler.plugin.task.api.TaskCallBack;
 import org.apache.dolphinscheduler.plugin.task.api.TaskException;
 import org.apache.dolphinscheduler.plugin.task.api.TaskExecutionContext;
+import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
+import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTask;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.K8sTaskMainParameters;
 import org.apache.dolphinscheduler.plugin.task.api.model.Label;
@@ -115,15 +119,21 @@ public class K8sTask extends AbstractK8sTask {
         //直接约定死
         String volumePrefix = PropertyUtils.getString(K8S_VOLUME) + "/" + taskExecutionContext.getProjectCode();
 
-        if(!StringUtils.isEmpty(k8sTaskParameters.getFetchId())){
+        String inputDataVolume = volumePrefix + "/fetch/";
+        if (!StringUtils.isEmpty(k8sTaskParameters.getFetchId())) {
             k8sTaskMainParameters.setFetchType(k8sTaskParameters.getFetchType());
-            k8sTaskMainParameters.setFetchDataVolume(volumePrefix+"/fetch/");
+            k8sTaskMainParameters.setFetchDataVolume(volumePrefix + "/fetch/");
             k8sTaskMainParameters.setFetchDataVolumeArgs(k8sTaskParameters.getFetchDataVolumeArgs());
+        } else {
+            //设置前置节点的输出作为输入 /mnt/k8s_volume/14912393717952/output/455/0
+            String preTaskInstanceId = paramMap.get(PRE_NODE_OUTPUT);
+            inputDataVolume = volumePrefix + "/output/" + preTaskInstanceId;
+            log.info("pre task output set now task:{}", inputDataVolume);
         }
 
         //设置约定的挂载信息
         k8sTaskMainParameters.setOutputDataVolume(volumePrefix + "/output/");
-        k8sTaskMainParameters.setInputDataVolume(volumePrefix + "/fetch/");
+        k8sTaskMainParameters.setInputDataVolume(inputDataVolume);
         k8sTaskMainParameters.setPodInputDataVolume("/data/input");
         k8sTaskMainParameters.setPodOutputDataVolume("/data/output");
 
@@ -157,6 +167,20 @@ public class K8sTask extends AbstractK8sTask {
             labelMap.put(label.getLabel(), label.getValue());
         });
         return labelMap;
+    }
+
+
+    @Override
+    public void handle(TaskCallBack taskCallBack) throws TaskException {
+        super.handle(taskCallBack);
+        // put response in output
+        Property outputProperty = new Property();
+        outputProperty.setProp(PRE_NODE_OUTPUT);
+        outputProperty.setDirect(Direct.OUT);
+        outputProperty.setType(DataType.VARCHAR);
+        outputProperty.setValue(String.valueOf(taskExecutionContext.getTaskInstanceId()));
+        log.info("data set task call back:{},{}", outputProperty.getProp(), outputProperty.getValue());
+        k8sTaskParameters.addPropertyToValPool(outputProperty);
     }
 
 }

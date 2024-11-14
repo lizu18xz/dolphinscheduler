@@ -542,4 +542,5 @@ public class TaskConstants {
 
     public static final String VOLUME_MINIO="minio";
 
+    public static final String DOLPHIN_HARBOR="dolphin-harbor";
 }

@@ -120,6 +120,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
         }
         String url = address + FETCH_PATH;
+        request.setProjectCode(project.getProjectEnName());
         String msgToJson = JSONUtils.toJsonString(request);
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
         CloseableHttpClient httpClient;
@@ -289,6 +290,8 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         if (type.equals("2")) {
             url = address + TREE3;
         }
+        Project project = projectMapper.queryByName(request.getProjectName());
+        request.setProjectCode(project.getProjectEnName());
         String msgToJson = JSONUtils.toJsonString(request);
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, msgToJson);
         CloseableHttpClient httpClient;
@@ -379,7 +382,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     }
 
     @Override
-    public List<TreeResponse> getDataSetTree(String type) {
+    public List<TreeResponse> getDataSetTree(String type, String projectName) {
         String address = PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
         if (StringUtils.isEmpty(address)) {
             throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
@@ -392,7 +395,9 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         } else {
             url = url + TREE3;
         }
+        Project project = projectMapper.queryByName(projectName);
         Map<String, Object> map = new HashMap<>();
+        map.put("projectCode", project.getProjectEnName());
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, JSONUtils.toJsonString(map));
         CloseableHttpClient httpClient;
         httpClient = HttpRequestUtil.getHttpClient();
@@ -444,9 +449,10 @@ public class ExternalSysServiceImpl implements ExternalSysService {
         } else {
             url = url + FILE3;
         }
-
+        Project project = projectMapper.queryByName(projectName);
         Map<String, Object> map = new HashMap<>();
         map.put("id", dirId);
+        map.put("projectCode", project.getProjectEnName());
         HttpPost httpPost = HttpRequestUtil.constructHttpPost(url, JSONUtils.toJsonString(map));
         CloseableHttpClient httpClient;
         httpClient = HttpRequestUtil.getHttpClient();
@@ -470,7 +476,6 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             List<FileResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<FileResponse>>() {
             });
 
-            Project project = projectMapper.queryByName(projectName);
             long projectCode = project.getCode();
             String k8sVolume = PropertyUtils.getString(K8S_VOLUME);
             String fetchPath = k8sVolume + "/" + projectCode + "/fetch/";

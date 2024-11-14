@@ -21,4 +21,6 @@ public class WordVO implements Serializable {
     private List<ModelVO> modelList;
 
     private TpDatasetVO tpDatasetVO;
+
+    private String projectCode;
 }

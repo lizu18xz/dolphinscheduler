@@ -78,6 +78,7 @@ CREATE TABLE `t_ds_process_template`
     `process_id`  int(11) DEFAULT NULL COMMENT '流程ID',
     `name`        varchar(255) DEFAULT NULL COMMENT '流程名称',
     `code`               bigint(20) NOT NULL COMMENT '流程 标识 code',
+    `project_code`               bigint(20) NOT NULL COMMENT '项目code',
     `create_time` datetime NOT NULL COMMENT 'create time',
     `update_time` datetime     DEFAULT NULL COMMENT 'update time',
     PRIMARY KEY (`id`)

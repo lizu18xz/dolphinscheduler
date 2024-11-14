@@ -80,12 +80,23 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         this.batchJobs = new ArrayList<>();
     }
 
+    private String getK8sJobName(Integer index) {
+        // 设置job名称
+        String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
+        String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT).replaceAll("_", "");
+        String k8sJobName = "";
+        if (index == null) {
+            k8sJobName = String.format("%s-%s", taskName, taskInstanceId);
+        } else {
+            k8sJobName = String.format("%s-%s-%s", taskName, taskInstanceId, index);
+        }
+        return k8sJobName;
+    }
+
     /**
      * 构建有队列的任务
      */
-    public QueueJob buildK8sQueueJob(DataSetK8sTaskMainParameters k8STaskMainParameters, int index) {
-        String taskType = taskRequest.getTaskType();
-        String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
+    public QueueJob buildK8sQueueJob(DataSetK8sTaskMainParameters k8STaskMainParameters, Integer index) {
         //目录加上索引，区分
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String image = k8STaskMainParameters.getImage();
@@ -96,16 +107,17 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //设置资源
         Map<String, Quantity> limitRes = new HashMap<>();
         Map<String, Quantity> reqRes = new HashMap<>();
-        String k8sJobName = String.format("%s-%s-%s", taskName, taskInstanceId, index);
+        String k8sJobName = getK8sJobName(index);
         if (k8STaskMainParameters.getGpuLimits() == null || k8STaskMainParameters.getGpuLimits() <= 0) {
             Double podMem = k8STaskMainParameters.getMinMemorySpace();
             Double podCpu = k8STaskMainParameters.getMinCpuCores();
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
             reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
             limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+            log.info("cpu param set :{},{}", podMem, podCpu);
         } else {
             //nvidia.com/gpu: 1
             String gpuType = k8STaskMainParameters.getGpuType();
@@ -113,6 +125,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             if (StringUtils.isEmpty(gpuType)) {
                 gpuType = GPU;
             }
+            log.info("gpu param set :{}", gpuType, podGpu);
             limitRes.put(gpuType, new Quantity(String.valueOf(podGpu)));
         }
 
@@ -164,13 +177,17 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                 .endRequiredDuringSchedulingIgnoredDuringExecution()
                 .endNodeAffinity().build();
 
-
-        String volumeSuffix = "/" + index;
+        String volumeSuffix = "";
+        if (index == null) {
+            volumeSuffix = "";
+        } else {
+            volumeSuffix = "/" + index;
+        }
         //设置容器挂载
         List<VolumeMount> volumeMounts = new ArrayList<>();
         //设置宿主机挂载
         List<Volume> volumes = new ArrayList<>();
-        //必须有数据来源，这里才会有前置挂载
+        //有数据来源的情况
         if (!CollectionUtils.isEmpty(k8STaskMainParameters.getFetchInfos())) {
             //容器
             VolumeMount volumeMount = new VolumeMount();
@@ -182,6 +199,19 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             volume.setName("input-data");
             volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume() + taskInstanceId + volumeSuffix, "DirectoryOrCreate"));
             volumes.add(volume);
+        } else {
+            //没有数据来源的节点从前置节点中获取
+            if (!StringUtils.isEmpty(k8STaskMainParameters.getInputDataVolume())) {
+                VolumeMount volumeMount = new VolumeMount();
+                volumeMount.setName("input-data");
+                volumeMount.setMountPath(k8STaskMainParameters.getPodInputDataVolume());
+                volumeMounts.add(volumeMount);
+                //宿主机
+                Volume volume = new Volume();
+                volume.setName("input-data");
+                volume.setHostPath(new HostPathVolumeSource(k8STaskMainParameters.getInputDataVolume(), "DirectoryOrCreate"));
+                volumes.add(volume);
+            }
         }
 
         if (!StringUtils.isEmpty(k8STaskMainParameters.getOutputDataVolume())) {
@@ -221,11 +251,30 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         container.setResources(new ResourceRequirements(limitRes, reqRes));
         container.setEnv(envVars);
         container.setVolumeMounts(volumeMounts.size() == 0 ? null : volumeMounts);
+        //设置钩子函数 post start：容器创建之后执行，如果失败了会重启容器。
+        Lifecycle lifecycle = new Lifecycle();
+        Handler handler = new Handler();
+        ExecAction execAction = new ExecAction();
+        //["/bin/sh", "-c", "mkdir -p /data/input && mkdir -p /data/output"]
+        List<String> startCmd = new ArrayList<>();
+        startCmd.add("/bin/sh");
+        startCmd.add("-c");
+        startCmd.add("mkdir -p /data/input && mkdir -p /data/output");
+        execAction.setCommand(startCmd);
+        handler.setExec(execAction);
+        lifecycle.setPostStart(handler);
+        container.setLifecycle(lifecycle);
         containers.add(container);
 
         PodSpec podSpec = new PodSpec();
         template.setSpec(podSpec);
         template.getSpec().setContainers(containers);
+        //设置拉取镜像权限
+        List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+        LocalObjectReference reference = new LocalObjectReference();
+        reference.setName(DOLPHIN_HARBOR);
+        imagePullSecrets.add(reference);
+        template.getSpec().setImagePullSecrets(imagePullSecrets);
         template.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         template.getSpec().setAffinity(affinity);
         template.getSpec().setRestartPolicy(RESTART_POLICY);
@@ -233,6 +282,9 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //需要从远程拉取数据的情况下，设置Init容器初始化操作, 从接口获取挂载信息
         List<FetchInfo> fetchInfos = k8STaskMainParameters.getFetchInfos();
         if (!CollectionUtils.isEmpty(fetchInfos)) {
+            if (index == null) {
+                index = 0;
+            }
             FetchInfo fetchInfo = fetchInfos.get(index);
             List<String> inputArgs = new ArrayList<>();
             String fetchDataVolumeArgs = fetchInfo.getFetchDataVolumeArgs();
@@ -258,24 +310,22 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             //设置初始化操作的资源
             Double podMem = 1024d;
             Double podCpu = 1d;
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
-            reqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
-            reqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
-            limitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
-            limitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
-            initContainer.setResources(new ResourceRequirements(limitRes, reqRes));
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
+            Map<String, Quantity> initReqRes = new HashMap<>();
+            Map<String, Quantity> initLimitRes = new HashMap<>();
+            initReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
+            initReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
+            initLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
+            initLimitRes.put(CPU, new Quantity(String.valueOf(limitPodCpu)));
+            initContainer.setResources(new ResourceRequirements(initLimitRes, initReqRes));
             template.getSpec().setInitContainers(initContainers);
 
             //新增fetch的数据到宿主机
             Volume volume = new Volume();
             volume.setName("fetch-init");
 
-            //TODO 临时写死
             String fetchDataVolumeNode = fetchInfo.getFetchDataVolume() + taskInstanceId + volumeSuffix;
-            if (taskType.equalsIgnoreCase("K8S")) {
-                fetchDataVolumeNode = fetchDataVolumeNode + "/MNIST/raw";
-            }
             volume.setHostPath(new HostPathVolumeSource(fetchDataVolumeNode, "DirectoryOrCreate"));
             List<Volume> preVolumes = template.getSpec().getVolumes();
             preVolumes.add(volume);
@@ -454,6 +504,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         String taskInstanceId = String.valueOf(taskRequest.getTaskInstanceId());
         String taskName = taskRequest.getTaskName().toLowerCase(Locale.ROOT);
         String containerName = String.format("%s-%s", taskName, taskInstanceId);
+        log.info("pod log name:{}", containerName);
         podLogOutputFuture = collectPodLogExecutorService.submit(() -> {
             try (
                     LogWatch watcher = ProcessUtils.getPodLogWatcher(taskRequest.getK8sTaskExecutionContext(),
@@ -466,13 +517,14 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
                     }
                 }
             } catch (Exception e) {
+                log.error("parse pod log output error:{}", e);
+                e.printStackTrace();
                 throw new RuntimeException(e);
             } finally {
                 LogUtils.removeTaskInstanceLogFullPathMDC();
                 podLogOutputIsFinished = true;
             }
         });
-
         collectPodLogExecutorService.shutdown();
     }
 
@@ -490,6 +542,9 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         //根据选择的数据来源来进行任务的执行
         List<FetchInfo> fetchInfos = k8STaskMainParameters.getFetchInfos();
         Boolean multiple = k8STaskMainParameters.getMultiple();
+        if (multiple == null) {
+            multiple = false;
+        }
         if (multiple) {
             log.info("多pod 执行");
             if (null == TaskExecutionContextCacheManager.getByTaskInstanceId(taskInstanceId)) {
@@ -711,7 +766,7 @@ public class DataSetK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
     }
 
     private String asApplyYaml(DataSetK8sTaskMainParameters parameters) {
-        this.job = buildK8sQueueJob(parameters, 0);
+        this.job = buildK8sQueueJob(parameters, null);
         return Serialization.asYaml(this.job);
     }
 

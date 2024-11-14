@@ -17,7 +17,6 @@
 
 package org.apache.dolphinscheduler.plugin.task.api.k8s.impl;
 
-import com.google.common.collect.Lists;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
@@ -94,8 +93,8 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
             // 资源设置
             Double podMem = parameters.getMasterMinMemorySpace();
             Double podCpu = parameters.getMasterMinCpuCores();
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             masterReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
             masterReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             masterLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
@@ -116,8 +115,8 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         } else {
             Double podMem = parameters.getWorkerMinMemorySpace();
             Double podCpu = parameters.getWorkerMinCpuCores();
-            Double limitPodMem = podMem * 2;
-            Double limitPodCpu = podCpu * 2;
+            Double limitPodMem = podMem * 1.2;
+            Double limitPodCpu = podCpu * 1.2;
             workerReqRes.put(MEMORY, new Quantity(String.format("%s%s", podMem, MI)));
             workerReqRes.put(CPU, new Quantity(String.valueOf(podCpu)));
             workerLimitRes.put(MEMORY, new Quantity(String.format("%s%s", limitPodMem, MI)));
@@ -234,6 +233,12 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         template.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         template.getSpec().setAffinity(affinity);
         template.getSpec().setRestartPolicy(RESTART_POLICY);
+        //设置拉取镜像权限
+        List<LocalObjectReference> imagePullSecrets = new ArrayList<>();
+        LocalObjectReference reference = new LocalObjectReference();
+        reference.setName(DOLPHIN_HARBOR);
+        imagePullSecrets.add(reference);
+        template.getSpec().setImagePullSecrets(imagePullSecrets);
         master.setTemplate(template);
 
         //设置worker
@@ -263,6 +268,8 @@ public class PytorchK8sQueueTaskExecutor extends AbstractK8sTaskExecutor {
         workerTemplate.getSpec().setVolumes(volumes.size() == 0 ? null : volumes);
         workerTemplate.getSpec().setAffinity(affinity);
         workerTemplate.getSpec().setRestartPolicy(RESTART_POLICY);
+        //设置拉取镜像权限
+        workerTemplate.getSpec().setImagePullSecrets(imagePullSecrets);
         worker.setTemplate(workerTemplate);
         queueJob.setSpec(queueJobSpec);
         return queueJob;

@@ -61,7 +61,7 @@ public class DataSetK8sTaskParameters extends AbstractParameters {
     private List<NodeSelectorExpression> nodeSelectors;
 
     /**
-     * 前置拉取数据信息
+     * 前置拉取数据信息,数据来源
      */
     private List<FetchInfo> fetchInfos;
 

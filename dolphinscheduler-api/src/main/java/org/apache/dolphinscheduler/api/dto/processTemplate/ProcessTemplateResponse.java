@@ -19,6 +19,8 @@ public class ProcessTemplateResponse {
      */
     private long code;
 
+    private long projectCode;
+
     /**
      * name
      */

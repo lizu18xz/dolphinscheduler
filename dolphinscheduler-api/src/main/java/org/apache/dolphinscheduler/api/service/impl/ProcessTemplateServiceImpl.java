@@ -7,12 +7,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.dolphinscheduler.api.dto.processTemplate.ProcessTemplateRequest;
 import org.apache.dolphinscheduler.api.dto.processTemplate.ProcessTemplateResponse;
 import org.apache.dolphinscheduler.api.enums.Status;
+import org.apache.dolphinscheduler.api.exceptions.ServiceException;
 import org.apache.dolphinscheduler.api.service.ProcessTemplateService;
 import org.apache.dolphinscheduler.api.utils.PageInfo;
 import org.apache.dolphinscheduler.api.utils.Result;
 import org.apache.dolphinscheduler.dao.entity.ProcessTemplate;
+import org.apache.dolphinscheduler.dao.entity.Project;
 import org.apache.dolphinscheduler.dao.entity.User;
 import org.apache.dolphinscheduler.dao.mapper.ProcessTemplateMapper;
+import org.apache.dolphinscheduler.dao.mapper.ProjectMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -30,14 +33,25 @@ public class ProcessTemplateServiceImpl extends BaseServiceImpl implements Proce
     @Autowired
     private ProcessTemplateMapper processTemplateMapper;
 
+    @Autowired
+    private ProjectMapper projectMapper;
+
 
     @Override
     public Result create(ProcessTemplateRequest request) {
         Result result = new Result();
+        //获取项目code
+        String projectName = request.getProjectName();
+        Project project = projectMapper.queryByName(projectName);
+        if (project == null) {
+            throw new ServiceException(Status.PROJECT_NOT_FOUND, projectName);
+        }
+
         ProcessTemplate processTemplate = new ProcessTemplate();
         BeanUtils.copyProperties(request, processTemplate);
         processTemplate.setCreateTime(new Date());
         processTemplate.setUpdateTime(new Date());
+        processTemplate.setProjectCode(project.getCode());
         processTemplateMapper.insert(processTemplate);
         result.setData(processTemplate);
         putMsg(result, Status.SUCCESS);
@@ -50,7 +64,7 @@ public class ProcessTemplateServiceImpl extends BaseServiceImpl implements Proce
         PageInfo<ProcessTemplateResponse> pageInfo = new PageInfo<>(pageNo, pageSize);
         Page<ProcessTemplate> page = new Page<>(pageNo, pageSize);
         QueryWrapper<ProcessTemplate> wrapper = new QueryWrapper();
-        if(!StringUtils.isEmpty(keyword)){
+        if (!StringUtils.isEmpty(keyword)) {
             wrapper.eq("name", keyword);
         }
         Page<ProcessTemplate> processTemplatePage = processTemplateMapper.selectPage(page, wrapper);

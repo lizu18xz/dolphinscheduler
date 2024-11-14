@@ -19,6 +19,8 @@ public class ProcessTemplateRequest {
      */
     private long code;
 
+    private String projectName;
+
     /**
      * name
      */

@@ -179,12 +179,14 @@ public class MinioSdFileServiceImpl {
                 modelVO.setModelFile((String) map.get("url"));
                 modelVO.setModelId(fileCustom.getModelId());
                 modelVO.setWorkFlowId(fileCustom.getWorkFlowId());
+                modelVO.setProjectCode(fileCustom.getProjectName());
                 modelList.add(modelVO);
             }
             wordVO.setTenantCode(fileCustom.getTenantCode());
             wordVO.setUserName(fileCustom.getUserName());
             wordVO.setType("0");
             wordVO.setModelList(modelList);
+            wordVO.setProjectCode(fileCustom.getProjectName());
         } else {//处理数据处理类型
             if (fileCustom.getDataType() == 0) {//处理数据集数据
                 TpDatasetVO tpDatasetVO = new TpDatasetVO();
@@ -200,10 +202,12 @@ public class MinioSdFileServiceImpl {
                     relativePathList.add(dataMap);
                 }
                 tpDatasetVO.setRelativePathList(relativePathList);
+                tpDatasetVO.setProjectCode(fileCustom.getProjectName());
                 wordVO.setTenantCode(fileCustom.getTenantCode());
                 wordVO.setUserName(fileCustom.getUserName());
                 wordVO.setType("1");
                 wordVO.setTpDatasetVO(tpDatasetVO);
+                wordVO.setProjectCode(fileCustom.getProjectName());
             } else {//处理切片/数据类型
                 List<Map<String, Object>> relativePathList = new ArrayList<>();
                 TpDatasetVO tpDatasetVO = new TpDatasetVO();
@@ -211,6 +215,7 @@ public class MinioSdFileServiceImpl {
                 tpDatasetVO.setWorkFlowId(fileCustom.getWorkFlowId());
                 tpDatasetVO.setSourceId(fileCustom.getSourceId());
                 tpDatasetVO.setDataType(fileCustom.getDataType());
+                tpDatasetVO.setProjectCode(fileCustom.getProjectName());
                 for (Map<String, Object> map : uploadResponses) {
                     Map<String, Object> dataMap = new HashMap<>(16);
                     dataMap.put("objectKey", map.get("objectKey"));
@@ -223,6 +228,7 @@ public class MinioSdFileServiceImpl {
                 wordVO.setUserName(fileCustom.getUserName());
                 tpDatasetVO.setRelativePathList(relativePathList);
                 wordVO.setTpDatasetVO(tpDatasetVO);
+                wordVO.setProjectCode(fileCustom.getProjectName());
             }
         }
         String msgToJson = JSONUtils.toJsonString(wordVO);

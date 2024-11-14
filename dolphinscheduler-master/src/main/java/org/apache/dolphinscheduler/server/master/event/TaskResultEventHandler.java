@@ -34,6 +34,7 @@ import org.apache.dolphinscheduler.extract.base.client.SingletonJdkDynamicRpcCli
 import org.apache.dolphinscheduler.extract.worker.ITaskInstanceExecutionEventAckListener;
 import org.apache.dolphinscheduler.extract.worker.transportor.TaskInstanceExecutionFinishEventAck;
 import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
+import org.apache.dolphinscheduler.plugin.task.api.model.Property;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.DataSetK8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.server.master.cache.ProcessInstanceExecCacheManager;
@@ -55,10 +56,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.dolphinscheduler.common.constants.Constants.*;
 
@@ -192,7 +191,7 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     //源ID
                     outputInfoMap.put("sourceId", k8sTaskParameters.getFetchId());
                     outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
-                    outputInfoMap.put("tenantCode", "default");
+                    outputInfoMap.put("tenantCode", "1");
                     outputInfoMap.put("userName", "admin");
                 } else {
                     String modelId = k8sTaskParameters.getModelId();
@@ -204,6 +203,8 @@ public class TaskResultEventHandler implements TaskEventHandler {
                             + "/output/" + taskInstance.getId();
                     outputInfoMap.put("localFilePath", taskOutPutPath);
                     outputInfoMap.put("workFlowId", taskInstance.getProcessDefine().getCode());
+                    outputInfoMap.put("tenantCode", "1");
+                    outputInfoMap.put("userName", "admin");
                 }
                 log.info("模型训练request map:{}", JSONUtils.toJsonString(outputInfoMap));
                 request(address, outputInfoMap);
@@ -212,9 +213,26 @@ public class TaskResultEventHandler implements TaskEventHandler {
                 DataSetK8sTaskParameters dataSetK8sTaskParameters =
                         JSONUtils.parseObject(taskInstance.getTaskParams(), DataSetK8sTaskParameters.class);
                 log.info("dataSetK8sTaskParameters:{}", JSONUtils.toJsonString(dataSetK8sTaskParameters));
+
+                //获取动态参数
+                String globalParams = taskInstance.getProcessInstance().getGlobalParams();
+                List<Property> processGlobalParams =
+                        new ArrayList<>(JSONUtils.toList(globalParams, Property.class));
+                Map<String, String> processGlobalParamsMap = processGlobalParams.stream()
+                        .collect(Collectors.toMap(Property::getProp, Property::getValue));
+                log.info("processGlobalParamsMap:{}", JSONUtils.toJsonString(processGlobalParamsMap));
+
                 String outputVolumeNameInfo = dataSetK8sTaskParameters.getOutputVolumeNameInfo();
-                if (!StringUtils.isEmpty(outputVolumeNameInfo)) {
+                if (processGlobalParamsMap.containsKey("outputVolumeId")) {
+                    String params = processGlobalParamsMap.get("outputVolumeNameInfo");
+                    outputInfoMap = JSONUtils.toMap(params, String.class, Object.class);
+                    outputInfoMap.put("dataType", processGlobalParamsMap.get("dataType"));
+
+                    outputVolumeNameInfo = "output";
+                } else {
                     outputInfoMap = JSONUtils.toMap(outputVolumeNameInfo, String.class, Object.class);
+                }
+                if (!StringUtils.isEmpty(outputVolumeNameInfo)) {
                     outputInfoMap.put("projectName", projectEnName);
                     outputInfoMap.put("type", 1);
                     outputInfoMap.put("dataId", outputInfoMap.get("tpDatasetId"));
@@ -232,14 +250,21 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     outputInfoMap.put("userName", "admin");
                     List<FetchInfo> fetchInfos = dataSetK8sTaskParameters.getFetchInfos();
                     log.info("fetchInfos size:{}", fetchInfos.size());
+                    Boolean multiple = dataSetK8sTaskParameters.getMultiple();
+                    if (multiple == null) {
+                        multiple = false;
+                    }
                     if (!CollectionUtils.isEmpty(fetchInfos)) {
                         for (int i = 0; i < fetchInfos.size(); i++) {
                             FetchInfo fetchInfo = fetchInfos.get(i);
                             outputInfoMap.put("sourceId", fetchInfo.getFetchId());
-                            String volumeSuffix = "/" + i;
+                            String volumeSuffix = "";
+                            if(multiple){
+                                volumeSuffix = "/" + i;
+                            }
                             outputInfoMap.put("localFilePath", taskOutPutPath + volumeSuffix);
                             log.info("数据集request map:{}", JSONUtils.toJsonString(outputInfoMap));
-                            request(address,outputInfoMap);
+                            request(address, outputInfoMap);
                         }
                     }
                 }
