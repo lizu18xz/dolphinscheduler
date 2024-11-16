@@ -50,8 +50,8 @@ public class SdFileObsUtils {
      * 根据本地文件路径分片上传
      *
      * @param bucketName    桶名
-     * @param objectKey     最终obs中的文件名
-     * @param localFilePath 本地文件路径
+     * @param  localFilePath 本地文件路径
+     * @param objectKey 最终obs中的文件名
      * @return url
      * @throws IOException
      */
