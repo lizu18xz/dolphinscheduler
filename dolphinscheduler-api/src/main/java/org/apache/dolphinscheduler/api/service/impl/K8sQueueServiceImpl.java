@@ -53,9 +53,7 @@ public class K8sQueueServiceImpl extends BaseServiceImpl implements K8sQueueServ
     @Override
     public Result createK8sQueue(K8sQueueRequest request) {
         Result result = new Result();
-        if (StringUtils.isEmpty(request.getName())) {
-            request.setName(request.getProjectEnName());
-        }
+        request.setName(request.getProjectEnName());
 
         //获取队列资源信息
         ProjectQueueResourceInfo resourceInfo = request.getProjectQueueResourceInfo();
