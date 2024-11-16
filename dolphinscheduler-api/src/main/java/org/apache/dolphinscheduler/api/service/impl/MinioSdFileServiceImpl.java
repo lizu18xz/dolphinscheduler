@@ -110,7 +110,10 @@ public class MinioSdFileServiceImpl {
                     } else {
 //                        objectKey = fileCustom.getPath() + objectKey;
 //                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
-                        objectKey = fileCustom.getPath()+path;
+                        String[] parts = path.split("/");
+                        if (parts.length >= 3) {
+                            objectKey = fileCustom.getPath()+ parts[2] + "/" + parts[parts.length - 1];
+                        }
                         objectKey= objectKey.replaceAll("/{2,}", "/");
                     }
 
@@ -178,7 +181,11 @@ public class MinioSdFileServiceImpl {
                     } else {
 //                        objectKey = fileCustom.getPath() + objectKey;
 //                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
-                        objectKey = fileCustom.getPath()+path;
+//                        objectKey = fileCustom.getPath()+path;
+                        String[] parts = path.split("/");
+                        if (parts.length >= 3) {
+                            objectKey = fileCustom.getPath()+ parts[2] + "/" + parts[parts.length - 1];
+                        }
                         objectKey= objectKey.replaceAll("/{2,}", "/");
                     }
                     // 上传文件
