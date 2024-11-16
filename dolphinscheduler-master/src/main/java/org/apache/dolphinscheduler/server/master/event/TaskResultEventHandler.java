@@ -259,7 +259,7 @@ public class TaskResultEventHandler implements TaskEventHandler {
                             FetchInfo fetchInfo = fetchInfos.get(i);
                             outputInfoMap.put("sourceId", fetchInfo.getFetchId());
                             String volumeSuffix = "";
-                            if(multiple){
+                            if (multiple) {
                                 volumeSuffix = "/" + i;
                             }
                             outputInfoMap.put("localFilePath", taskOutPutPath + volumeSuffix);
@@ -282,7 +282,9 @@ public class TaskResultEventHandler implements TaskEventHandler {
         httpClient = HttpRequestUtil.getHttpClient();
         CloseableHttpResponse response = null;
         try {
-            httpPost.setHeader("token", "cdd8c9bab1596b12dbe45ecb6979bc95");
+            String token =
+                    PropertyUtils.getString("dolphin-token");
+            httpPost.setHeader("token", token);
             response = httpClient.execute(httpPost);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode != HttpStatus.SC_OK) {
