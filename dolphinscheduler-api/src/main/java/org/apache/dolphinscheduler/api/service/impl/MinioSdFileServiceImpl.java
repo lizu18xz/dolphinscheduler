@@ -31,7 +31,6 @@ import static org.apache.dolphinscheduler.common.constants.Constants.OBS_SECRET;
 import static org.apache.dolphinscheduler.common.constants.Constants.OSS_TYPE;
 
 
-
 @Service
 @Slf4j
 public class MinioSdFileServiceImpl {
@@ -57,10 +56,10 @@ public class MinioSdFileServiceImpl {
         }
 
         // 递归遍历文件夹
-        if(ossType.equals("minio")){
+        if (ossType.equals("minio")) {
             uploadFilesFromFolder(folder, fileCustom, uploadResponses);
             updateMinio(fileCustom, uploadResponses);
-        }else {
+        } else {
             uploadObsFilesFromFolder(folder, fileCustom, uploadResponses);
             updateMinio(fileCustom, uploadResponses);
         }
@@ -70,6 +69,7 @@ public class MinioSdFileServiceImpl {
 
     /**
      * obs上传
+     *
      * @param folder
      * @param fileCustom
      * @param uploadResponses
@@ -112,13 +112,15 @@ public class MinioSdFileServiceImpl {
 //                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
                         String[] parts = path.split("/");
                         if (parts.length >= 5) {
-                            objectKey = fileCustom.getPath()+ parts[3] + "/" + parts[5]+  "/";
+                            objectKey = fileCustom.getPath() + parts[3] + "/" + parts[5] + "/" + file.getName();
+                            log.info("split path objectKey:{}", objectKey);
                         }
-                        objectKey= objectKey.replaceAll("/{2,}", "/");
+                        objectKey = objectKey.replaceAll("/{2,}", "/");
                     }
 
                     // 上传文件
-                    Boolean uploadSuccess = obsUtils.localFileMultipartUpload(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
+                    log.info("split path objectKey:{},path:{}", objectKey, path);
+                    Boolean uploadSuccess = obsUtils.localFileMultipartUpload(fileCustom.getBucketName(), objectKey, path, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
                     log.info("uploadSuccess" + uploadSuccess);
                     log.info(fileCustom.getBucketName() + ":path=" + path + ":objectKey=" + objectKey + ":ileCustom.key()=" + fileCustom.getKey() + ":ileCustom.getHost()=" + fileCustom.getAppSecret());
                     if (uploadSuccess) {
@@ -182,11 +184,12 @@ public class MinioSdFileServiceImpl {
 //                        objectKey = fileCustom.getPath() + objectKey;
 //                        path = fileCustom.getPath();//数据集的时候使用数据集的目录
 //                        objectKey = fileCustom.getPath()+path;
+                        log.info("split path:{}", path);
                         String[] parts = path.split("/");
                         if (parts.length >= 5) {
-                            objectKey = fileCustom.getPath()+ parts[3] + "/" + parts[5]+  "/";
+                            objectKey = fileCustom.getPath() + parts[3] + "/" + parts[5] + "/" + file.getName();
                         }
-                        objectKey= objectKey.replaceAll("/{2,}", "/");
+                        objectKey = objectKey.replaceAll("/{2,}", "/");
                     }
                     // 上传文件
                     Boolean uploadSuccess = minioUtils.uploadObject(fileCustom.getBucketName(), path, objectKey, fileCustom.getHost(), fileCustom.getKey(), fileCustom.getAppSecret());
