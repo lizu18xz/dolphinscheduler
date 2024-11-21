@@ -115,4 +115,15 @@ public class ExternalSysController {
         return Result.success(externalSysService.getDataSetFileList(type, projectName, dirId));
     }
 
+
+    @GetMapping(value = "/external-storage")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<S3StorageResponse> getExternalS3Info(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser,
+            S3StorageRequest request) {
+
+        return Result.success(externalSysService.getExternalS3Info(request));
+    }
+
+
 }

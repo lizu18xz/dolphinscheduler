@@ -53,6 +53,7 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     public static final String FILE1 = "/admin-api/system/baseOriginalData/haitun/haitunOriginalFileByParentId";
     public static final String FILE2 = "/admin-api/system/baseOriginalData/haitun/haitunProblemFileByParentId";
     public static final String FILE3 = "/admin-api/system/sdFileDetail/haitun/haitunSdFileByParentId";
+    public static final String S3_STORAGE = "/admin-api/infra/s3File/nextFolderAndFile";
 
     @Autowired
     private ProjectMapper projectMapper;
@@ -502,6 +503,47 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             return fetchVolumeResponses;
         } catch (Exception e) {
             log.error("get data set file info error{}", e);
+            return null;
+        } finally {
+            try {
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public S3StorageResponse getExternalS3Info(S3StorageRequest request) {
+        String address = PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
+        if (StringUtils.isEmpty(address)) {
+            throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
+        }
+        //发送http请求
+        String msgToJson = JSONUtils.toJsonString(request);
+        log.info("getExternalS3Info msg:{}", msgToJson);
+        HttpPost httpPost = HttpRequestUtil.constructHttpPost(address + S3_STORAGE, msgToJson);
+        CloseableHttpClient httpClient;
+        httpClient = HttpRequestUtil.getHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpPost);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                log.error("get s3 storage error, return http status code: {} ", statusCode);
+            }
+            String resp;
+            HttpEntity entity = response.getEntity();
+            resp = EntityUtils.toString(entity, "utf-8");
+            log.info("s3 store page resp :{}", resp.toString());
+            ObjectNode result = JSONUtils.parseObject(resp);
+            String data = result.get("data").toString();
+            S3StorageResponse responses = JSONUtils.parseObject(data, new TypeReference<S3StorageResponse>() {
+            });
+            return responses;
+        } catch (Exception e) {
+            log.error("get s3 store  error:{},e:{}", msgToJson, e);
             return null;
         } finally {
             try {

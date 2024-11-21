@@ -19,10 +19,7 @@ package org.apache.dolphinscheduler.plugin.task.api.parameters;
 
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
-import org.apache.dolphinscheduler.plugin.task.api.model.Label;
-import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
-import org.apache.dolphinscheduler.plugin.task.api.model.ResourceInfo;
+import org.apache.dolphinscheduler.plugin.task.api.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,9 +62,11 @@ public class DataSetK8sTaskParameters extends AbstractParameters {
      */
     private List<FetchInfo> fetchInfos;
 
+    private List<S3FetchInfo> s3FetchInfos;
+
     /**
      * 是否多pod运行
-     * */
+     */
     private Boolean multiple;
 
     /**

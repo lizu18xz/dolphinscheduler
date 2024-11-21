@@ -16,6 +16,8 @@
  */
 package org.apache.dolphinscheduler.common.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +29,10 @@ public class EncryptionUtilsTest {
     @Test
     public void testGetMd5() {
         Assertions.assertEquals(EncryptionUtils.getMd5(null), EncryptionUtils.getMd5(""));
+    }
+
+    public static void main(String[] args) {
+        System.out.println(DigestUtils.md5Hex("7Fh5jK9mP!Rd"));
     }
 
 }

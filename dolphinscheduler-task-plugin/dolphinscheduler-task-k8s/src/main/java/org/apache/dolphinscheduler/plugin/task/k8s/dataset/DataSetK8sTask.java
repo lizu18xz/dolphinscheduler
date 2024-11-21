@@ -31,10 +31,7 @@ import org.apache.dolphinscheduler.plugin.task.api.enums.DataType;
 import org.apache.dolphinscheduler.plugin.task.api.enums.Direct;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.AbstractK8sTask;
 import org.apache.dolphinscheduler.plugin.task.api.k8s.DataSetK8sTaskMainParameters;
-import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
-import org.apache.dolphinscheduler.plugin.task.api.model.Label;
-import org.apache.dolphinscheduler.plugin.task.api.model.NodeSelectorExpression;
-import org.apache.dolphinscheduler.plugin.task.api.model.Property;
+import org.apache.dolphinscheduler.plugin.task.api.model.*;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.AbstractParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.DataSetK8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.utils.ParameterUtils;
@@ -129,6 +126,27 @@ public class DataSetK8sTask extends AbstractK8sTask {
         k8sTaskMainParameters.setArgs(k8sTaskParameters.getArgs());
         k8sTaskMainParameters.setImagePullPolicy(k8sTaskParameters.getImagePullPolicy());
 
+        //获取s3参数，转换为fetchInfos
+        List<S3FetchInfo> s3FetchInfos = k8sTaskParameters.getS3FetchInfos();
+        if (!CollectionUtils.isEmpty(s3FetchInfos)) {
+            log.info("s3 fetch:{}", s3FetchInfos.size());
+            List<FetchInfo> fetchInfos = new ArrayList<>();
+            for (S3FetchInfo s3FetchInfo : s3FetchInfos) {
+                FetchInfo fetchInfo = new FetchInfo();
+                StringBuilder args = new StringBuilder();
+                args.append("[").append("\"").append("s3").append("\"").append(",").append("\"")
+                        .append(s3FetchInfo.getHost()).append("\"").append(",").append("\"")
+                        .append(s3FetchInfo.getAppKey()).append("\"").append(",").append("\"")
+                        .append(s3FetchInfo.getAppSecret()).append("\"").append(",").append("\"")
+                        .append(s3FetchInfo.getBucketName()).append("\"").append(",").append("\"")
+                        .append(s3FetchInfo.getPath()).append("\"").append(",")
+                        //容器内部地址写死
+                        .append("\"").append("/app/downloads").append("\"").append(",").append("]");
+                fetchInfo.setFetchDataVolumeArgs(args.toString());
+                fetchInfos.add(fetchInfo);
+            }
+            k8sTaskParameters.setFetchInfos(fetchInfos);
+        }
 
         String inputDataVolume = volumePrefix + "/fetch/";
         if (!CollectionUtils.isEmpty(k8sTaskParameters.getFetchInfos())) {
