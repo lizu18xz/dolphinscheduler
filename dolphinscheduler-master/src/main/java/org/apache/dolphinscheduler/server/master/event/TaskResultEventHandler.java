@@ -35,6 +35,7 @@ import org.apache.dolphinscheduler.extract.worker.ITaskInstanceExecutionEventAck
 import org.apache.dolphinscheduler.extract.worker.transportor.TaskInstanceExecutionFinishEventAck;
 import org.apache.dolphinscheduler.plugin.task.api.model.FetchInfo;
 import org.apache.dolphinscheduler.plugin.task.api.model.Property;
+import org.apache.dolphinscheduler.plugin.task.api.model.S3FetchInfo;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.DataSetK8sTaskParameters;
 import org.apache.dolphinscheduler.plugin.task.api.parameters.K8sTaskParameters;
 import org.apache.dolphinscheduler.server.master.cache.ProcessInstanceExecCacheManager;
@@ -254,6 +255,21 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     if (multiple == null) {
                         multiple = false;
                     }
+
+                    List<S3FetchInfo> s3FetchInfos = dataSetK8sTaskParameters.getS3FetchInfos();
+                    if (!CollectionUtils.isEmpty(s3FetchInfos)) {
+                        for (int i = 0; i < fetchInfos.size(); i++) {
+                            outputInfoMap.put("sourceId", "");
+                            String volumeSuffix = "";
+                            if (multiple) {
+                                volumeSuffix = "/" + i;
+                            }
+                            outputInfoMap.put("localFilePath", taskOutPutPath + volumeSuffix);
+                            log.info("数据集request map:{}", JSONUtils.toJsonString(outputInfoMap));
+                            request(address, outputInfoMap);
+                        }
+                    }
+
                     if (!CollectionUtils.isEmpty(fetchInfos)) {
                         for (int i = 0; i < fetchInfos.size(); i++) {
                             FetchInfo fetchInfo = fetchInfos.get(i);
