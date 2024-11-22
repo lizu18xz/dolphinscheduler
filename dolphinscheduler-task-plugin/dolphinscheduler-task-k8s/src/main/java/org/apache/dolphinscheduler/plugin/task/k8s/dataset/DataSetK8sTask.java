@@ -134,7 +134,7 @@ public class DataSetK8sTask extends AbstractK8sTask {
             for (S3FetchInfo s3FetchInfo : s3FetchInfos) {
                 FetchInfo fetchInfo = new FetchInfo();
                 StringBuilder args = new StringBuilder();
-                args.append("[").append("\"").append("s3").append("\"").append(",").append("\"")
+                args.append("[").append("\"").append("obs").append("\"").append(",").append("\"")
                         .append(s3FetchInfo.getHost()).append("\"").append(",").append("\"")
                         .append(s3FetchInfo.getAppKey()).append("\"").append(",").append("\"")
                         .append(s3FetchInfo.getAppSecret()).append("\"").append(",").append("\"")

@@ -55,6 +55,8 @@ public class ExternalSysServiceImpl implements ExternalSysService {
     public static final String FILE3 = "/admin-api/system/sdFileDetail/haitun/haitunSdFileByParentId";
     public static final String S3_STORAGE = "/admin-api/infra/s3File/nextFolderAndFile";
 
+    public static final String S3_DIR_STORAGE = "/admin-api/system/settingTitle/findAllByType";
+
     @Autowired
     private ProjectMapper projectMapper;
 
@@ -544,6 +546,47 @@ public class ExternalSysServiceImpl implements ExternalSysService {
             return responses;
         } catch (Exception e) {
             log.error("get s3 store  error:{},e:{}", msgToJson, e);
+            return null;
+        } finally {
+            try {
+                response.close();
+                httpClient.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    @Override
+    public List<S3StorageDirResponse> getExternalS3DirInfo() {
+        String address = PropertyUtils.getString(EXTERNAL_ADDRESS_LIST);
+        if (StringUtils.isEmpty(address)) {
+            throw new IllegalArgumentException(EXTERNAL_ADDRESS_NOT_EXIST.getMsg());
+        }
+        Map<String, Object> map = new HashMap<>();
+        String msgToJson = JSONUtils.toJsonString(map);
+        log.info("getExternalS3Info dir msg:{}", msgToJson);
+        HttpPost httpPost = HttpRequestUtil.constructHttpPost(address + S3_DIR_STORAGE, msgToJson);
+        CloseableHttpClient httpClient;
+        httpClient = HttpRequestUtil.getHttpClient();
+        CloseableHttpResponse response = null;
+        try {
+            response = httpClient.execute(httpPost);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode != HttpStatus.SC_OK) {
+                log.error("get s3 storage dir error, return http status code: {} ", statusCode);
+            }
+            String resp;
+            HttpEntity entity = response.getEntity();
+            resp = EntityUtils.toString(entity, "utf-8");
+            log.info("s3 store dir page resp :{}", resp.toString());
+            ObjectNode result = JSONUtils.parseObject(resp);
+            String data = result.get("data").toString();
+            List<S3StorageDirResponse> responses = JSONUtils.parseObject(data, new TypeReference<List<S3StorageDirResponse>>() {
+            });
+            return responses;
+        } catch (Exception e) {
+            log.error("get s3 store dir error:{},e:{}", msgToJson, e);
             return null;
         } finally {
             try {

@@ -126,4 +126,13 @@ public class ExternalSysController {
     }
 
 
+    @GetMapping(value = "/external-storage-dir")
+    @ResponseStatus(HttpStatus.OK)
+    public Result<List<S3StorageDirResponse>> getExternalS3DirInfo(
+            @Parameter(hidden = true) @RequestAttribute(value = Constants.SESSION_USER) User loginUser) {
+
+        return Result.success(externalSysService.getExternalS3DirInfo());
+    }
+
+
 }

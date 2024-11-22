@@ -23,4 +23,6 @@ public interface ExternalSysService {
     List<WrapFetchVolumeResponse> getDataSetFileList(String type, String projectName, String dirId);
 
     S3StorageResponse getExternalS3Info(S3StorageRequest request);
+
+    List<S3StorageDirResponse> getExternalS3DirInfo();
 }
