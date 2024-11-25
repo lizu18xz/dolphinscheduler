@@ -257,8 +257,9 @@ public class TaskResultEventHandler implements TaskEventHandler {
                     }
 
                     List<S3FetchInfo> s3FetchInfos = dataSetK8sTaskParameters.getS3FetchInfos();
+                    log.info("s3FetchInfos size:{}", s3FetchInfos.size());
                     if (!CollectionUtils.isEmpty(s3FetchInfos)) {
-                        for (int i = 0; i < fetchInfos.size(); i++) {
+                        for (int i = 0; i < s3FetchInfos.size(); i++) {
                             outputInfoMap.put("sourceId", "");
                             String volumeSuffix = "";
                             if (multiple) {
